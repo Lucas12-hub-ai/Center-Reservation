@@ -47,13 +47,152 @@
 
     </div>
 
+    <!-- 시간 -->
 
-    <!-- 센터 -->
+<div class="form-card">
 
-    <div class="form-card">
+  <div class="form-label">
 
-      <div class="form-label">
-        <div class="label-icon">⌂</div>
+    <div class="label-icon">◷</div>
+
+    <div>
+      <strong>이용시간</strong>
+      <small>시작시간과 종료시간을 선택해주세요.</small>
+    </div>
+
+  </div>
+
+
+  <div class="dropdown-time-section">
+
+    <!-- 시작시간 -->
+
+    <div class="dropdown-time-box">
+
+      <div class="dropdown-time-label">
+
+        <span class="time-badge start">
+          START
+        </span>
+
+        <strong>
+          시작시간
+        </strong>
+
+      </div>
+
+
+      <div
+        id="startTimeDropdown"
+        class="time-dropdown"
+      >
+
+        <button
+          id="startTimeButton"
+          class="time-dropdown-button"
+          type="button"
+        >
+
+          <span id="startTimeValue">
+            시작시간 선택
+          </span>
+
+          <span class="dropdown-arrow">
+            ▾
+          </span>
+
+        </button>
+
+
+        <div
+          id="startTimeMenu"
+          class="time-dropdown-menu"
+        ></div>
+
+      </div>
+
+    </div>
+
+
+
+    <!-- 종료시간 -->
+
+    <div class="dropdown-time-box">
+
+      <div class="dropdown-time-label">
+
+        <span class="time-badge end">
+          END
+        </span>
+
+        <strong>
+          종료시간
+        </strong>
+
+      </div>
+
+
+      <div
+        id="endTimeDropdown"
+        class="time-dropdown"
+      >
+
+        <button
+          id="endTimeButton"
+          class="time-dropdown-button"
+          type="button"
+        >
+
+          <span id="endTimeValue">
+            종료시간 선택
+          </span>
+
+          <span class="dropdown-arrow">
+            ▾
+          </span>
+
+        </button>
+
+
+        <div
+          id="endTimeMenu"
+          class="time-dropdown-menu"
+        ></div>
+
+      </div>
+
+    </div>
+
+  </div>
+
+
+
+  <!-- 이용시간 안내 -->
+
+  <div
+    id="durationDisplay"
+    class="duration-display"
+  >
+
+    <span>
+      총 이용시간
+    </span>
+
+    <strong>
+      선택해주세요
+    </strong>
+
+  </div>
+
+
+  <div class="time-notice">
+
+    💡 시작시간을 먼저 선택하면
+    선택 가능한 종료시간이 자동으로 표시됩니다.
+
+  </div>
+
+</div>
 
         <div>
           <strong>센터명</strong>

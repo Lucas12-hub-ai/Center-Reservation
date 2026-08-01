@@ -51,6 +51,13 @@
       </button>
     </div>
 
+    <!-- 공간(강의실/상담실) 선택 -->
+    <div id="roomSection" class="room-section" style="display:none;">
+      <strong>이용공간</strong>
+      <small>이용하실 강의실 또는 상담실을 선택해주세요.</small>
+      <div id="roomGrid" class="room-select-grid"></div>
+    </div>
+
     <!-- 날짜 -->
     <div class="form-card">
       <div class="form-label">
@@ -163,6 +170,10 @@
         <strong id="quickCenter">선택하기</strong>
       </div>
       <div>
+        <span>공간</span>
+        <strong id="quickRoom">선택하기</strong>
+      </div>
+      <div>
         <span>날짜</span>
         <strong id="quickDate">선택하기</strong>
       </div>
@@ -229,6 +240,7 @@
       <div class="confirm-section">
         <h3>공간 이용 정보</h3>
         <div class="confirm-row"><span>센터</span><strong id="confirmCenter"></strong></div>
+        <div class="confirm-row"><span>이용공간</span><strong id="confirmRoom"></strong></div>
         <div class="confirm-row"><span>이용날짜</span><strong id="confirmDate"></strong></div>
         <div class="confirm-row"><span>이용시간</span><strong id="confirmTime"></strong></div>
         <div class="confirm-row"><span>이용인원</span><strong id="confirmPeople"></strong></div>

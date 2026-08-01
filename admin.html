@@ -1,0 +1,282 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>공간 예약 관리자</title>
+<link rel="stylesheet" href="admin.css">
+</head>
+<body>
+
+<div class="admin-layout">
+
+  <!-- 사이드바 -->
+  <aside class="sidebar">
+    <div class="sidebar-logo">
+      <span class="logo-icon">▦</span>
+      공간 예약 관리자
+    </div>
+
+    <nav class="sidebar-nav">
+      <button class="nav-item active" data-view="dashboard">
+        <span class="nav-icon">⌂</span> 예약 관리
+      </button>
+      <button class="nav-item" data-view="today">
+        <span class="nav-icon">▤</span> 오늘 예약
+      </button>
+      <button class="nav-item" data-view="byCenter">
+        <span class="nav-icon">▥</span> 센터별 예약 현황
+      </button>
+      <button class="nav-item" data-view="stats">
+        <span class="nav-icon">▲</span> 통계
+      </button>
+      <button class="nav-item" data-view="settings">
+        <span class="nav-icon">⚙</span> 설정
+      </button>
+    </nav>
+
+    <div class="sidebar-footer">
+      <div class="admin-account">
+        <span class="account-icon">●</span>
+        <div>
+          <strong>관리자 계정</strong>
+          <small>admin@example.com</small>
+        </div>
+      </div>
+    </div>
+  </aside>
+
+  <!-- 메인 -->
+  <main class="admin-main">
+
+    <!-- ============ 예약 관리 ============ -->
+    <section id="view-dashboard" class="admin-view active">
+
+      <div class="admin-header">
+        <div>
+          <h1>예약 관리</h1>
+          <p>전체 예약 현황을 확인하고 관리할 수 있습니다.</p>
+        </div>
+      </div>
+
+      <div class="summary-grid">
+        <div class="summary-card">
+          <div class="summary-icon blue">📅</div>
+          <div>
+            <span>오늘 예약</span>
+            <strong id="statToday">0건</strong>
+            <small id="statTodayDate"></small>
+          </div>
+        </div>
+        <div class="summary-card">
+          <div class="summary-icon green">🗓</div>
+          <div>
+            <span>이번 주 예약</span>
+            <strong id="statWeek">0건</strong>
+            <small id="statWeekRange"></small>
+          </div>
+        </div>
+        <div class="summary-card">
+          <div class="summary-icon purple">👥</div>
+          <div>
+            <span>이번 달 예약</span>
+            <strong id="statMonth">0건</strong>
+            <small id="statMonthLabel"></small>
+          </div>
+        </div>
+        <div class="summary-card">
+          <div class="summary-icon orange">🏛</div>
+          <div>
+            <span>전체 예약</span>
+            <strong id="statTotal">0건</strong>
+            <small>누적 전체</small>
+          </div>
+        </div>
+      </div>
+
+      <div class="filter-card">
+        <div class="filter-group">
+          <label>날짜</label>
+          <input type="date" id="filterDate">
+        </div>
+        <div class="filter-group">
+          <label>센터</label>
+          <select id="filterCenter">
+            <option value="">전체 센터</option>
+          </select>
+        </div>
+        <div class="filter-group">
+          <label>공간</label>
+          <select id="filterRoom">
+            <option value="">전체 공간</option>
+          </select>
+        </div>
+        <div class="filter-group">
+          <label>예약자</label>
+          <input type="text" id="filterName" placeholder="예약자 이름 검색">
+        </div>
+        <div class="filter-group">
+          <label>목적</label>
+          <input type="text" id="filterPurpose" placeholder="목적 검색">
+        </div>
+        <div class="filter-buttons">
+          <button id="searchBtn" class="filter-search">🔍 검색</button>
+          <button id="resetBtn" class="filter-reset">↺ 초기화</button>
+        </div>
+      </div>
+
+      <div class="list-card">
+        <div class="list-header">
+          <strong id="listTitle">예약 목록 (총 0건)</strong>
+          <div class="list-actions">
+            <button id="refreshBtn" class="ghost-btn">↻ 새로고침</button>
+            <button id="exportBtn" class="ghost-btn">⬇ 엑셀 다운로드</button>
+          </div>
+        </div>
+
+        <div class="table-wrapper">
+          <table class="admin-table">
+            <thead>
+              <tr>
+                <th>번호</th>
+                <th>날짜</th>
+                <th>시간</th>
+                <th>센터</th>
+                <th>공간</th>
+                <th>인원</th>
+                <th>예약자</th>
+                <th>부서</th>
+                <th>연락처</th>
+                <th>목적</th>
+                <th>신청일시</th>
+                <th>관리</th>
+              </tr>
+            </thead>
+            <tbody id="tableBody"></tbody>
+          </table>
+        </div>
+
+        <div class="table-footer">
+          <div id="pagination" class="pagination"></div>
+          <select id="pageSizeSelect">
+            <option value="10">10개씩 보기</option>
+            <option value="20">20개씩 보기</option>
+            <option value="50">50개씩 보기</option>
+          </select>
+        </div>
+      </div>
+
+    </section>
+
+    <!-- ============ 오늘 예약 ============ -->
+    <section id="view-today" class="admin-view">
+      <div class="admin-header">
+        <div>
+          <h1>오늘 예약</h1>
+          <p id="todayDateLabel"></p>
+        </div>
+      </div>
+
+      <div class="list-card">
+        <div class="table-wrapper">
+          <table class="admin-table">
+            <thead>
+              <tr>
+                <th>번호</th><th>시간</th><th>센터</th><th>공간</th><th>인원</th>
+                <th>예약자</th><th>부서</th><th>연락처</th><th>목적</th><th>관리</th>
+              </tr>
+            </thead>
+            <tbody id="todayTableBody"></tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+
+    <!-- ============ 센터별 예약 현황 ============ -->
+    <section id="view-byCenter" class="admin-view">
+      <div class="admin-header">
+        <div>
+          <h1>센터별 예약 현황</h1>
+          <p>카드를 클릭하면 아래 목록이 그 센터로 필터링돼요.</p>
+        </div>
+      </div>
+
+      <div id="centerCards" class="center-card-grid"></div>
+
+      <div class="list-card">
+        <div class="list-header">
+          <strong id="centerListTitle">전체 센터</strong>
+        </div>
+        <div class="table-wrapper">
+          <table class="admin-table">
+            <thead>
+              <tr>
+                <th>번호</th><th>날짜</th><th>시간</th><th>센터</th><th>공간</th><th>인원</th>
+                <th>예약자</th><th>연락처</th><th>목적</th>
+              </tr>
+            </thead>
+            <tbody id="centerTableBody"></tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+
+    <!-- ============ 통계 ============ -->
+    <section id="view-stats" class="admin-view">
+      <div class="admin-header">
+        <div>
+          <h1>통계</h1>
+          <p>전체 예약 데이터를 기준으로 한 간단한 통계입니다.</p>
+        </div>
+      </div>
+
+      <div class="summary-grid" id="statsCards"></div>
+
+      <div class="list-card">
+        <strong>센터별 예약 비율</strong>
+        <div id="centerBarChart" class="bar-chart"></div>
+      </div>
+
+      <div class="list-card">
+        <strong>공간 유형별 예약 비율 (강의실 / 상담실)</strong>
+        <div id="roomTypeBarChart" class="bar-chart"></div>
+      </div>
+    </section>
+
+    <!-- ============ 설정 ============ -->
+    <section id="view-settings" class="admin-view">
+      <div class="admin-header">
+        <div>
+          <h1>설정</h1>
+          <p>관리자 페이지 관련 설정입니다.</p>
+        </div>
+      </div>
+
+      <div class="list-card settings-card">
+        <strong>접근 권한</strong>
+        <p>현재 이 페이지는 <b>비밀번호 없이 URL만 알면 누구나</b> 볼 수 있어요. 나중에 로그인(비밀번호) 보호가 필요하면 말씀해주세요.</p>
+      </div>
+
+      <div class="list-card settings-card">
+        <strong>연결된 데이터베이스</strong>
+        <p>Supabase 프로젝트에 연결되어 실시간으로 예약 데이터를 불러옵니다. (Reservations 테이블)</p>
+      </div>
+    </section>
+
+  </main>
+</div>
+
+<!-- 상세보기 모달 -->
+<div id="detailModal" class="modal-overlay">
+  <div class="modal-box">
+    <div class="modal-header">
+      <strong>예약 상세정보</strong>
+      <button id="closeModal" class="modal-close">✕</button>
+    </div>
+    <div id="modalBody" class="modal-body"></div>
+  </div>
+</div>
+
+<script src="admin.js"></script>
+</body>
+</html>

@@ -1,0 +1,299 @@
+# Center-Reservation
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>SPACE RENTAL | 공간 예약</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+
+<body>
+
+<header class="header">
+  <div class="logo">SPACE RENTAL</div>
+  <div class="header-sub">공간 예약</div>
+</header>
+
+<main class="container">
+
+  <section class="hero">
+    <p class="hero-small">SPACE RENTAL SERVICE</p>
+    <h1>필요한 공간을,<br>필요한 시간만큼.</h1>
+    <p>원하는 센터와 시간을 선택하고<br>간편하게 공간을 예약하세요.</p>
+  </section>
+
+  <!-- 진행 단계 -->
+  <div class="steps">
+    <div class="step active" data-step="1">
+      <span>01</span>
+      <b>센터</b>
+    </div>
+
+    <div class="line"></div>
+
+    <div class="step" data-step="2">
+      <span>02</span>
+      <b>날짜</b>
+    </div>
+
+    <div class="line"></div>
+
+    <div class="step" data-step="3">
+      <span>03</span>
+      <b>시간</b>
+    </div>
+
+    <div class="line"></div>
+
+    <div class="step" data-step="4">
+      <span>04</span>
+      <b>인원</b>
+    </div>
+  </div>
+
+
+  <!-- STEP 1 -->
+  <section class="reservation-section active-section" id="step1">
+
+    <div class="section-title">
+      <span>01</span>
+      <h2>센터명</h2>
+      <p>이용하실 센터를 선택해주세요.</p>
+    </div>
+
+    <div class="center-grid">
+
+      <button class="center-card" data-center="서교1센터" data-capacity="10">
+        <div class="center-image seogyo1"></div>
+        <div class="center-info">
+          <h3>서교1센터</h3>
+          <p>홍대·서교 지역</p>
+          <span>최대 10명</span>
+        </div>
+      </button>
+
+      <button class="center-card" data-center="서교2센터" data-capacity="15">
+        <div class="center-image seogyo2"></div>
+        <div class="center-info">
+          <h3>서교2센터</h3>
+          <p>홍대·서교 지역</p>
+          <span>최대 15명</span>
+        </div>
+      </button>
+
+      <button class="center-card" data-center="명동센터" data-capacity="20">
+        <div class="center-image myeongdong"></div>
+        <div class="center-info">
+          <h3>명동센터</h3>
+          <p>명동 지역</p>
+          <span>최대 20명</span>
+        </div>
+      </button>
+
+      <button class="center-card" data-center="합정역센터" data-capacity="30">
+        <div class="center-image hapjeong"></div>
+        <div class="center-info">
+          <h3>합정역센터</h3>
+          <p>합정역 인근</p>
+          <span>최대 30명</span>
+        </div>
+      </button>
+
+    </div>
+
+    <button class="next-button" id="next1" disabled>
+      다음
+    </button>
+
+  </section>
+
+
+  <!-- STEP 2 -->
+  <section class="reservation-section" id="step2">
+
+    <div class="section-title">
+      <span>02</span>
+      <h2>이용날짜</h2>
+      <p>이용하실 날짜를 선택해주세요.</p>
+    </div>
+
+    <div class="calendar">
+
+      <div class="calendar-header">
+        <button id="prevMonth">‹</button>
+        <h3 id="monthTitle"></h3>
+        <button id="nextMonth">›</button>
+      </div>
+
+      <div class="weekdays">
+        <span class="sun">일</span>
+        <span>월</span>
+        <span>화</span>
+        <span>수</span>
+        <span>목</span>
+        <span>금</span>
+        <span class="sat">토</span>
+      </div>
+
+      <div class="calendar-days" id="calendarDays"></div>
+
+    </div>
+
+    <div class="navigation">
+      <button class="back-button" data-back="1">이전</button>
+      <button class="next-button" id="next2" disabled>다음</button>
+    </div>
+
+  </section>
+
+
+  <!-- STEP 3 -->
+  <section class="reservation-section" id="step3">
+
+    <div class="section-title">
+      <span>03</span>
+      <h2>이용시간</h2>
+      <p>시작 시간을 선택해주세요.</p>
+    </div>
+
+    <div class="selected-date" id="selectedDateText"></div>
+
+    <div class="time-container">
+
+      <h3>오전</h3>
+      <div class="time-grid" id="morningTimes"></div>
+
+      <h3>오후</h3>
+      <div class="time-grid" id="afternoonTimes"></div>
+
+    </div>
+
+    <div class="duration-box">
+
+      <div>
+        <span>이용시간</span>
+        <strong id="durationText">2시간</strong>
+      </div>
+
+      <div class="duration-buttons">
+        <button data-duration="2">기본 2시간</button>
+        <button data-duration="3">+1시간</button>
+        <button data-duration="2.5">+30분</button>
+        <button data-duration="5">+3시간</button>
+      </div>
+
+    </div>
+
+    <div class="navigation">
+      <button class="back-button" data-back="2">이전</button>
+      <button class="next-button" id="next3" disabled>다음</button>
+    </div>
+
+  </section>
+
+
+  <!-- STEP 4 -->
+  <section class="reservation-section" id="step4">
+
+    <div class="section-title">
+      <span>04</span>
+      <h2>이용인원</h2>
+      <p>이용하실 인원을 선택해주세요.</p>
+    </div>
+
+    <div class="people-counter">
+
+      <button id="minusPeople">−</button>
+
+      <div>
+        <strong id="peopleCount">2</strong>
+        <span>명</span>
+      </div>
+
+      <button id="plusPeople">+</button>
+
+    </div>
+
+    <p class="capacity-text" id="capacityText"></p>
+
+    <div class="navigation">
+      <button class="back-button" data-back="3">이전</button>
+      <button class="next-button" id="next4">예약 확인</button>
+    </div>
+
+  </section>
+
+
+  <!-- 예약 확인 -->
+  <section class="reservation-section" id="step5">
+
+    <div class="section-title">
+      <span>CHECK</span>
+      <h2>예약 내용 확인</h2>
+      <p>선택하신 내용을 확인해주세요.</p>
+    </div>
+
+    <div class="summary">
+
+      <div class="summary-row">
+        <span>센터</span>
+        <strong id="summaryCenter"></strong>
+      </div>
+
+      <div class="summary-row">
+        <span>이용날짜</span>
+        <strong id="summaryDate"></strong>
+      </div>
+
+      <div class="summary-row">
+        <span>이용시간</span>
+        <strong id="summaryTime"></strong>
+      </div>
+
+      <div class="summary-row">
+        <span>이용인원</span>
+        <strong id="summaryPeople"></strong>
+      </div>
+
+    </div>
+
+    <button class="reserve-button" id="reserveButton">
+      예약 신청하기
+    </button>
+
+    <button class="restart-button" id="restartButton">
+      처음으로 돌아가기
+    </button>
+
+  </section>
+
+
+  <!-- 완료 -->
+  <section class="reservation-section complete-section" id="complete">
+
+    <div class="complete-icon">✓</div>
+
+    <p>RESERVATION COMPLETE</p>
+
+    <h2>예약 신청이 완료되었습니다.</h2>
+
+    <p class="complete-description">
+      예약 내용을 확인해주세요.<br>
+      이용해주셔서 감사합니다.
+    </p>
+
+    <div class="complete-summary" id="completeSummary"></div>
+
+    <button class="reserve-button" id="homeButton">
+      처음으로
+    </button>
+
+  </section>
+
+</main>
+
+<script src="script.js"></script>
+
+</body>
+</html>

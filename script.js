@@ -644,18 +644,18 @@ document.getElementById("reserveButton").addEventListener("click", async () => {
     // 저장 실패
     if (!response.ok) {
 
-      console.error("예약 저장 실패:", result);
+  console.error("예약 저장 실패:", result);
 
-      alert(
-        "예약 저장에 실패했습니다.\n\n" +
-        (result.message || "Supabase 연결을 확인해주세요.")
-      );
+  alert(
+    "예약 저장에 실패했습니다.\n\n" +
+    JSON.stringify(result, null, 2)
+  );
 
-      reserveButton.disabled = false;
-      reserveButton.textContent = "예약 신청";
+  reserveButton.disabled = false;
+  reserveButton.textContent = "예약 신청";
 
-      return;
-    }
+  return;
+}
 
     // 저장 성공
     console.log("예약 저장 성공:", result);

@@ -868,4 +868,271 @@ button {
     min-height: 55px;
   }
 
+  /* ==========================================
+   시간 드롭다운
+========================================== */
+
+.dropdown-time-section {
+  display: grid;
+
+  grid-template-columns:
+    1fr 1fr;
+
+  gap: 14px;
+}
+
+
+.dropdown-time-box {
+  position: relative;
+}
+
+
+.dropdown-time-label {
+  display: flex;
+
+  align-items: center;
+
+  gap: 9px;
+
+  margin-bottom: 9px;
+}
+
+
+.dropdown-time-label strong {
+  font-size: 14px;
+}
+
+
+.time-dropdown {
+  position: relative;
+
+  width: 100%;
+}
+
+
+.time-dropdown-button {
+  width: 100%;
+
+  height: 58px;
+
+  background: #fafafa;
+
+  border: 1px solid #ddd;
+
+  border-radius: 9px;
+
+  padding: 0 16px;
+
+  display: flex;
+
+  align-items: center;
+
+  justify-content: space-between;
+
+  font-size: 15px;
+
+  font-weight: 600;
+
+  color: #222;
+
+  transition: .2s;
+}
+
+
+.time-dropdown-button:hover {
+  border-color: #aaa;
+
+  background: white;
+}
+
+
+.time-dropdown-button.open {
+  border-color: #111;
+
+  background: white;
+
+  box-shadow:
+    0 0 0 2px rgba(0, 0, 0, .05);
+}
+
+
+.dropdown-arrow {
+  font-size: 17px;
+
+  color: #777;
+
+  transition: .2s;
+}
+
+
+.time-dropdown-button.open
+.dropdown-arrow {
+  transform:
+    rotate(180deg);
+}
+
+
+/* 드롭다운 메뉴 */
+
+.time-dropdown-menu {
+  position: absolute;
+
+  left: 0;
+
+  right: 0;
+
+  top: calc(100% + 6px);
+
+  background: white;
+
+  border: 1px solid #ddd;
+
+  border-radius: 10px;
+
+  padding: 6px;
+
+  max-height: 220px;
+
+  overflow-y: auto;
+
+  box-shadow:
+    0 10px 30px
+    rgba(0, 0, 0, .12);
+
+  z-index: 100;
+
+  display: none;
+}
+
+
+.time-dropdown-menu.show {
+  display: block;
+}
+
+
+/* 스크롤바 */
+
+.time-dropdown-menu::-webkit-scrollbar {
+  width: 5px;
+}
+
+
+.time-dropdown-menu::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+
+.time-dropdown-menu::-webkit-scrollbar-thumb {
+  background: #ccc;
+
+  border-radius: 10px;
+}
+
+
+/* 시간 옵션 */
+
+.time-option {
+  width: 100%;
+
+  height: 44px;
+
+  border: none;
+
+  background: transparent;
+
+  border-radius: 7px;
+
+  display: flex;
+
+  align-items: center;
+
+  justify-content: space-between;
+
+  padding: 0 13px;
+
+  font-size: 14px;
+
+  cursor: pointer;
+}
+
+
+.time-option:hover {
+  background: #f5f5f5;
+}
+
+
+.time-option.selected {
+  background: #fff3a8;
+
+  font-weight: 800;
+}
+
+
+.time-option .check {
+  font-size: 14px;
+
+  display: none;
+}
+
+
+.time-option.selected
+.check {
+  display: block;
+}
+
+
+/* 종료시간 비활성화 */
+
+.time-option.disabled {
+  color: #ccc;
+
+  background: #fafafa;
+
+  cursor: not-allowed;
+}
+
+
+/* 총 이용시간 */
+
+.duration-display {
+  margin-top: 16px;
+
+  padding: 16px 18px;
+
+  background: #111;
+
+  color: white;
+
+  border-radius: 10px;
+
+  display: flex;
+
+  align-items: center;
+
+  justify-content: space-between;
+}
+
+
+.duration-display span {
+  font-size: 12px;
+
+  color: #aaa;
+}
+
+
+.duration-display strong {
+  font-size: 15px;
+}
+
+
+/* 모바일 */
+
+@media (max-width: 650px) {
+
+  .dropdown-time-section {
+    grid-template-columns: 1fr;
+  }
+
+}
+
 }

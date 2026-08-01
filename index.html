@@ -1,284 +1,73 @@
 <!DOCTYPE html>
 <html lang="ko">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-
-  <title> 센터/모임방 공간 예약 시스템</title>
-
-  <link rel="stylesheet" href="style.css">
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>센터/모임방 공간 예약 시스템</title>
+<link rel="stylesheet" href="style.css">
 </head>
-
 <body>
 
 <header class="header">
-
-  <div class="logo">
-    CENTER RENTAL
-  </div>
-
-  <div class="header-title">
-    실시간 예약
-  </div>
-
+  <div class="logo">CENTER RENTAL</div>
+  <div class="header-title">실시간 예약</div>
 </header>
 
-
 <main class="container">
-
 
   <!-- =========================
        예약 페이지
   ========================== -->
-
   <section id="reservationPage" class="page active">
 
     <div class="page-heading">
-
       <span>SPACE RENTAL</span>
-
-      <h1>
-        공간 예약
-      </h1>
-
-      <p>
-        원하는 공간과 시간을 선택해주세요.
-      </p>
-
+      <h1>공간 예약</h1>
+      <p>원하는 공간과 시간을 선택해주세요.</p>
     </div>
 
-    <!-- 시간 -->
-
-<div class="form-card">
-
-  <div class="form-label">
-
-    <div class="label-icon">◷</div>
-
+    <!-- 센터명 -->
     <div>
-      <strong>이용시간</strong>
-      <small>시작시간과 종료시간을 선택해주세요.</small>
+      <strong>센터명</strong>
+      <small>이용하실 센터를 선택해주세요.</small>
     </div>
 
-  </div>
-
-
-  <div class="dropdown-time-section">
-
-    <!-- 시작시간 -->
-
-    <div class="dropdown-time-box">
-
-      <div class="dropdown-time-label">
-
-        <span class="time-badge start">
-          START
-        </span>
-
-        <strong>
-          시작시간
-        </strong>
-
-      </div>
-
-
-      <div
-        id="startTimeDropdown"
-        class="time-dropdown"
-      >
-
-        <button
-          id="startTimeButton"
-          class="time-dropdown-button"
-          type="button"
-        >
-
-          <span id="startTimeValue">
-            시작시간 선택
-          </span>
-
-          <span class="dropdown-arrow">
-            ▾
-          </span>
-
-        </button>
-
-
-        <div
-          id="startTimeMenu"
-          class="time-dropdown-menu"
-        ></div>
-
-      </div>
-
+    <div class="center-select-grid">
+      <button class="center-option" data-center="서교1센터" data-capacity="50">
+        <strong>서교1센터</strong>
+        <span>최대 50명</span>
+      </button>
+      <button class="center-option" data-center="서교2센터" data-capacity="55">
+        <strong>서교2센터</strong>
+        <span>최대 55명</span>
+      </button>
+      <button class="center-option" data-center="명동센터" data-capacity="100">
+        <strong>명동센터</strong>
+        <span>최대 100명</span>
+      </button>
+      <button class="center-option" data-center="합정역센터" data-capacity="100">
+        <strong>합정역센터</strong>
+        <span>최대 100명</span>
+      </button>
     </div>
-
-
-
-    <!-- 종료시간 -->
-
-    <div class="dropdown-time-box">
-
-      <div class="dropdown-time-label">
-
-        <span class="time-badge end">
-          END
-        </span>
-
-        <strong>
-          종료시간
-        </strong>
-
-      </div>
-
-
-      <div
-        id="endTimeDropdown"
-        class="time-dropdown"
-      >
-
-        <button
-          id="endTimeButton"
-          class="time-dropdown-button"
-          type="button"
-        >
-
-          <span id="endTimeValue">
-            종료시간 선택
-          </span>
-
-          <span class="dropdown-arrow">
-            ▾
-          </span>
-
-        </button>
-
-
-        <div
-          id="endTimeMenu"
-          class="time-dropdown-menu"
-        ></div>
-
-      </div>
-
-    </div>
-
-  </div>
-
-
-
-  <!-- 이용시간 안내 -->
-
-  <div
-    id="durationDisplay"
-    class="duration-display"
-  >
-
-    <span>
-      총 이용시간
-    </span>
-
-    <strong>
-      선택해주세요
-    </strong>
-
-  </div>
-
-
-  <div class="time-notice">
-
-    💡 시작시간을 먼저 선택하면
-    선택 가능한 종료시간이 자동으로 표시됩니다.
-
-  </div>
-
-</div>
-
-        <div>
-          <strong>센터명</strong>
-          <small>이용하실 센터를 선택해주세요.</small>
-        </div>
-      </div>
-
-
-      <div class="center-select-grid">
-
-        <button
-          class="center-option"
-          data-center="서교1센터"
-          data-capacity="50"
-        >
-          <strong>서교1센터</strong>
-          <span>최대 50명</span>
-        </button>
-
-
-        <button
-          class="center-option"
-          data-center="서교2센터"
-          data-capacity="55"
-        >
-          <strong>서교2센터</strong>
-          <span>최대 55명</span>
-        </button>
-
-
-        <button
-          class="center-option"
-          data-center="명동센터"
-          data-capacity="100"
-        >
-          <strong>명동센터</strong>
-          <span> 최대 100명</span>
-        </button>
-
-
-        <button
-          class="center-option"
-          data-center="합정역센터"
-          data-capacity="100"
-        >
-          <strong>합정역센터</strong>
-          <span>최대 100명</span>
-        </button>
-
-      </div>
-
-    </div>
-
-
 
     <!-- 날짜 -->
-
     <div class="form-card">
-
       <div class="form-label">
-
         <div class="label-icon">▣</div>
-
         <div>
           <strong>이용날짜</strong>
           <small>이용하실 날짜를 선택해주세요.</small>
         </div>
-
       </div>
 
-
       <div class="calendar">
-
         <div class="calendar-header">
-
           <button id="prevMonth">‹</button>
-
           <strong id="monthTitle"></strong>
-
           <button id="nextMonth">›</button>
-
         </div>
-
-
         <div class="weekdays">
-
           <span class="sun">일</span>
           <span>월</span>
           <span>화</span>
@@ -286,514 +75,194 @@
           <span>목</span>
           <span>금</span>
           <span class="sat">토</span>
-
         </div>
-
-
-        <div
-          id="calendarDays"
-          class="calendar-days"
-        ></div>
-
+        <div id="calendarDays" class="calendar-days"></div>
       </div>
-
     </div>
 
-
-
-    <!-- 시간 -->
-
+    <!-- 시간 (드롭다운) -->
     <div class="form-card">
-
       <div class="form-label">
-
         <div class="label-icon">◷</div>
-
         <div>
           <strong>이용시간</strong>
           <small>시작시간과 종료시간을 선택해주세요.</small>
         </div>
-
       </div>
 
+      <div class="dropdown-time-section">
 
-      <!-- 시작 -->
-
-      <div class="time-section">
-
-        <div class="time-title">
-
-          <span class="time-badge start">
-            START
-          </span>
-
-          <strong>
-            시작시간
-          </strong>
-
-          <span
-            id="startTimeValue"
-            class="selected-time-text"
-          >
-            선택하기
-          </span>
-
+        <!-- 시작시간 -->
+        <div class="dropdown-time-box">
+          <div class="dropdown-time-label">
+            <span class="time-badge start">START</span>
+            <strong>시작시간</strong>
+          </div>
+          <div id="startTimeDropdown" class="time-dropdown">
+            <button id="startTimeButton" class="time-dropdown-button" type="button">
+              <span id="startTimeValue">시작시간 선택</span>
+              <span class="dropdown-arrow">▾</span>
+            </button>
+            <div id="startTimeMenu" class="time-dropdown-menu"></div>
+          </div>
         </div>
 
-
-        <div
-          id="startTimes"
-          class="time-grid"
-        ></div>
-
-      </div>
-
-
-
-      <!-- 종료 -->
-
-      <div class="time-section">
-
-        <div class="time-title">
-
-          <span class="time-badge end">
-            END
-          </span>
-
-          <strong>
-            종료시간
-          </strong>
-
-          <span
-            id="endTimeValue"
-            class="selected-time-text"
-          >
-            선택하기
-          </span>
-
+        <!-- 종료시간 -->
+        <div class="dropdown-time-box">
+          <div class="dropdown-time-label">
+            <span class="time-badge end">END</span>
+            <strong>종료시간</strong>
+          </div>
+          <div id="endTimeDropdown" class="time-dropdown">
+            <button id="endTimeButton" class="time-dropdown-button" type="button">
+              <span id="endTimeValue">종료시간 선택</span>
+              <span class="dropdown-arrow">▾</span>
+            </button>
+            <div id="endTimeMenu" class="time-dropdown-menu"></div>
+          </div>
         </div>
 
-
-        <div
-          id="endTimes"
-          class="time-grid"
-        ></div>
-
       </div>
 
+      <div id="durationDisplay" class="duration-display">
+        <span>총 이용시간</span>
+        <strong>선택해주세요</strong>
+      </div>
 
       <div class="time-notice">
-
-        💡 먼저 <strong>시작시간</strong>을 선택한 후
-        종료시간을 선택해주세요.
-
+        💡 시작시간을 먼저 선택하면 선택 가능한 종료시간이 자동으로 표시됩니다.
       </div>
-
     </div>
 
-
-
     <!-- 인원 -->
-
     <div class="form-card">
-
       <div class="form-label">
-
         <div class="label-icon">♙</div>
-
         <div>
           <strong>이용인원</strong>
           <small>이용하실 인원을 선택해주세요.</small>
         </div>
-
       </div>
-
 
       <div class="people-counter">
-
-        <button id="minusPeople">
-          −
-        </button>
-
-
+        <button id="minusPeople">−</button>
         <div class="people-number">
-
-          <strong id="peopleCount">
-            2
-          </strong>
-
-          <span>
-            명
-          </span>
-
+          <strong id="peopleCount">2</strong>
+          <span>명</span>
         </div>
-
-
-        <button id="plusPeople">
-          +
-        </button>
-
+        <button id="plusPeople">+</button>
       </div>
 
-
-      <p
-        id="capacityText"
-        class="capacity-text"
-      >
-        센터를 먼저 선택해주세요.
-      </p>
-
+      <p id="capacityText" class="capacity-text">센터를 먼저 선택해주세요.</p>
     </div>
 
-
-
     <!-- 선택 내용 -->
-
     <div class="selection-summary">
-
       <div>
         <span>센터</span>
         <strong id="quickCenter">선택하기</strong>
       </div>
-
       <div>
         <span>날짜</span>
         <strong id="quickDate">선택하기</strong>
       </div>
-
       <div>
         <span>시간</span>
         <strong id="quickTime">선택하기</strong>
       </div>
-
       <div>
         <span>인원</span>
         <strong id="quickPeople">2명</strong>
       </div>
-
     </div>
 
-
-    <button
-      id="nextButton"
-      class="main-button"
-      disabled
-    >
-      다음
-    </button>
-
+    <button id="nextButton" class="main-button" disabled>다음</button>
 
   </section>
-
-
 
   <!-- =========================
        예약자 정보
   ========================== -->
-
-  <section
-    id="userPage"
-    class="page"
-  >
-
+  <section id="userPage" class="page">
     <div class="page-heading">
-
       <span>RESERVATION</span>
-
-      <h1>
-        예약자 정보
-      </h1>
-
-      <p>
-        예약에 필요한 정보를 입력해주세요.
-      </p>
-
+      <h1>예약자 정보</h1>
+      <p>예약에 필요한 정보를 입력해주세요.</p>
     </div>
-
 
     <div class="form-card">
-
       <div class="input-group">
-
-        <label>
-          예약자 이름
-          <em>*</em>
-        </label>
-
-        <input
-          id="userName"
-          type="text"
-          placeholder="이름을 입력해주세요."
-        >
-
+        <label>예약자 이름<em>*</em></label>
+        <input id="userName" type="text" placeholder="이름을 입력해주세요.">
       </div>
-
-
       <div class="input-group">
-
-        <label>
-          부서
-          <em>*</em>
-        </label>
-
-        <input
-          id="department"
-          type="text"
-          placeholder="부서명을 입력해주세요."
-        >
-
+        <label>부서<em>*</em></label>
+        <input id="department" type="text" placeholder="부서명을 입력해주세요.">
       </div>
-
-
       <div class="input-group">
-
-        <label>
-          연락처
-          <em>*</em>
-        </label>
-
-        <input
-          id="phone"
-          type="tel"
-          placeholder="010-0000-0000"
-        >
-
+        <label>연락처<em>*</em></label>
+        <input id="phone" type="tel" placeholder="010-0000-0000">
       </div>
-
-
       <div class="input-group">
-
-        <label>
-          사용 목적
-          <em>*</em>
-        </label>
-
-        <textarea
-          id="purpose"
-          placeholder="공간을 사용하는 목적을 입력해주세요."
-          rows="5"
-        ></textarea>
-
+        <label>사용 목적<em>*</em></label>
+        <textarea id="purpose" placeholder="공간을 사용하는 목적을 입력해주세요." rows="5"></textarea>
       </div>
-
     </div>
-
 
     <div class="navigation">
-
-      <button
-        id="backToReservation"
-        class="sub-button"
-      >
-        이전
-      </button>
-
-
-      <button
-        id="checkReservation"
-        class="main-button"
-      >
-        예약 내용 확인
-      </button>
-
+      <button id="backToReservation" class="sub-button">이전</button>
+      <button id="checkReservation" class="main-button">예약 내용 확인</button>
     </div>
-
   </section>
-
-
 
   <!-- =========================
        예약 확인
   ========================== -->
-
-  <section
-    id="confirmPage"
-    class="page"
-  >
-
+  <section id="confirmPage" class="page">
     <div class="page-heading">
-
       <span>CHECK</span>
-
-      <h1>
-        예약 내용 확인
-      </h1>
-
-      <p>
-        입력하신 내용을 확인해주세요.
-      </p>
-
+      <h1>예약 내용 확인</h1>
+      <p>입력하신 내용을 확인해주세요.</p>
     </div>
-
 
     <div class="confirm-card">
-
-
       <div class="confirm-section">
-
-        <h3>
-          공간 이용 정보
-        </h3>
-
-
-        <div class="confirm-row">
-
-          <span>센터</span>
-
-          <strong id="confirmCenter"></strong>
-
-        </div>
-
-
-        <div class="confirm-row">
-
-          <span>이용날짜</span>
-
-          <strong id="confirmDate"></strong>
-
-        </div>
-
-
-        <div class="confirm-row">
-
-          <span>이용시간</span>
-
-          <strong id="confirmTime"></strong>
-
-        </div>
-
-
-        <div class="confirm-row">
-
-          <span>이용인원</span>
-
-          <strong id="confirmPeople"></strong>
-
-        </div>
-
+        <h3>공간 이용 정보</h3>
+        <div class="confirm-row"><span>센터</span><strong id="confirmCenter"></strong></div>
+        <div class="confirm-row"><span>이용날짜</span><strong id="confirmDate"></strong></div>
+        <div class="confirm-row"><span>이용시간</span><strong id="confirmTime"></strong></div>
+        <div class="confirm-row"><span>이용인원</span><strong id="confirmPeople"></strong></div>
       </div>
 
-
-
       <div class="confirm-section">
-
-        <h3>
-          예약자 정보
-        </h3>
-
-
-        <div class="confirm-row">
-
-          <span>예약자</span>
-
-          <strong id="confirmName"></strong>
-
-        </div>
-
-
-        <div class="confirm-row">
-
-          <span>부서</span>
-
-          <strong id="confirmDepartment"></strong>
-
-        </div>
-
-
-        <div class="confirm-row">
-
-          <span>연락처</span>
-
-          <strong id="confirmPhone"></strong>
-
-        </div>
-
-
-        <div class="confirm-row purpose-row">
-
-          <span>사용목적</span>
-
-          <strong id="confirmPurpose"></strong>
-
-        </div>
-
+        <h3>예약자 정보</h3>
+        <div class="confirm-row"><span>예약자</span><strong id="confirmName"></strong></div>
+        <div class="confirm-row"><span>부서</span><strong id="confirmDepartment"></strong></div>
+        <div class="confirm-row"><span>연락처</span><strong id="confirmPhone"></strong></div>
+        <div class="confirm-row purpose-row"><span>사용목적</span><strong id="confirmPurpose"></strong></div>
       </div>
-
     </div>
-
 
     <div class="navigation">
-
-      <button
-        id="backToUser"
-        class="sub-button"
-      >
-        수정하기
-      </button>
-
-
-      <button
-        id="reserveButton"
-        class="main-button"
-      >
-        예약 신청하기
-      </button>
-
+      <button id="backToUser" class="sub-button">수정하기</button>
+      <button id="reserveButton" class="main-button">예약 신청하기</button>
     </div>
-
   </section>
-
-
 
   <!-- =========================
        완료
   ========================== -->
-
-  <section
-    id="completePage"
-    class="page complete-page"
-  >
-
-    <div class="complete-icon">
-      ✓
-    </div>
-
-
-    <span>
-      RESERVATION COMPLETE
-    </span>
-
-
-    <h1>
-      예약 신청이 완료되었습니다.
-    </h1>
-
-
-    <p>
-      예약 내용이 정상적으로 접수되었습니다.
-    </p>
-
-
-    <div
-      id="completeSummary"
-      class="complete-summary"
-    ></div>
-
-
-    <button
-      id="homeButton"
-      class="main-button"
-    >
-      처음으로
-    </button>
-
+  <section id="completePage" class="page complete-page">
+    <div class="complete-icon">✓</div>
+    <span>RESERVATION COMPLETE</span>
+    <h1>예약 신청이 완료되었습니다.</h1>
+    <p>예약 내용이 정상적으로 접수되었습니다.</p>
+    <div id="completeSummary" class="complete-summary"></div>
+    <button id="homeButton" class="main-button">처음으로</button>
   </section>
-
 
 </main>
 
-
 <script src="script.js"></script>
-
 </body>
 </html>

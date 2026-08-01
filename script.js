@@ -618,7 +618,6 @@ document.getElementById("reserveButton").addEventListener("click", async () => {
         headers: {
           "Content-Type": "application/json",
           "apikey": SUPABASE_PUBLISHABLE_KEY,
-          "Authorization": `Bearer ${SUPABASE_PUBLISHABLE_KEY}`,
           "Prefer": "return=representation"
         },
 

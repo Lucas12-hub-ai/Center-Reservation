@@ -1,3 +1,12 @@
+const SUPABASE_URL = "https://ohnxhlbwzakwzhzhkhvt.supabase.co";
+
+const SUPABASE_PUBLISHABLE_KEY = "sb_publishable_v8DnBpF4GX4oABnGOfpRxA_QH6ruB5Q";
+
+const supabaseClient = window.supabase.createClient(
+  SUPABASE_URL,
+  SUPABASE_PUBLISHABLE_KEY
+);
+
 // ==========================================
 // 센터 설정
 // ==========================================
@@ -586,21 +595,73 @@ document.getElementById("backToUser").addEventListener("click", () => {
 });
 
 // ==========================================
-// 예약 신청
+// 예약 신청 → Supabase DB 저장
 // ==========================================
 
-document.getElementById("reserveButton").addEventListener("click", () => {
-  const summary = `
-    <strong>${reservation.center} · ${reservation.room}</strong><br>
-    ${formatDate(reservation.date)}<br>
-    ${reservation.startTime} ~ ${reservation.endTime}<br>
-    ${reservation.people}명<br><br>
-    예약자 : ${reservation.userName}<br>
-    부서 : ${reservation.department}
-  `;
+document.getElementById("reserveButton").addEventListener("click", async () => {
 
-  document.getElementById("completeSummary").innerHTML = summary;
-  showPage(completePage);
+  const reserveButton = document.getElementById("reserveButton");
+
+  // 중복 클릭 방지
+  reserveButton.disabled = true;
+  reserveButton.textContent = "예약 저장 중...";
+
+  try {
+
+    const { data, error } = await supabaseClient
+      .from("Reservations")
+      .insert([
+        {
+          center: reservation.center,
+          room: reservation.room,
+          date: reservation.date,
+          start_time: reservation.startTime,
+          end_time: reservation.endTime,
+          people: reservation.people,
+          user_name: reservation.userName,
+          department: reservation.department,
+          phone: reservation.phone,
+          purpose: reservation.purpose
+        }
+      ])
+      .select();
+
+    // DB 저장 오류
+    if (error) {
+      console.error("예약 저장 오류:", error);
+      alert("예약 저장에 실패했습니다.\n잠시 후 다시 시도해주세요.");
+
+      reserveButton.disabled = false;
+      reserveButton.textContent = "예약 신청";
+
+      return;
+    }
+
+    // DB 저장 성공
+    console.log("예약 저장 성공:", data);
+
+    const summary = `
+      <strong>${reservation.center} · ${reservation.room}</strong><br>
+      ${formatDate(reservation.date)}<br>
+      ${reservation.startTime} ~ ${reservation.endTime}<br>
+      ${reservation.people}명<br><br>
+      예약자 : ${reservation.userName}<br>
+      부서 : ${reservation.department}
+    `;
+
+    document.getElementById("completeSummary").innerHTML = summary;
+
+    showPage(completePage);
+
+  } catch (error) {
+
+    console.error("예약 처리 오류:", error);
+
+    alert("예약 처리 중 문제가 발생했습니다.\n잠시 후 다시 시도해주세요.");
+
+    reserveButton.disabled = false;
+    reserveButton.textContent = "예약 신청";
+  }
 });
 
 // ==========================================

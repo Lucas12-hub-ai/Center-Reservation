@@ -32,6 +32,7 @@ button {
   font-size: 20px;
   font-weight: 800;
   letter-spacing: -0.5px;
+  cursor: pointer;
 }
 
 .header-title {
@@ -279,118 +280,92 @@ button {
 }
 
 /* =========================
-   시간 드롭다운
+   시간 슬롯 (가로 30분 단위)
 ========================= */
 
-.dropdown-time-section {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 14px;
-}
-
-.dropdown-time-box { position: relative; }
-
-.dropdown-time-label {
+.time-slot-nav {
   display: flex;
   align-items: center;
-  gap: 9px;
-  margin-bottom: 9px;
+  gap: 10px;
 }
 
-.dropdown-time-label strong { font-size: 14px; }
-
-.time-dropdown {
-  position: relative;
-  width: 100%;
-}
-
-.time-dropdown-button {
-  width: 100%;
-  height: 58px;
-  background: #fafafa;
+.slot-nav-btn {
+  flex-shrink: 0;
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
   border: 1px solid #ddd;
-  border-radius: 9px;
-  padding: 0 16px;
+  background: white;
+  font-size: 16px;
+  color: #555;
   display: flex;
   align-items: center;
-  justify-content: space-between;
-  font-size: 15px;
-  font-weight: 600;
-  color: #222;
-  transition: .2s;
+  justify-content: center;
+  transition: .15s;
 }
 
-.time-dropdown-button:hover {
-  border-color: #aaa;
-  background: white;
+.slot-nav-btn:hover { background: #f5f5f5; border-color: #aaa; }
+
+.time-slot-wrapper {
+  flex: 1;
+  min-width: 0;
+  overflow-x: auto;
+  scroll-behavior: smooth;
+  padding-bottom: 6px;
 }
 
-.time-dropdown-button.open {
-  border-color: #111;
-  background: white;
-  box-shadow: 0 0 0 2px rgba(0, 0, 0, .05);
-}
+.time-slot-wrapper::-webkit-scrollbar { height: 6px; }
+.time-slot-wrapper::-webkit-scrollbar-track { background: transparent; }
+.time-slot-wrapper::-webkit-scrollbar-thumb { background: #ddd; border-radius: 10px; }
 
-.dropdown-arrow {
-  font-size: 17px;
-  color: #777;
-  transition: .2s;
-}
-
-.time-dropdown-button.open .dropdown-arrow {
-  transform: rotate(180deg);
-}
-
-.time-dropdown-menu {
-  position: absolute;
-  left: 0;
-  right: 0;
-  top: calc(100% + 6px);
-  background: white;
-  border: 1px solid #ddd;
+.time-slot-grid {
+  display: inline-flex;
+  border: 1px solid #eee;
   border-radius: 10px;
-  padding: 6px;
-  max-height: 220px;
-  overflow-y: auto;
-  box-shadow: 0 10px 30px rgba(0, 0, 0, .12);
-  z-index: 100;
-  display: none;
+  overflow: hidden;
 }
 
-.time-dropdown-menu.show { display: block; }
-
-.time-dropdown-menu::-webkit-scrollbar { width: 5px; }
-.time-dropdown-menu::-webkit-scrollbar-track { background: transparent; }
-.time-dropdown-menu::-webkit-scrollbar-thumb { background: #ccc; border-radius: 10px; }
-
-.time-option {
-  width: 100%;
-  height: 44px;
+.time-slot {
+  width: 26px;
+  height: 56px;
+  flex-shrink: 0;
   border: none;
-  background: transparent;
-  border-radius: 7px;
+  border-right: 1px solid rgba(0,0,0,.04);
+  background: #fff8cf; /* 연노란색 = 예약 가능 */
   display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: 0 13px;
-  font-size: 14px;
-  cursor: pointer;
+  align-items: flex-end;
+  justify-content: center;
+  padding-bottom: 6px;
+  transition: .15s;
 }
 
-.time-option:hover { background: #f5f5f5; }
+.time-slot:last-child { border-right: none; }
 
-.time-option.selected {
-  background: #fff3a8;
-  font-weight: 800;
+.slot-label {
+  font-size: 10px;
+  font-weight: 700;
+  color: #a68b00;
+  pointer-events: none;
 }
 
-.time-option .check { font-size: 14px; display: none; }
-.time-option.selected .check { display: block; }
+.time-slot:hover { background: #ffe985; }
 
-.time-option.disabled {
-  color: #ccc;
-  background: #fafafa;
+.time-slot.selected {
+  background: #ffc900;
+}
+
+.time-slot.selected .slot-label { color: #171717; }
+
+.time-slot.booked {
+  background: #eeeeee;
   cursor: not-allowed;
+}
+
+.time-slot.booked .slot-label { color: #bbb; }
+
+.time-slot.start-only {
+  background: #ffc900;
+  box-shadow: inset 0 0 0 2px #111;
 }
 
 .duration-display {
@@ -438,6 +413,27 @@ button {
 
 .people-number strong { font-size: 40px; }
 .people-number span { font-size: 14px; color: #777; }
+
+.people-input {
+  width: 70px;
+  border: none;
+  background: transparent;
+  font-size: 40px;
+  font-weight: 700;
+  text-align: right;
+  outline: none;
+  font-family: inherit;
+  color: #171717;
+  -moz-appearance: textfield;
+}
+
+.people-input::-webkit-outer-spin-button,
+.people-input::-webkit-inner-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+
+.people-input:focus { color: #b88a00; }
 
 .capacity-text { text-align: center; color: #999; font-size: 12px; }
 
@@ -649,9 +645,5 @@ button {
 
   .navigation { grid-template-columns: 1fr 1.7fr; }
   .confirm-row { min-height: 55px; }
-
-  .dropdown-time-section {
-    grid-template-columns: 1fr;
-  }
 
 }

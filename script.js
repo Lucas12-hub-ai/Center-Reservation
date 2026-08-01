@@ -67,6 +67,8 @@ centerOptions.forEach(option => {
     reservation.center = option.dataset.center;
     reservation.capacity = Number(option.dataset.capacity);
     reservation.room = ""; // 센터가 바뀌면 공간 선택은 초기화
+    reservation.startTime = ""; // 센터마다 운영시간이 다르므로 시간도 초기화
+    reservation.endTime = "";
 
     document.getElementById("capacityText").textContent =
       `${reservation.center}은 최대 ${reservation.capacity}명까지 이용할 수 있습니다.`;
@@ -80,6 +82,9 @@ centerOptions.forEach(option => {
     }
 
     renderRooms();
+    renderTimeSlots();
+    updateDuration();
+    updateQuickTime();
     validateReservation();
   });
 });
@@ -183,12 +188,8 @@ function renderCalendar() {
       reservation.endTime = "";
 
       renderCalendar();
-      renderStartTimes();
-      renderEndTimes();
+      renderTimeSlots();
       updateDuration();
-
-      document.getElementById("startTimeValue").textContent = "시작시간 선택";
-      document.getElementById("endTimeValue").textContent = "종료시간 선택";
 
       document.getElementById("quickDate").textContent = `${year}년 ${month + 1}월 ${day}일`;
 
@@ -234,140 +235,154 @@ function timeToMinutes(time) {
 }
 
 // ==========================================
-// 드롭다운 요소
+// 시간 슬롯 (가로 30분 단위)
 // ==========================================
 
-const startTimeButton = document.getElementById("startTimeButton");
-const endTimeButton = document.getElementById("endTimeButton");
-const startTimeMenu = document.getElementById("startTimeMenu");
-const endTimeMenu = document.getElementById("endTimeMenu");
+const timeSlotNotice = document.getElementById("timeSlotNotice");
+const timeSlotWrapperOuter = document.getElementById("timeSlotWrapperOuter");
+const timeSlotWrapper = document.getElementById("timeSlotWrapper");
+const timeSlotGrid = document.getElementById("timeSlotGrid");
 
 // ==========================================
-// 시작시간 메뉴
+// 예약 마감(이미 예약된) 시간 - 테스트용 데이터
 // ==========================================
+// 실제로는 서버/DB에서 그 센터·그 날짜에 이미 예약된 시간을
+// 불러와서 채워야 해요. 지금은 테스트용으로 직접 값을 넣어볼 수 있어요.
+// key 형식: "센터명_YYYY-MM-DD" → 예약 마감된 시작시간 배열
+//
+// 예시)
+// const bookedSlots = {
+//   "명동센터_2026-08-05": ["09:00", "09:30", "13:00"]
+// };
 
-function renderStartTimes() {
-  startTimeMenu.innerHTML = "";
+const bookedSlots = {};
 
-  allTimes.forEach(time => {
-    // 00:00은 시작시간에서 제외
-    if (time === "00:00") return;
-
-    const option = document.createElement("button");
-    option.type = "button";
-    option.className = "time-option";
-    option.innerHTML = `<span>${time}</span><span class="check">✓</span>`;
-
-    if (reservation.startTime === time) {
-      option.classList.add("selected");
-    }
-
-    option.addEventListener("click", () => {
-      reservation.startTime = time;
-      // 시작시간이 변경되면 종료시간 초기화
-      reservation.endTime = "";
-
-      document.getElementById("startTimeValue").textContent = time;
-      document.getElementById("endTimeValue").textContent = "종료시간 선택";
-
-      closeDropdowns();
-      renderStartTimes();
-      renderEndTimes();
-      updateQuickTime();
-      updateDuration();
-      validateReservation();
-    });
-
-    startTimeMenu.appendChild(option);
-  });
+function isBooked(time) {
+  const key = `${reservation.center}_${reservation.date}`;
+  return (bookedSlots[key] || []).includes(time);
 }
 
-// ==========================================
-// 종료시간 메뉴
-// ==========================================
+function generateSlots(open, close) {
+  const [oh, om] = open.split(":").map(Number);
+  const [ch, cm] = close.split(":").map(Number);
 
-function renderEndTimes() {
-  endTimeMenu.innerHTML = "";
+  const startMinutes = oh * 60 + om;
+  const endMinutes = ch * 60 + cm;
 
-  allTimes.forEach(time => {
-    const option = document.createElement("button");
-    option.type = "button";
-    option.className = "time-option";
-    option.innerHTML = `<span>${time}</span><span class="check">✓</span>`;
+  const slots = [];
 
-    // 시작시간이 없으면 모든 종료시간 비활성화
-    if (!reservation.startTime) {
-      option.classList.add("disabled");
-      option.disabled = true;
-      endTimeMenu.appendChild(option);
+  for (let m = startMinutes; m < endMinutes; m += 30) {
+    const h = Math.floor(m / 60);
+    const mm = m % 60;
+    slots.push(`${String(h).padStart(2, "0")}:${String(mm).padStart(2, "0")}`);
+  }
+
+  return slots;
+}
+
+function addThirtyMinutes(time) {
+  const minutes = timeToMinutes(time) + 30;
+  const h = Math.floor(minutes / 60);
+  const m = minutes % 60;
+  return `${String(h).padStart(2, "0")}:${String(m).padStart(2, "0")}`;
+}
+
+function renderTimeSlots() {
+  timeSlotGrid.innerHTML = "";
+
+  // 센터를 선택하지 않았으면 안내 문구만 표시
+  if (!reservation.center) {
+    timeSlotNotice.style.display = "block";
+    timeSlotWrapperOuter.style.display = "none";
+    return;
+  }
+
+  timeSlotNotice.style.display = "none";
+  timeSlotWrapperOuter.style.display = "flex";
+
+  const center = centers[reservation.center];
+  const slots = generateSlots(center.open, center.close);
+
+  const startMinutes = reservation.startTime ? timeToMinutes(reservation.startTime) : null;
+  const endMinutes = reservation.endTime ? timeToMinutes(reservation.endTime) : null;
+
+  slots.forEach(time => {
+    const minutes = timeToMinutes(time);
+    const isHourMark = minutes % 60 === 0;
+    const booked = isBooked(time);
+
+    const button = document.createElement("button");
+    button.type = "button";
+    button.className = "time-slot";
+    button.title = time;
+
+    if (isHourMark) {
+      button.innerHTML = `<span class="slot-label">${String(Math.floor(minutes / 60)).padStart(2, "0")}</span>`;
+    }
+
+    if (booked) {
+      button.classList.add("booked");
+      button.disabled = true;
+      timeSlotGrid.appendChild(button);
       return;
     }
 
-    const startMinutes = timeToMinutes(reservation.startTime);
-    const endMinutes = timeToMinutes(time);
-
-    // 시작시간보다 같거나 이르면 선택 불가능
-    if (endMinutes <= startMinutes) {
-      option.classList.add("disabled");
-      option.disabled = true;
+    if (startMinutes !== null && endMinutes !== null && minutes >= startMinutes && minutes < endMinutes) {
+      button.classList.add("selected");
+    } else if (startMinutes !== null && endMinutes === null && minutes === startMinutes) {
+      button.classList.add("selected", "start-only");
     }
 
-    if (reservation.endTime === time) {
-      option.classList.add("selected");
-    }
+    button.addEventListener("click", () => handleSlotClick(time));
 
-    if (!option.disabled) {
-      option.addEventListener("click", () => {
-        reservation.endTime = time;
-        document.getElementById("endTimeValue").textContent = time;
-
-        closeDropdowns();
-        renderEndTimes();
-        updateQuickTime();
-        updateDuration();
-        validateReservation();
-      });
-    }
-
-    endTimeMenu.appendChild(option);
+    timeSlotGrid.appendChild(button);
   });
 }
 
-// ==========================================
-// 드롭다운 열기 / 닫기
-// ==========================================
+function handleSlotClick(time) {
+  const clickedMinutes = timeToMinutes(time);
 
-startTimeButton.addEventListener("click", (event) => {
-  event.stopPropagation();
-  const isOpen = startTimeMenu.classList.contains("show");
-  closeDropdowns();
-  if (!isOpen) {
-    startTimeMenu.classList.add("show");
-    startTimeButton.classList.add("open");
+  if (!reservation.startTime || reservation.endTime) {
+    // 새로 시작 (아직 시작시간이 없거나, 이미 완성된 선택이 있으면 새로 시작)
+    reservation.startTime = time;
+    reservation.endTime = "";
+  } else {
+    const startMinutes = timeToMinutes(reservation.startTime);
+
+    if (clickedMinutes <= startMinutes) {
+      // 시작시간과 같거나 이전 칸을 누르면 새로 시작
+      reservation.startTime = time;
+      reservation.endTime = "";
+    } else {
+      const candidateEnd = addThirtyMinutes(time);
+
+      if (hasBookedBetween(reservation.startTime, candidateEnd)) {
+        alert("선택한 구간 중간에 이미 예약이 있어요. 다른 시간을 선택해주세요.");
+        return;
+      }
+
+      reservation.endTime = candidateEnd;
+    }
   }
-});
 
-endTimeButton.addEventListener("click", (event) => {
-  event.stopPropagation();
-  const isOpen = endTimeMenu.classList.contains("show");
-  closeDropdowns();
-  if (!isOpen) {
-    endTimeMenu.classList.add("show");
-    endTimeButton.classList.add("open");
-  }
-});
-
-function closeDropdowns() {
-  startTimeMenu.classList.remove("show");
-  endTimeMenu.classList.remove("show");
-  startTimeButton.classList.remove("open");
-  endTimeButton.classList.remove("open");
+  renderTimeSlots();
+  updateDuration();
+  updateQuickTime();
+  validateReservation();
 }
 
-// 화면 다른 곳 클릭하면 닫기
-document.addEventListener("click", () => {
-  closeDropdowns();
-});
+function hasBookedBetween(startTime, endTime) {
+  const center = centers[reservation.center];
+  const slots = generateSlots(center.open, center.close);
+
+  const startMinutes = timeToMinutes(startTime);
+  const endMinutes = timeToMinutes(endTime);
+
+  return slots.some(time => {
+    const minutes = timeToMinutes(time);
+    return minutes >= startMinutes && minutes < endMinutes && isBooked(time);
+  });
+}
 
 // ==========================================
 // 총 이용시간 계산
@@ -425,9 +440,17 @@ function updateQuickTime() {
 }
 
 // 초기화
-renderStartTimes();
-renderEndTimes();
+renderTimeSlots();
 updateDuration();
+
+// 좌우 화살표로 시간슬롯 넘기기
+document.getElementById("prevSlot").addEventListener("click", () => {
+  timeSlotWrapper.scrollBy({ left: -156, behavior: "smooth" }); // 6칸(3시간)씩 이동
+});
+
+document.getElementById("nextSlot").addEventListener("click", () => {
+  timeSlotWrapper.scrollBy({ left: 156, behavior: "smooth" });
+});
 
 // ==========================================
 // 인원
@@ -436,7 +459,7 @@ updateDuration();
 const peopleCount = document.getElementById("peopleCount");
 
 function updatePeople() {
-  peopleCount.textContent = reservation.people;
+  peopleCount.value = reservation.people;
   document.getElementById("quickPeople").textContent = `${reservation.people}명`;
 }
 
@@ -452,6 +475,23 @@ document.getElementById("plusPeople").addEventListener("click", () => {
     reservation.people++;
     updatePeople();
   }
+});
+
+// 숫자를 직접 입력했을 때 (입력 중에는 그대로 두고, 포커스가 벗어나면 검증)
+peopleCount.addEventListener("change", () => {
+  let value = parseInt(peopleCount.value, 10);
+
+  if (isNaN(value) || value < 1) {
+    value = 1;
+  }
+
+  if (reservation.capacity && value > reservation.capacity) {
+    value = reservation.capacity;
+    alert(`${reservation.center}은 최대 ${reservation.capacity}명까지 이용할 수 있습니다.`);
+  }
+
+  reservation.people = value;
+  updatePeople();
 });
 
 updatePeople();
@@ -569,4 +609,12 @@ document.getElementById("reserveButton").addEventListener("click", () => {
 
 document.getElementById("homeButton").addEventListener("click", () => {
   location.reload();
+});
+
+// ==========================================
+// 로고 클릭 → 첫 페이지로 이동
+// ==========================================
+
+document.getElementById("logoHome").addEventListener("click", () => {
+  showPage(reservationPage);
 });

@@ -610,55 +610,39 @@ document.getElementById("reserveButton").addEventListener("click", async () => {
 
   try {
 
-    const response = await fetch(
-      `${SUPABASE_URL}/rest/v1/Reservations`,
-      {
-        method: "POST",
+    const { data, error } = await supabaseClient
+      .from("Reservations")
+      .insert({
+        center: reservation.center,
+        room: reservation.room,
+        date: reservation.date,
+        start_time: reservation.startTime,
+        end_time: reservation.endTime,
+        people: reservation.people,
+        user_name: reservation.userName,
+        department: reservation.department,
+        phone: reservation.phone,
+        purpose: reservation.purpose
+      })
+      .select();
 
-        headers: {
-          "Content-Type": "application/json",
-          "apikey": SUPABASE_PUBLISHABLE_KEY,
-          "Prefer": "return=representation"
-        },
+    console.log("Supabase data:", data);
+    console.log("Supabase error:", error);
 
-        body: JSON.stringify({
-          center: reservation.center,
-          room: reservation.room,
-          date: reservation.date,
-          start_time: reservation.startTime,
-          end_time: reservation.endTime,
-          people: reservation.people,
-          user_name: reservation.userName,
-          department: reservation.department,
-          phone: reservation.phone,
-          purpose: reservation.purpose
-        })
-      }
-    );
+    if (error) {
 
-    const result = await response.json();
+      alert(
+        "예약 저장에 실패했습니다.\n\n" +
+        JSON.stringify(error, null, 2)
+      );
 
-    console.log("Supabase 응답:", result);
+      reserveButton.disabled = false;
+      reserveButton.textContent = "예약 신청";
 
-    // 저장 실패
-    if (!response.ok) {
-
-  console.error("예약 저장 실패:", result);
-
-  alert(
-    "예약 저장에 실패했습니다.\n\n" +
-    JSON.stringify(result, null, 2)
-  );
-
-  reserveButton.disabled = false;
-  reserveButton.textContent = "예약 신청";
-
-  return;
-}
+      return;
+    }
 
     // 저장 성공
-    console.log("예약 저장 성공:", result);
-
     const summary = `
       <strong>${reservation.center} · ${reservation.room}</strong><br>
       ${formatDate(reservation.date)}<br>
@@ -677,7 +661,8 @@ document.getElementById("reserveButton").addEventListener("click", async () => {
     console.error("예약 처리 오류:", error);
 
     alert(
-      "예약 처리 중 문제가 발생했습니다.\n잠시 후 다시 시도해주세요."
+      "예약 처리 중 문제가 발생했습니다.\n\n" +
+      JSON.stringify(error, null, 2)
     );
 
     reserveButton.disabled = false;

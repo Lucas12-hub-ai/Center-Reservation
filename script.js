@@ -1,100 +1,165 @@
 // ==========================================
-// 예약 데이터
+// 센터 설정
 // ==========================================
+//
+// 나중에 센터별 운영시간이나 최대인원을
+// 여기에서 쉽게 수정할 수 있습니다.
+//
 
-const reservation = {
-  center: "",
-  capacity: 10,
-  date: "",
-  time: "",
-  duration: 2,
-  people: 2
+const centers = {
+
+  "서교1센터": {
+    capacity: 10,
+    open: "06:00",
+    close: "24:00"
+  },
+
+  "서교2센터": {
+    capacity: 15,
+    open: "06:00",
+    close: "24:00"
+  },
+
+  "명동센터": {
+    capacity: 20,
+    open: "06:00",
+    close: "24:00"
+  },
+
+  "합정역센터": {
+    capacity: 30,
+    open: "06:00",
+    close: "24:00"
+  }
+
 };
 
 
 // ==========================================
-// STEP 이동
+// 예약 데이터
 // ==========================================
 
-function goToStep(stepNumber) {
+const reservation = {
 
-  document.querySelectorAll(".reservation-section")
-    .forEach(section => {
-      section.classList.remove("active-section");
-    });
+  center: "",
 
-  const target = document.getElementById(
-    stepNumber === 5 ? "step5" :
-    stepNumber === 6 ? "complete" :
-    `step${stepNumber}`
-  );
+  capacity: 0,
 
-  if (target) {
-    target.classList.add("active-section");
-  }
+  date: "",
 
-  document.querySelectorAll(".step")
-    .forEach(step => {
-      step.classList.remove("active");
-    });
+  startTime: "",
 
-  if (stepNumber <= 4) {
-    document.querySelector(
-      `.step[data-step="${stepNumber}"]`
-    ).classList.add("active");
-  }
+  endTime: "",
+
+  people: 2,
+
+  userName: "",
+
+  department: "",
+
+  phone: "",
+
+  purpose: ""
+
+};
+
+
+// ==========================================
+// 페이지
+// ==========================================
+
+const reservationPage =
+  document.getElementById("reservationPage");
+
+const userPage =
+  document.getElementById("userPage");
+
+const confirmPage =
+  document.getElementById("confirmPage");
+
+const completePage =
+  document.getElementById("completePage");
+
+
+function showPage(page) {
+
+  document.querySelectorAll(".page")
+    .forEach(p =>
+      p.classList.remove("active")
+    );
+
+  page.classList.add("active");
 
   window.scrollTo({
     top: 0,
     behavior: "smooth"
   });
+
 }
 
 
 // ==========================================
-// STEP 1 - 센터
+// 센터 선택
 // ==========================================
 
-const centerCards =
-  document.querySelectorAll(".center-card");
+const centerOptions =
+  document.querySelectorAll(".center-option");
 
-const next1 =
-  document.getElementById("next1");
 
-centerCards.forEach(card => {
+centerOptions.forEach(option => {
 
-  card.addEventListener("click", () => {
+  option.addEventListener("click", () => {
 
-    centerCards.forEach(c =>
-      c.classList.remove("selected")
+    centerOptions.forEach(item =>
+      item.classList.remove("selected")
     );
 
-    card.classList.add("selected");
+    option.classList.add("selected");
+
 
     reservation.center =
-      card.dataset.center;
+      option.dataset.center;
+
 
     reservation.capacity =
-      Number(card.dataset.capacity);
+      Number(option.dataset.capacity);
 
-    next1.disabled = false;
+
+    document.getElementById(
+      "capacityText"
+    ).textContent =
+      `${reservation.center}은 최대 ${reservation.capacity}명까지 이용할 수 있습니다.`;
+
+
+    document.getElementById(
+      "quickCenter"
+    ).textContent =
+      reservation.center;
+
+
+    // 인원이 최대인원을 넘는 경우
+    if (
+      reservation.people >
+      reservation.capacity
+    ) {
+
+      reservation.people =
+        reservation.capacity;
+
+      updatePeople();
+
+    }
+
+
+    validateReservation();
+
   });
 
 });
 
 
-next1.addEventListener("click", () => {
-
-  document.getElementById("capacityText").textContent =
-    `${reservation.center} 이용 가능 인원은 최대 ${reservation.capacity}명입니다.`;
-
-  goToStep(2);
-
-});
-
-
 // ==========================================
-// STEP 2 - 달력
+// 달력
 // ==========================================
 
 const calendarDays =
@@ -103,61 +168,110 @@ const calendarDays =
 const monthTitle =
   document.getElementById("monthTitle");
 
-let currentDate = new Date();
 
-const today = new Date();
+let currentDate =
+  new Date();
+
+
+const today =
+  new Date();
+
 
 function renderCalendar() {
 
   calendarDays.innerHTML = "";
 
-  const year = currentDate.getFullYear();
-  const month = currentDate.getMonth();
+
+  const year =
+    currentDate.getFullYear();
+
+
+  const month =
+    currentDate.getMonth();
+
 
   monthTitle.textContent =
     `${year}.${String(month + 1).padStart(2, "0")}`;
 
+
   const firstDay =
-    new Date(year, month, 1).getDay();
+    new Date(
+      year,
+      month,
+      1
+    ).getDay();
+
 
   const lastDate =
-    new Date(year, month + 1, 0).getDate();
+    new Date(
+      year,
+      month + 1,
+      0
+    ).getDate();
 
-  for (let i = 0; i < firstDay; i++) {
 
-    const empty = document.createElement("div");
+  // 빈 칸
+  for (
+    let i = 0;
+    i < firstDay;
+    i++
+  ) {
+
+    const empty =
+      document.createElement("div");
 
     calendarDays.appendChild(empty);
+
   }
 
 
-  for (let day = 1; day <= lastDate; day++) {
+  // 날짜
+  for (
+    let day = 1;
+    day <= lastDate;
+    day++
+  ) {
 
     const button =
       document.createElement("button");
 
-    button.textContent = day;
+
+    button.textContent =
+      day;
 
 
     const dateObject =
-      new Date(year, month, day);
+      new Date(
+        year,
+        month,
+        day
+      );
 
 
-    // 과거 날짜
-    if (
-      dateObject <
+    const todayOnly =
       new Date(
         today.getFullYear(),
         today.getMonth(),
         today.getDate()
-      )
+      );
+
+
+    // 과거
+    if (
+      dateObject <
+      todayOnly
     ) {
 
-      button.classList.add("disabled");
+      button.classList.add(
+        "disabled"
+      );
 
-      calendarDays.appendChild(button);
+      calendarDays.appendChild(
+        button
+      );
 
       continue;
+
     }
 
 
@@ -167,99 +281,117 @@ function renderCalendar() {
       month === today.getMonth() &&
       day === today.getDate()
     ) {
-      button.classList.add("today");
+
+      button.classList.add(
+        "today"
+      );
+
     }
 
 
-    // 선택된 날짜
     const dateString =
       `${year}-${String(month + 1).padStart(2, "0")}-${String(day).padStart(2, "0")}`;
 
-    if (reservation.date === dateString) {
-      button.classList.add("selected");
+
+    if (
+      reservation.date ===
+      dateString
+    ) {
+
+      button.classList.add(
+        "selected"
+      );
+
     }
 
 
-    button.addEventListener("click", () => {
+    button.addEventListener(
+      "click",
+      () => {
 
-      reservation.date = dateString;
-
-      renderCalendar();
-
-      document.getElementById(
-        "next2"
-      ).disabled = false;
-
-      document.getElementById(
-        "selectedDateText"
-      ).textContent =
-        `${year}년 ${month + 1}월 ${day}일`;
-
-    });
+        reservation.date =
+          dateString;
 
 
-    calendarDays.appendChild(button);
+        // 날짜가 변경되면 시간 초기화
+        reservation.startTime = "";
+
+        reservation.endTime = "";
+
+
+        renderCalendar();
+
+        renderTimes();
+
+
+        document.getElementById(
+          "quickDate"
+        ).textContent =
+          `${year}년 ${month + 1}월 ${day}일`;
+
+
+        validateReservation();
+
+      }
+    );
+
+
+    calendarDays.appendChild(
+      button
+    );
+
   }
+
 }
 
 
-document.getElementById("prevMonth")
-  .addEventListener("click", () => {
+document.getElementById(
+  "prevMonth"
+).addEventListener(
+  "click",
+  () => {
 
     currentDate.setMonth(
       currentDate.getMonth() - 1
     );
 
     renderCalendar();
-  });
+
+  }
+);
 
 
-document.getElementById("nextMonth")
-  .addEventListener("click", () => {
+document.getElementById(
+  "nextMonth"
+).addEventListener(
+  "click",
+  () => {
 
     currentDate.setMonth(
       currentDate.getMonth() + 1
     );
 
     renderCalendar();
-  });
 
-
-document.getElementById("next2")
-  .addEventListener("click", () => {
-
-    generateTimes();
-
-    goToStep(3);
-
-  });
+  }
+);
 
 
 renderCalendar();
 
 
 // ==========================================
-// STEP 3 - 시간
+// 시간 생성
 // ==========================================
 
-const morningTimes =
-  document.getElementById("morningTimes");
-
-const afternoonTimes =
-  document.getElementById("afternoonTimes");
-
-
-function generateTimes() {
-
-  morningTimes.innerHTML = "";
-  afternoonTimes.innerHTML = "";
+function createTimeList() {
 
   const times = [];
 
 
   for (
     let hour = 0;
-    hour <= 23;
+    hour < 24;
     hour++
   ) {
 
@@ -269,107 +401,322 @@ function generateTimes() {
       minute += 30
     ) {
 
-      if (hour === 0 && minute === 30) continue;
+      const time =
+        `${String(hour).padStart(2, "0")}:${String(minute).padStart(2, "0")}`;
 
-      const h =
-        String(hour).padStart(2, "0");
 
-      const m =
-        String(minute).padStart(2, "0");
+      times.push(time);
 
-      times.push(`${h}:${m}`);
     }
+
   }
 
 
-  times.forEach(time => {
+  return times;
+
+}
+
+
+const allTimes =
+  createTimeList();
+
+
+// ==========================================
+// 시간 → 분 변환
+// ==========================================
+
+function timeToMinutes(time) {
+
+  const [hour, minute] =
+    time.split(":").map(Number);
+
+  return hour * 60 + minute;
+
+}
+
+
+// ==========================================
+// 시간 렌더링
+// ==========================================
+
+function renderTimes() {
+
+  const startContainer =
+    document.getElementById(
+      "startTimes"
+    );
+
+
+  const endContainer =
+    document.getElementById(
+      "endTimes"
+    );
+
+
+  startContainer.innerHTML = "";
+
+  endContainer.innerHTML = "";
+
+
+  // ==============================
+  // 시작시간
+  // ==============================
+
+  allTimes.forEach(time => {
 
     const button =
       document.createElement("button");
 
-    button.className = "time-button";
 
-    button.textContent = time;
+    button.className =
+      "time-button";
 
 
-    if (reservation.time === time) {
-      button.classList.add("selected");
+    button.textContent =
+      time;
+
+
+    // 24:00은 종료용
+    if (time === "00:00") {
+
+      button.classList.add(
+        "disabled"
+      );
+
+      button.disabled = true;
+
+      startContainer.appendChild(
+        button
+      );
+
+      return;
+
     }
 
 
-    button.addEventListener("click", () => {
+    if (
+      reservation.startTime ===
+      time
+    ) {
 
-      document.querySelectorAll(".time-button")
-        .forEach(b =>
-          b.classList.remove("selected")
-        );
+      button.classList.add(
+        "selected"
+      );
 
-      button.classList.add("selected");
-
-      reservation.time = time;
-
-      document.getElementById(
-        "next3"
-      ).disabled = false;
-
-    });
-
-
-    const hour =
-      Number(time.split(":")[0]);
-
-    if (hour < 12) {
-      morningTimes.appendChild(button);
-    } else {
-      afternoonTimes.appendChild(button);
     }
+
+
+    button.addEventListener(
+      "click",
+      () => {
+
+        reservation.startTime =
+          time;
+
+
+        // 시작시간을 변경하면 종료시간 초기화
+        reservation.endTime =
+          "";
+
+
+        document.getElementById(
+          "startTimeValue"
+        ).textContent =
+          time;
+
+
+        document.getElementById(
+          "endTimeValue"
+        ).textContent =
+          "선택하기";
+
+
+        renderTimes();
+
+
+        updateQuickTime();
+
+
+        validateReservation();
+
+      }
+    );
+
+
+    startContainer.appendChild(
+      button
+    );
+
+  });
+
+
+  // ==============================
+  // 종료시간
+  // ==============================
+
+  allTimes.forEach(time => {
+
+    const button =
+      document.createElement("button");
+
+
+    button.className =
+      "time-button";
+
+
+    button.textContent =
+      time;
+
+
+    // 시작시간을 선택하지 않았으면
+    // 종료시간 선택 불가
+    if (!reservation.startTime) {
+
+      button.classList.add(
+        "disabled"
+      );
+
+      button.disabled = true;
+
+      endContainer.appendChild(
+        button
+      );
+
+      return;
+
+    }
+
+
+    const startMinutes =
+      timeToMinutes(
+        reservation.startTime
+      );
+
+
+    const endMinutes =
+      timeToMinutes(time);
+
+
+    // 시작시간보다 같거나 이전
+    if (
+      endMinutes <=
+      startMinutes
+    ) {
+
+      button.classList.add(
+        "disabled"
+      );
+
+      button.disabled = true;
+
+      endContainer.appendChild(
+        button
+      );
+
+      return;
+
+    }
+
+
+    if (
+      reservation.endTime ===
+      time
+    ) {
+
+      button.classList.add(
+        "selected"
+      );
+
+    }
+
+
+    button.addEventListener(
+      "click",
+      () => {
+
+        reservation.endTime =
+          time;
+
+
+        document.getElementById(
+          "endTimeValue"
+        ).textContent =
+          time;
+
+
+        renderTimes();
+
+
+        updateQuickTime();
+
+
+        validateReservation();
+
+      }
+    );
+
+
+    endContainer.appendChild(
+      button
+    );
 
   });
 
 }
 
 
-document.querySelectorAll(
-  ".duration-buttons button"
-).forEach(button => {
-
-  button.addEventListener("click", () => {
-
-    document.querySelectorAll(
-      ".duration-buttons button"
-    ).forEach(b =>
-      b.classList.remove("selected")
-    );
-
-    button.classList.add("selected");
-
-    reservation.duration =
-      Number(button.dataset.duration);
-
-    document.getElementById(
-      "durationText"
-    ).textContent =
-      `${reservation.duration}시간`;
-
-  });
-
-});
-
-
-document.getElementById("next3")
-  .addEventListener("click", () => {
-
-    goToStep(4);
-
-  });
+renderTimes();
 
 
 // ==========================================
-// STEP 4 - 인원
+// 빠른 시간 표시
+// ==========================================
+
+function updateQuickTime() {
+
+  const quickTime =
+    document.getElementById(
+      "quickTime"
+    );
+
+
+  if (
+    reservation.startTime &&
+    reservation.endTime
+  ) {
+
+    quickTime.textContent =
+      `${reservation.startTime} ~ ${reservation.endTime}`;
+
+    return;
+
+  }
+
+
+  if (reservation.startTime) {
+
+    quickTime.textContent =
+      `${reservation.startTime} ~`;
+
+    return;
+
+  }
+
+
+  quickTime.textContent =
+    "선택하기";
+
+}
+
+
+// ==========================================
+// 인원
 // ==========================================
 
 const peopleCount =
-  document.getElementById("peopleCount");
+  document.getElementById(
+    "peopleCount"
+  );
 
 
 function updatePeople() {
@@ -377,13 +724,24 @@ function updatePeople() {
   peopleCount.textContent =
     reservation.people;
 
+
+  document.getElementById(
+    "quickPeople"
+  ).textContent =
+    `${reservation.people}명`;
+
 }
 
 
-document.getElementById("minusPeople")
-  .addEventListener("click", () => {
+document.getElementById(
+  "minusPeople"
+).addEventListener(
+  "click",
+  () => {
 
-    if (reservation.people > 1) {
+    if (
+      reservation.people > 1
+    ) {
 
       reservation.people--;
 
@@ -391,13 +749,18 @@ document.getElementById("minusPeople")
 
     }
 
-  });
+  }
+);
 
 
-document.getElementById("plusPeople")
-  .addEventListener("click", () => {
+document.getElementById(
+  "plusPeople"
+).addEventListener(
+  "click",
+  () => {
 
     if (
+      reservation.capacity &&
       reservation.people <
       reservation.capacity
     ) {
@@ -408,149 +771,337 @@ document.getElementById("plusPeople")
 
     }
 
-  });
+  }
+);
 
 
-document.getElementById("next4")
-  .addEventListener("click", () => {
-
-    document.getElementById(
-      "summaryCenter"
-    ).textContent =
-      reservation.center;
-
-
-    document.getElementById(
-      "summaryDate"
-    ).textContent =
-      reservation.date;
-
-
-    document.getElementById(
-      "summaryTime"
-    ).textContent =
-      `${reservation.time} ~ ${calculateEndTime()}`;
-
-
-    document.getElementById(
-      "summaryPeople"
-    ).textContent =
-      `${reservation.people}명`;
-
-
-    goToStep(5);
-
-  });
+updatePeople();
 
 
 // ==========================================
-// 종료시간 계산
+// 예약 가능 여부
 // ==========================================
 
-function calculateEndTime() {
+function validateReservation() {
 
-  const [hour, minute] =
-    reservation.time.split(":").map(Number);
+  const nextButton =
+    document.getElementById(
+      "nextButton"
+    );
 
-  const totalMinutes =
-    hour * 60 +
-    minute +
-    reservation.duration * 60;
 
-  const endHour =
-    Math.floor(totalMinutes / 60) % 24;
+  const complete =
+    reservation.center &&
+    reservation.date &&
+    reservation.startTime &&
+    reservation.endTime &&
+    reservation.people > 0;
 
-  const endMinute =
-    totalMinutes % 60;
 
-  return `${String(endHour).padStart(2, "0")}:${String(endMinute).padStart(2, "0")}`;
+  nextButton.disabled =
+    !complete;
+
+}
+
+
+validateReservation();
+
+
+// ==========================================
+// 예약자 정보 페이지
+// ==========================================
+
+document.getElementById(
+  "nextButton"
+).addEventListener(
+  "click",
+  () => {
+
+    showPage(userPage);
+
+  }
+);
+
+
+// ==========================================
+// 예약자 정보 확인
+// ==========================================
+
+document.getElementById(
+  "checkReservation"
+).addEventListener(
+  "click",
+  () => {
+
+    const name =
+      document.getElementById(
+        "userName"
+      ).value.trim();
+
+
+    const department =
+      document.getElementById(
+        "department"
+      ).value.trim();
+
+
+    const phone =
+      document.getElementById(
+        "phone"
+      ).value.trim();
+
+
+    const purpose =
+      document.getElementById(
+        "purpose"
+      ).value.trim();
+
+
+    if (!name) {
+
+      alert(
+        "예약자 이름을 입력해주세요."
+      );
+
+      return;
+
+    }
+
+
+    if (!department) {
+
+      alert(
+        "부서를 입력해주세요."
+      );
+
+      return;
+
+    }
+
+
+    if (!phone) {
+
+      alert(
+        "연락처를 입력해주세요."
+      );
+
+      return;
+
+    }
+
+
+    if (!purpose) {
+
+      alert(
+        "사용 목적을 입력해주세요."
+      );
+
+      return;
+
+    }
+
+
+    reservation.userName =
+      name;
+
+    reservation.department =
+      department;
+
+    reservation.phone =
+      phone;
+
+    reservation.purpose =
+      purpose;
+
+
+    updateConfirmation();
+
+
+    showPage(
+      confirmPage
+    );
+
+  }
+);
+
+
+// ==========================================
+// 확인 페이지
+// ==========================================
+
+function updateConfirmation() {
+
+  document.getElementById(
+    "confirmCenter"
+  ).textContent =
+    reservation.center;
+
+
+  document.getElementById(
+    "confirmDate"
+  ).textContent =
+    formatDate(
+      reservation.date
+    );
+
+
+  document.getElementById(
+    "confirmTime"
+  ).textContent =
+    `${reservation.startTime} ~ ${reservation.endTime}`;
+
+
+  document.getElementById(
+    "confirmPeople"
+  ).textContent =
+    `${reservation.people}명`;
+
+
+  document.getElementById(
+    "confirmName"
+  ).textContent =
+    reservation.userName;
+
+
+  document.getElementById(
+    "confirmDepartment"
+  ).textContent =
+    reservation.department;
+
+
+  document.getElementById(
+    "confirmPhone"
+  ).textContent =
+    reservation.phone;
+
+
+  document.getElementById(
+    "confirmPurpose"
+  ).textContent =
+    reservation.purpose;
+
 }
 
 
 // ==========================================
-// 이전 버튼
+// 날짜 표시
 // ==========================================
 
-document.querySelectorAll(".back-button")
-  .forEach(button => {
+function formatDate(dateString) {
 
-    button.addEventListener("click", () => {
+  const [
+    year,
+    month,
+    day
+  ] =
+    dateString.split("-");
 
-      const backStep =
-        Number(button.dataset.back);
 
-      goToStep(backStep);
+  return `${year}년 ${Number(month)}월 ${Number(day)}일`;
 
-    });
+}
 
-  });
+
+// ==========================================
+// 이전
+// ==========================================
+
+document.getElementById(
+  "backToReservation"
+).addEventListener(
+  "click",
+  () => {
+
+    showPage(
+      reservationPage
+    );
+
+  }
+);
+
+
+document.getElementById(
+  "backToUser"
+).addEventListener(
+  "click",
+  () => {
+
+    showPage(
+      userPage
+    );
+
+  }
+);
 
 
 // ==========================================
 // 예약 신청
 // ==========================================
 
-document.getElementById("reserveButton")
-  .addEventListener("click", () => {
+document.getElementById(
+  "reserveButton"
+).addEventListener(
+  "click",
+  () => {
 
     const summary = `
-      <strong>${reservation.center}</strong><br><br>
-      ${reservation.date}<br>
-      ${reservation.time} ~ ${calculateEndTime()}<br>
+
+      <strong>
+        ${reservation.center}
+      </strong>
+
+      <br>
+
+      ${formatDate(reservation.date)}
+
+      <br>
+
+      ${reservation.startTime}
+      ~
+      ${reservation.endTime}
+
+      <br>
+
       ${reservation.people}명
+
+      <br><br>
+
+      예약자 :
+      ${reservation.userName}
+
+      <br>
+
+      부서 :
+      ${reservation.department}
+
     `;
+
 
     document.getElementById(
       "completeSummary"
-    ).innerHTML = summary;
+    ).innerHTML =
+      summary;
 
-    goToStep(6);
 
-  });
+    showPage(
+      completePage
+    );
+
+  }
+);
 
 
 // ==========================================
 // 처음으로
 // ==========================================
 
-function resetReservation() {
+document.getElementById(
+  "homeButton"
+).addEventListener(
+  "click",
+  () => {
 
-  reservation.center = "";
-  reservation.capacity = 10;
-  reservation.date = "";
-  reservation.time = "";
-  reservation.duration = 2;
-  reservation.people = 2;
+    location.reload();
 
-  document.querySelectorAll(".center-card")
-    .forEach(c =>
-      c.classList.remove("selected")
-    );
-
-  document.getElementById(
-    "next1"
-  ).disabled = true;
-
-  document.getElementById(
-    "next2"
-  ).disabled = true;
-
-  document.getElementById(
-    "next3"
-  ).disabled = true;
-
-  document.getElementById(
-    "peopleCount"
-  ).textContent = "2";
-
-  goToStep(1);
-
-}
-
-
-document.getElementById("restartButton")
-  .addEventListener("click", resetReservation);
-
-
-document.getElementById("homeButton")
-  .addEventListener("click", resetReservation);
+  }
+);

@@ -5,20 +5,12 @@
 }
 
 body {
-  font-family:
-    -apple-system,
-    BlinkMacSystemFont,
-    "Pretendard",
-    "Noto Sans KR",
-    sans-serif;
-
+  font-family: -apple-system, BlinkMacSystemFont, "Pretendard", "Noto Sans KR", sans-serif;
   background: #f7f7f7;
   color: #171717;
 }
 
-button,
-input,
-textarea {
+button, input, textarea {
   font-family: inherit;
 }
 
@@ -30,11 +22,9 @@ button {
   height: 72px;
   background: white;
   border-bottom: 1px solid #eeeeee;
-
   display: flex;
   align-items: center;
   justify-content: space-between;
-
   padding: 0 6%;
 }
 
@@ -52,28 +42,18 @@ button {
 .container {
   width: 100%;
   max-width: 900px;
-
   margin: 0 auto;
-
   padding: 65px 20px 100px;
 }
-
 
 /* =========================
    PAGE
 ========================= */
 
-.page {
-  display: none;
-}
+.page { display: none; }
+.page.active { display: block; }
 
-.page.active {
-  display: block;
-}
-
-.page-heading {
-  margin-bottom: 35px;
-}
+.page-heading { margin-bottom: 35px; }
 
 .page-heading > span {
   font-size: 11px;
@@ -84,18 +64,15 @@ button {
 
 .page-heading h1 {
   margin-top: 8px;
-
   font-size: 38px;
   letter-spacing: -1.5px;
 }
 
 .page-heading p {
   margin-top: 12px;
-
   color: #888;
   font-size: 14px;
 }
-
 
 /* =========================
    FORM CARD
@@ -103,56 +80,32 @@ button {
 
 .form-card {
   background: white;
-
   border-radius: 18px;
-
   padding: 28px;
-
   margin-bottom: 15px;
-
   border: 1px solid #eeeeee;
 }
 
 .form-label {
   display: flex;
   align-items: center;
-
   gap: 12px;
-
   margin-bottom: 22px;
 }
 
 .label-icon {
   width: 38px;
   height: 38px;
-
   display: flex;
   align-items: center;
   justify-content: center;
-
   background: #f3f3f3;
-
   border-radius: 10px;
-
   font-size: 18px;
 }
 
-.form-label strong {
-  display: block;
-
-  font-size: 16px;
-}
-
-.form-label small {
-  display: block;
-
-  margin-top: 4px;
-
-  color: #999;
-
-  font-size: 12px;
-}
-
+.form-label strong { display: block; font-size: 16px; }
+.form-label small { display: block; margin-top: 4px; color: #999; font-size: 12px; }
 
 /* =========================
    CENTER
@@ -160,53 +113,30 @@ button {
 
 .center-select-grid {
   display: grid;
-
-  grid-template-columns:
-    repeat(2, 1fr);
-
+  grid-template-columns: repeat(2, 1fr);
   gap: 10px;
+  margin-top: 12px;
+  margin-bottom: 15px;
 }
 
 .center-option {
   background: #fafafa;
-
   border: 1px solid #e5e5e5;
-
   border-radius: 12px;
-
   padding: 20px;
-
   text-align: left;
-
   transition: .2s;
 }
 
-.center-option strong {
-  display: block;
-
-  font-size: 16px;
-
-  margin-bottom: 7px;
-}
-
-.center-option span {
-  color: #999;
-
-  font-size: 12px;
-}
-
-.center-option:hover {
-  border-color: #999;
-}
+.center-option strong { display: block; font-size: 16px; margin-bottom: 7px; }
+.center-option span { color: #999; font-size: 12px; }
+.center-option:hover { border-color: #999; }
 
 .center-option.selected {
   background: #fff9d8;
-
   border: 2px solid #ffc900;
-
   padding: 19px;
 }
-
 
 /* =========================
    CALENDAR
@@ -214,224 +144,215 @@ button {
 
 .calendar {
   background: #fafafa;
-
   border-radius: 14px;
-
   padding: 20px;
 }
 
 .calendar-header {
   display: flex;
-
   align-items: center;
-
   justify-content: space-between;
-
   margin-bottom: 20px;
 }
 
 .calendar-header button {
   border: none;
-
   background: transparent;
-
   font-size: 30px;
-
   width: 40px;
   height: 40px;
-
   color: #555;
 }
 
-.calendar-header strong {
-  font-size: 20px;
-}
+.calendar-header strong { font-size: 20px; }
 
-.weekdays,
-.calendar-days {
+.weekdays, .calendar-days {
   display: grid;
-
-  grid-template-columns:
-    repeat(7, 1fr);
+  grid-template-columns: repeat(7, 1fr);
 }
 
 .weekdays {
   padding-bottom: 12px;
-
   border-bottom: 1px solid #ddd;
 }
 
-.weekdays span {
-  text-align: center;
-
-  font-size: 12px;
-
-  font-weight: 700;
-}
-
-.weekdays .sun {
-  color: #df3030;
-}
-
-.weekdays .sat {
-  color: #2674c8;
-}
+.weekdays span { text-align: center; font-size: 12px; font-weight: 700; }
+.weekdays .sun { color: #df3030; }
+.weekdays .sat { color: #2674c8; }
 
 .calendar-days button {
   height: 55px;
-
   border: none;
-
   background: transparent;
-
   border-radius: 50%;
-
   font-size: 14px;
-
   margin: 2px;
 }
 
-.calendar-days button:hover {
-  background: #eeeeee;
-}
-
-.calendar-days button.today {
-  font-weight: 800;
-}
+.calendar-days button:hover { background: #eeeeee; }
+.calendar-days button.today { font-weight: 800; }
 
 .calendar-days button.selected {
   background: #ffc900;
-
   color: #111;
-
   font-weight: 800;
 }
 
-.calendar-days button.disabled {
-  color: #ccc;
-
-  cursor: default;
-}
-
+.calendar-days button.disabled { color: #ccc; cursor: default; }
 
 /* =========================
-   TIME
+   TIME BADGE / NOTICE (공통)
 ========================= */
-
-.time-section {
-  margin-bottom: 28px;
-}
-
-.time-title {
-  display: flex;
-
-  align-items: center;
-
-  gap: 10px;
-
-  margin-bottom: 13px;
-}
-
-.time-title strong {
-  font-size: 15px;
-}
-
-.selected-time-text {
-  margin-left: auto;
-
-  font-size: 13px;
-
-  color: #999;
-}
 
 .time-badge {
   font-size: 9px;
-
   font-weight: 800;
-
   letter-spacing: 1px;
-
   padding: 5px 8px;
-
   border-radius: 5px;
 }
 
-.time-badge.start {
-  background: #fff1a8;
-
-  color: #725c00;
-}
-
-.time-badge.end {
-  background: #ffe0a3;
-
-  color: #855500;
-}
-
-.time-grid {
-  display: grid;
-
-  grid-template-columns:
-    repeat(4, 1fr);
-
-  gap: 5px;
-}
-
-.time-button {
-  height: 48px;
-
-  border: none;
-
-  background: #fff8cf;
-
-  border-radius: 5px;
-
-  font-weight: 600;
-
-  font-size: 14px;
-
-  transition: .15s;
-}
-
-.time-button:hover {
-  background: #ffe985;
-}
-
-.time-button.selected {
-  background: #ffc900;
-
-  color: #111;
-
-  font-weight: 800;
-
-  box-shadow:
-    inset 0 0 0 2px #111;
-}
-
-.time-button.disabled {
-  background: #eeeeee;
-
-  color: #bbb;
-
-  cursor: default;
-}
+.time-badge.start { background: #fff1a8; color: #725c00; }
+.time-badge.end { background: #ffe0a3; color: #855500; }
 
 .time-notice {
   margin-top: 5px;
-
   padding: 13px;
-
   background: #fafafa;
-
   border-radius: 8px;
-
   color: #888;
-
   font-size: 12px;
-
   line-height: 1.6;
 }
 
+/* =========================
+   시간 드롭다운
+========================= */
+
+.dropdown-time-section {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 14px;
+}
+
+.dropdown-time-box { position: relative; }
+
+.dropdown-time-label {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  margin-bottom: 9px;
+}
+
+.dropdown-time-label strong { font-size: 14px; }
+
+.time-dropdown {
+  position: relative;
+  width: 100%;
+}
+
+.time-dropdown-button {
+  width: 100%;
+  height: 58px;
+  background: #fafafa;
+  border: 1px solid #ddd;
+  border-radius: 9px;
+  padding: 0 16px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  font-size: 15px;
+  font-weight: 600;
+  color: #222;
+  transition: .2s;
+}
+
+.time-dropdown-button:hover {
+  border-color: #aaa;
+  background: white;
+}
+
+.time-dropdown-button.open {
+  border-color: #111;
+  background: white;
+  box-shadow: 0 0 0 2px rgba(0, 0, 0, .05);
+}
+
+.dropdown-arrow {
+  font-size: 17px;
+  color: #777;
+  transition: .2s;
+}
+
+.time-dropdown-button.open .dropdown-arrow {
+  transform: rotate(180deg);
+}
+
+.time-dropdown-menu {
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: calc(100% + 6px);
+  background: white;
+  border: 1px solid #ddd;
+  border-radius: 10px;
+  padding: 6px;
+  max-height: 220px;
+  overflow-y: auto;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, .12);
+  z-index: 100;
+  display: none;
+}
+
+.time-dropdown-menu.show { display: block; }
+
+.time-dropdown-menu::-webkit-scrollbar { width: 5px; }
+.time-dropdown-menu::-webkit-scrollbar-track { background: transparent; }
+.time-dropdown-menu::-webkit-scrollbar-thumb { background: #ccc; border-radius: 10px; }
+
+.time-option {
+  width: 100%;
+  height: 44px;
+  border: none;
+  background: transparent;
+  border-radius: 7px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 13px;
+  font-size: 14px;
+  cursor: pointer;
+}
+
+.time-option:hover { background: #f5f5f5; }
+
+.time-option.selected {
+  background: #fff3a8;
+  font-weight: 800;
+}
+
+.time-option .check { font-size: 14px; display: none; }
+.time-option.selected .check { display: block; }
+
+.time-option.disabled {
+  color: #ccc;
+  background: #fafafa;
+  cursor: not-allowed;
+}
+
+.duration-display {
+  margin-top: 16px;
+  padding: 16px 18px;
+  background: #111;
+  color: white;
+  border-radius: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.duration-display span { font-size: 12px; color: #aaa; }
+.duration-display strong { font-size: 15px; }
 
 /* =========================
    PEOPLE
@@ -439,59 +360,33 @@ button {
 
 .people-counter {
   display: flex;
-
   align-items: center;
-
   justify-content: center;
-
   gap: 30px;
-
   padding: 20px;
 }
 
 .people-counter button {
   width: 52px;
   height: 52px;
-
   border-radius: 50%;
-
   border: 1px solid #ddd;
-
   background: white;
-
   font-size: 25px;
 }
 
 .people-number {
   display: flex;
-
   align-items: baseline;
-
   gap: 5px;
-
   min-width: 80px;
-
   justify-content: center;
 }
 
-.people-number strong {
-  font-size: 40px;
-}
+.people-number strong { font-size: 40px; }
+.people-number span { font-size: 14px; color: #777; }
 
-.people-number span {
-  font-size: 14px;
-
-  color: #777;
-}
-
-.capacity-text {
-  text-align: center;
-
-  color: #999;
-
-  font-size: 12px;
-}
-
+.capacity-text { text-align: center; color: #999; font-size: 12px; }
 
 /* =========================
    QUICK SUMMARY
@@ -499,49 +394,31 @@ button {
 
 .selection-summary {
   background: #111;
-
   color: white;
-
   border-radius: 14px;
-
   padding: 20px;
-
   display: grid;
-
-  grid-template-columns:
-    repeat(4, 1fr);
-
+  grid-template-columns: repeat(4, 1fr);
   gap: 10px;
-
   margin-top: 20px;
 }
 
-.selection-summary div {
-  min-width: 0;
-}
+.selection-summary div { min-width: 0; }
 
 .selection-summary span {
   display: block;
-
   color: #999;
-
   font-size: 11px;
-
   margin-bottom: 6px;
 }
 
 .selection-summary strong {
   display: block;
-
   font-size: 14px;
-
   white-space: nowrap;
-
   overflow: hidden;
-
   text-overflow: ellipsis;
 }
-
 
 /* =========================
    BUTTON
@@ -549,126 +426,81 @@ button {
 
 .main-button {
   width: 100%;
-
   height: 58px;
-
   border: none;
-
   border-radius: 8px;
-
   background: #111;
-
   color: white;
-
   font-size: 16px;
-
   font-weight: 700;
-
   margin-top: 15px;
 }
 
-.main-button:hover {
-  background: #333;
-}
+.main-button:hover { background: #333; }
 
 .main-button:disabled {
   background: #ddd;
-
   color: #aaa;
-
   cursor: default;
 }
 
 .sub-button {
   height: 58px;
-
   background: white;
-
   border: 1px solid #ddd;
-
   border-radius: 8px;
-
   font-size: 15px;
-
   font-weight: 700;
 }
 
 .navigation {
   display: grid;
-
-  grid-template-columns:
-    1fr 2fr;
-
+  grid-template-columns: 1fr 2fr;
   gap: 10px;
-
   margin-top: 20px;
 }
 
-.navigation .main-button {
-  margin-top: 0;
-}
-
+.navigation .main-button { margin-top: 0; }
 
 /* =========================
    INPUT
 ========================= */
 
-.input-group {
-  margin-bottom: 24px;
-}
-
-.input-group:last-child {
-  margin-bottom: 0;
-}
+.input-group { margin-bottom: 24px; }
+.input-group:last-child { margin-bottom: 0; }
 
 .input-group label {
   display: block;
-
   font-size: 14px;
-
   font-weight: 700;
-
   margin-bottom: 9px;
 }
 
 .input-group label em {
   color: #e52b2b;
-
   font-style: normal;
-
   margin-left: 3px;
 }
 
 .input-group input,
 .input-group textarea {
   width: 100%;
-
   border: 1px solid #ddd;
-
   background: #fafafa;
-
   border-radius: 8px;
-
   padding: 15px;
-
   font-size: 14px;
-
   outline: none;
-
   resize: vertical;
 }
 
-.input-group input {
-  height: 52px;
-}
+.input-group input { height: 52px; }
 
 .input-group input:focus,
 .input-group textarea:focus {
   background: white;
-
   border-color: #111;
 }
-
 
 /* =========================
    CONFIRM
@@ -676,141 +508,72 @@ button {
 
 .confirm-card {
   background: white;
-
   border-radius: 18px;
-
   border: 1px solid #eee;
 }
 
 .confirm-section {
   padding: 25px;
-
   border-bottom: 1px solid #eee;
 }
 
-.confirm-section:last-child {
-  border-bottom: none;
-}
-
-.confirm-section h3 {
-  font-size: 15px;
-
-  margin-bottom: 10px;
-}
+.confirm-section:last-child { border-bottom: none; }
+.confirm-section h3 { font-size: 15px; margin-bottom: 10px; }
 
 .confirm-row {
   min-height: 58px;
-
   display: flex;
-
   align-items: center;
-
   justify-content: space-between;
-
   border-bottom: 1px solid #f0f0f0;
-
   gap: 20px;
 }
 
-.confirm-row:last-child {
-  border-bottom: none;
-}
+.confirm-row:last-child { border-bottom: none; }
+.confirm-row span { color: #999; font-size: 13px; flex-shrink: 0; }
+.confirm-row strong { font-size: 14px; text-align: right; }
 
-.confirm-row span {
-  color: #999;
-
-  font-size: 13px;
-
-  flex-shrink: 0;
-}
-
-.confirm-row strong {
-  font-size: 14px;
-
-  text-align: right;
-}
-
-.purpose-row {
-  align-items: flex-start;
-
-  padding: 17px 0;
-}
-
-.purpose-row strong {
-  white-space: pre-wrap;
-
-  line-height: 1.5;
-}
-
+.purpose-row { align-items: flex-start; padding: 17px 0; }
+.purpose-row strong { white-space: pre-wrap; line-height: 1.5; }
 
 /* =========================
    COMPLETE
 ========================= */
 
-.complete-page {
-  text-align: center;
-
-  padding-top: 60px;
-}
+.complete-page { text-align: center; padding-top: 60px; }
 
 .complete-icon {
   width: 80px;
   height: 80px;
-
   background: #111;
-
   color: white;
-
   border-radius: 50%;
-
   margin: 0 auto 25px;
-
   display: flex;
-
   align-items: center;
   justify-content: center;
-
   font-size: 35px;
 }
 
 .complete-page > span {
   font-size: 10px;
-
   letter-spacing: 2px;
-
   color: #999;
-
   font-weight: 800;
 }
 
-.complete-page h1 {
-  font-size: 30px;
-
-  margin: 15px 0 10px;
-}
-
-.complete-page > p {
-  color: #888;
-
-  font-size: 14px;
-}
+.complete-page h1 { font-size: 30px; margin: 15px 0 10px; }
+.complete-page > p { color: #888; font-size: 14px; }
 
 .complete-summary {
   text-align: left;
-
   background: white;
-
   border-radius: 15px;
-
   border: 1px solid #eee;
-
   margin-top: 30px;
-
   padding: 25px;
-
   line-height: 1.9;
 }
-
 
 /* =========================
    MOBILE
@@ -818,321 +581,24 @@ button {
 
 @media (max-width: 650px) {
 
-  .container {
-    padding:
-      45px 15px 70px;
-  }
-
-  .header {
-    padding: 0 20px;
-  }
-
-  .page-heading h1 {
-    font-size: 32px;
-  }
-
-  .center-select-grid {
-    grid-template-columns: 1fr;
-  }
-
-  .form-card {
-    padding: 20px;
-  }
-
-  .calendar {
-    padding: 12px;
-  }
-
-  .calendar-days button {
-    height: 47px;
-  }
-
-  .time-grid {
-    grid-template-columns:
-      repeat(2, 1fr);
-  }
+  .container { padding: 45px 15px 70px; }
+  .header { padding: 0 20px; }
+  .page-heading h1 { font-size: 32px; }
+  .center-select-grid { grid-template-columns: 1fr; }
+  .form-card { padding: 20px; }
+  .calendar { padding: 12px; }
+  .calendar-days button { height: 47px; }
 
   .selection-summary {
-    grid-template-columns:
-      repeat(2, 1fr);
-
+    grid-template-columns: repeat(2, 1fr);
     gap: 18px;
   }
 
-  .navigation {
-    grid-template-columns:
-      1fr 1.7fr;
-  }
-
-  .confirm-row {
-    min-height: 55px;
-  }
-
-  /* ==========================================
-   시간 드롭다운
-========================================== */
-
-.dropdown-time-section {
-  display: grid;
-
-  grid-template-columns:
-    1fr 1fr;
-
-  gap: 14px;
-}
-
-
-.dropdown-time-box {
-  position: relative;
-}
-
-
-.dropdown-time-label {
-  display: flex;
-
-  align-items: center;
-
-  gap: 9px;
-
-  margin-bottom: 9px;
-}
-
-
-.dropdown-time-label strong {
-  font-size: 14px;
-}
-
-
-.time-dropdown {
-  position: relative;
-
-  width: 100%;
-}
-
-
-.time-dropdown-button {
-  width: 100%;
-
-  height: 58px;
-
-  background: #fafafa;
-
-  border: 1px solid #ddd;
-
-  border-radius: 9px;
-
-  padding: 0 16px;
-
-  display: flex;
-
-  align-items: center;
-
-  justify-content: space-between;
-
-  font-size: 15px;
-
-  font-weight: 600;
-
-  color: #222;
-
-  transition: .2s;
-}
-
-
-.time-dropdown-button:hover {
-  border-color: #aaa;
-
-  background: white;
-}
-
-
-.time-dropdown-button.open {
-  border-color: #111;
-
-  background: white;
-
-  box-shadow:
-    0 0 0 2px rgba(0, 0, 0, .05);
-}
-
-
-.dropdown-arrow {
-  font-size: 17px;
-
-  color: #777;
-
-  transition: .2s;
-}
-
-
-.time-dropdown-button.open
-.dropdown-arrow {
-  transform:
-    rotate(180deg);
-}
-
-
-/* 드롭다운 메뉴 */
-
-.time-dropdown-menu {
-  position: absolute;
-
-  left: 0;
-
-  right: 0;
-
-  top: calc(100% + 6px);
-
-  background: white;
-
-  border: 1px solid #ddd;
-
-  border-radius: 10px;
-
-  padding: 6px;
-
-  max-height: 220px;
-
-  overflow-y: auto;
-
-  box-shadow:
-    0 10px 30px
-    rgba(0, 0, 0, .12);
-
-  z-index: 100;
-
-  display: none;
-}
-
-
-.time-dropdown-menu.show {
-  display: block;
-}
-
-
-/* 스크롤바 */
-
-.time-dropdown-menu::-webkit-scrollbar {
-  width: 5px;
-}
-
-
-.time-dropdown-menu::-webkit-scrollbar-track {
-  background: transparent;
-}
-
-
-.time-dropdown-menu::-webkit-scrollbar-thumb {
-  background: #ccc;
-
-  border-radius: 10px;
-}
-
-
-/* 시간 옵션 */
-
-.time-option {
-  width: 100%;
-
-  height: 44px;
-
-  border: none;
-
-  background: transparent;
-
-  border-radius: 7px;
-
-  display: flex;
-
-  align-items: center;
-
-  justify-content: space-between;
-
-  padding: 0 13px;
-
-  font-size: 14px;
-
-  cursor: pointer;
-}
-
-
-.time-option:hover {
-  background: #f5f5f5;
-}
-
-
-.time-option.selected {
-  background: #fff3a8;
-
-  font-weight: 800;
-}
-
-
-.time-option .check {
-  font-size: 14px;
-
-  display: none;
-}
-
-
-.time-option.selected
-.check {
-  display: block;
-}
-
-
-/* 종료시간 비활성화 */
-
-.time-option.disabled {
-  color: #ccc;
-
-  background: #fafafa;
-
-  cursor: not-allowed;
-}
-
-
-/* 총 이용시간 */
-
-.duration-display {
-  margin-top: 16px;
-
-  padding: 16px 18px;
-
-  background: #111;
-
-  color: white;
-
-  border-radius: 10px;
-
-  display: flex;
-
-  align-items: center;
-
-  justify-content: space-between;
-}
-
-
-.duration-display span {
-  font-size: 12px;
-
-  color: #aaa;
-}
-
-
-.duration-display strong {
-  font-size: 15px;
-}
-
-
-/* 모바일 */
-
-@media (max-width: 650px) {
+  .navigation { grid-template-columns: 1fr 1.7fr; }
+  .confirm-row { min-height: 55px; }
 
   .dropdown-time-section {
     grid-template-columns: 1fr;
   }
-
-}
 
 }

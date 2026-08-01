@@ -10,12 +10,24 @@ const centers = {
 };
 
 // ==========================================
+// 센터별 강의실 / 상담실
+// ==========================================
+
+const roomsByCenter = {
+  "서교1센터": ["강의실1", "강의실2", "상담실1", "상담실2"],
+  "서교2센터": ["강의실", "상담실"],
+  "명동센터": ["강의실", "상담실1", "상담실2"],
+  "합정역센터": ["강의실", "상담실"]
+};
+
+// ==========================================
 // 예약 데이터
 // ==========================================
 
 const reservation = {
   center: "",
   capacity: 0,
+  room: "",
   date: "",
   startTime: "",
   endTime: "",
@@ -54,20 +66,65 @@ centerOptions.forEach(option => {
 
     reservation.center = option.dataset.center;
     reservation.capacity = Number(option.dataset.capacity);
+    reservation.room = ""; // 센터가 바뀌면 공간 선택은 초기화
 
     document.getElementById("capacityText").textContent =
       `${reservation.center}은 최대 ${reservation.capacity}명까지 이용할 수 있습니다.`;
 
     document.getElementById("quickCenter").textContent = reservation.center;
+    document.getElementById("quickRoom").textContent = "선택하기";
 
     if (reservation.people > reservation.capacity) {
       reservation.people = reservation.capacity;
       updatePeople();
     }
 
+    renderRooms();
     validateReservation();
   });
 });
+
+// ==========================================
+// 공간 (강의실 / 상담실) 선택
+// ==========================================
+
+const roomSection = document.getElementById("roomSection");
+const roomGrid = document.getElementById("roomGrid");
+
+function renderRooms() {
+  roomGrid.innerHTML = "";
+
+  const rooms = roomsByCenter[reservation.center] || [];
+
+  if (rooms.length === 0) {
+    roomSection.style.display = "none";
+    return;
+  }
+
+  roomSection.style.display = "block";
+
+  rooms.forEach(room => {
+    const button = document.createElement("button");
+    button.type = "button";
+    button.className = "room-option";
+    button.textContent = room;
+
+    if (reservation.room === room) {
+      button.classList.add("selected");
+    }
+
+    button.addEventListener("click", () => {
+      reservation.room = room;
+
+      document.getElementById("quickRoom").textContent = room;
+
+      renderRooms();
+      validateReservation();
+    });
+
+    roomGrid.appendChild(button);
+  });
+}
 
 // ==========================================
 // 달력
@@ -408,6 +465,7 @@ function validateReservation() {
 
   const complete =
     reservation.center &&
+    reservation.room &&
     reservation.date &&
     reservation.startTime &&
     reservation.endTime &&
@@ -456,6 +514,7 @@ document.getElementById("checkReservation").addEventListener("click", () => {
 
 function updateConfirmation() {
   document.getElementById("confirmCenter").textContent = reservation.center;
+  document.getElementById("confirmRoom").textContent = reservation.room;
   document.getElementById("confirmDate").textContent = formatDate(reservation.date);
   document.getElementById("confirmTime").textContent = `${reservation.startTime} ~ ${reservation.endTime}`;
   document.getElementById("confirmPeople").textContent = `${reservation.people}명`;
@@ -492,7 +551,7 @@ document.getElementById("backToUser").addEventListener("click", () => {
 
 document.getElementById("reserveButton").addEventListener("click", () => {
   const summary = `
-    <strong>${reservation.center}</strong><br>
+    <strong>${reservation.center} · ${reservation.room}</strong><br>
     ${formatDate(reservation.date)}<br>
     ${reservation.startTime} ~ ${reservation.endTime}<br>
     ${reservation.people}명<br><br>

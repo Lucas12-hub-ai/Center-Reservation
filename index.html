@@ -9,7 +9,7 @@
 <body>
 
 <header class="header">
-  <div class="logo">CENTER RENTAL</div>
+  <div class="logo" id="logoHome">CENTER RENTAL</div>
   <div class="header-title">실시간 예약</div>
 </header>
 
@@ -87,48 +87,24 @@
       </div>
     </div>
 
-    <!-- 시간 (드롭다운) -->
+    <!-- 시간 (가로 슬롯) -->
     <div class="form-card">
       <div class="form-label">
         <div class="label-icon">◷</div>
         <div>
           <strong>이용시간</strong>
-          <small>시작시간과 종료시간을 선택해주세요.</small>
+          <small>30분 단위로 시작 칸과 종료 칸을 선택해주세요.</small>
         </div>
       </div>
 
-      <div class="dropdown-time-section">
+      <p id="timeSlotNotice" class="capacity-text">센터를 먼저 선택해주세요.</p>
 
-        <!-- 시작시간 -->
-        <div class="dropdown-time-box">
-          <div class="dropdown-time-label">
-            <span class="time-badge start">START</span>
-            <strong>시작시간</strong>
-          </div>
-          <div id="startTimeDropdown" class="time-dropdown">
-            <button id="startTimeButton" class="time-dropdown-button" type="button">
-              <span id="startTimeValue">시작시간 선택</span>
-              <span class="dropdown-arrow">▾</span>
-            </button>
-            <div id="startTimeMenu" class="time-dropdown-menu"></div>
-          </div>
+      <div id="timeSlotWrapperOuter" class="time-slot-nav" style="display:none;">
+        <button type="button" id="prevSlot" class="slot-nav-btn">‹</button>
+        <div id="timeSlotWrapper" class="time-slot-wrapper">
+          <div id="timeSlotGrid" class="time-slot-grid"></div>
         </div>
-
-        <!-- 종료시간 -->
-        <div class="dropdown-time-box">
-          <div class="dropdown-time-label">
-            <span class="time-badge end">END</span>
-            <strong>종료시간</strong>
-          </div>
-          <div id="endTimeDropdown" class="time-dropdown">
-            <button id="endTimeButton" class="time-dropdown-button" type="button">
-              <span id="endTimeValue">종료시간 선택</span>
-              <span class="dropdown-arrow">▾</span>
-            </button>
-            <div id="endTimeMenu" class="time-dropdown-menu"></div>
-          </div>
-        </div>
-
+        <button type="button" id="nextSlot" class="slot-nav-btn">›</button>
       </div>
 
       <div id="durationDisplay" class="duration-display">
@@ -137,7 +113,7 @@
       </div>
 
       <div class="time-notice">
-        💡 시작시간을 먼저 선택하면 선택 가능한 종료시간이 자동으로 표시됩니다.
+        💡 시작 칸을 클릭하고, 종료하고 싶은 칸을 다시 클릭하면 그 사이 시간이 모두 선택됩니다.
       </div>
     </div>
 
@@ -154,7 +130,7 @@
       <div class="people-counter">
         <button id="minusPeople">−</button>
         <div class="people-number">
-          <strong id="peopleCount">2</strong>
+          <input id="peopleCount" class="people-input" type="number" value="2" min="1">
           <span>명</span>
         </div>
         <button id="plusPeople">+</button>

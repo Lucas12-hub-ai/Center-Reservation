@@ -381,7 +381,7 @@ renderCalendar();
 
 
 // ==========================================
-// 시간 생성
+// 시간 드롭다운
 // ==========================================
 
 function createTimeList() {
@@ -422,76 +422,85 @@ const allTimes =
 
 
 // ==========================================
-// 시간 → 분 변환
+// 시간 → 분
 // ==========================================
 
 function timeToMinutes(time) {
 
-  const [hour, minute] =
+  const [
+    hour,
+    minute
+  ] =
     time.split(":").map(Number);
 
-  return hour * 60 + minute;
+
+  return (
+    hour * 60 +
+    minute
+  );
 
 }
 
 
 // ==========================================
-// 시간 렌더링
+// 드롭다운 요소
 // ==========================================
 
-function renderTimes() {
-
-  const startContainer =
-    document.getElementById(
-      "startTimes"
-    );
+const startTimeButton =
+  document.getElementById(
+    "startTimeButton"
+  );
 
 
-  const endContainer =
-    document.getElementById(
-      "endTimes"
-    );
+const endTimeButton =
+  document.getElementById(
+    "endTimeButton"
+  );
 
 
-  startContainer.innerHTML = "";
+const startTimeMenu =
+  document.getElementById(
+    "startTimeMenu"
+  );
 
-  endContainer.innerHTML = "";
+
+const endTimeMenu =
+  document.getElementById(
+    "endTimeMenu"
+  );
 
 
-  // ==============================
-  // 시작시간
-  // ==============================
+// ==========================================
+// 시작시간 메뉴
+// ==========================================
+
+function renderStartTimes() {
+
+  startTimeMenu.innerHTML = "";
+
 
   allTimes.forEach(time => {
 
-    const button =
+    // 00:00은 시작시간에서 제외
+    if (time === "00:00") {
+      return;
+    }
+
+
+    const option =
       document.createElement("button");
 
 
-    button.className =
-      "time-button";
+    option.type = "button";
+
+    option.className =
+      "time-option";
 
 
-    button.textContent =
-      time;
-
-
-    // 24:00은 종료용
-    if (time === "00:00") {
-
-      button.classList.add(
-        "disabled"
-      );
-
-      button.disabled = true;
-
-      startContainer.appendChild(
-        button
-      );
-
-      return;
-
-    }
+    option.innerHTML = `
+      <span>${time}</span>
+      <span class="check">✓</span>
+    `;
 
 
     if (
@@ -499,14 +508,14 @@ function renderTimes() {
       time
     ) {
 
-      button.classList.add(
+      option.classList.add(
         "selected"
       );
 
     }
 
 
-    button.addEventListener(
+    option.addEventListener(
       "click",
       () => {
 
@@ -514,7 +523,8 @@ function renderTimes() {
           time;
 
 
-        // 시작시간을 변경하면 종료시간 초기화
+        // 시작시간이 변경되면
+        // 종료시간 초기화
         reservation.endTime =
           "";
 
@@ -528,10 +538,410 @@ function renderTimes() {
         document.getElementById(
           "endTimeValue"
         ).textContent =
-          "선택하기";
+          "종료시간 선택";
 
 
-        renderTimes();
+        closeDropdowns();
+
+
+        renderStartTimes();
+
+        renderEndTimes();
+
+        updateQuickTime();
+
+        updateDuration();
+
+        validateReservation();
+
+      }
+    );
+
+
+    startTimeMenu.appendChild(
+      option
+    );
+
+  });
+
+}
+
+
+// ==========================================
+// 종료시간 메뉴
+// ==========================================
+
+function renderEndTimes() {
+
+  endTimeMenu.innerHTML = "";
+
+
+  allTimes.forEach(time => {
+
+    const option =
+      document.createElement("button");
+
+
+    option.type = "button";
+
+    option.className =
+      "time-option";
+
+
+    option.innerHTML = `
+      <span>${time}</span>
+      <span class="check">✓</span>
+    `;
+
+
+    // 시작시간이 없으면
+    // 모든 종료시간 비활성화
+    if (
+      !reservation.startTime
+    ) {
+
+      option.classList.add(
+        "disabled"
+      );
+
+      option.disabled = true;
+
+      endTimeMenu.appendChild(
+        option
+      );
+
+      return;
+
+    }
+
+
+    const startMinutes =
+      timeToMinutes(
+        reservation.startTime
+      );
+
+
+    const endMinutes =
+      timeToMinutes(time);
+
+
+    // 시작시간보다 같거나 이르면
+    // 선택 불가능
+    if (
+      endMinutes <=
+      startMinutes
+    ) {
+
+      option.classList.add(
+        "disabled"
+      );
+
+      option.disabled = true;
+
+    }
+
+
+    if (
+      reservation.endTime ===
+      time
+    ) {
+
+      option.classList.add(
+        "selected"
+      );
+
+    }
+
+
+    if (
+      !option.disabled
+    ) {
+
+      option.addEventListener(
+        "click",
+        () => {
+
+          reservation.endTime =
+            time;
+
+
+          document.getElementById(
+            "endTimeValue"
+          ).textContent =
+            time;
+
+
+          closeDropdowns();
+
+
+          renderEndTimes();
+
+          updateQuickTime();
+
+          updateDuration();
+
+          validateReservation();
+
+        }
+      );
+
+    }
+
+
+    endTimeMenu.appendChild(
+      option
+    );
+
+  });
+
+}
+
+
+// ==========================================
+// 드롭다운 열기 / 닫기
+// ==========================================
+
+startTimeButton.addEventListener(
+  "click",
+  (event) => {
+
+    event.stopPropagation();
+
+    const isOpen =
+      startTimeMenu.classList.contains(
+        "show"
+      );
+
+
+    closeDropdowns();
+
+
+    if (!isOpen) {
+
+      startTimeMenu.classList.add(
+        "show"
+      );
+
+      startTimeButton.classList.add(
+        "open"
+      );
+
+    }
+
+  }
+);
+
+
+endTimeButton.addEventListener(
+  "click",
+  (event) => {
+
+    event.stopPropagation();
+
+
+    const isOpen =
+      endTimeMenu.classList.contains(
+        "show"
+      );
+
+
+    closeDropdowns();
+
+
+    if (!isOpen) {
+
+      endTimeMenu.classList.add(
+        "show"
+      );
+
+      endTimeButton.classList.add(
+        "open"
+      );
+
+    }
+
+  }
+);
+
+
+function closeDropdowns() {
+
+  startTimeMenu.classList.remove(
+    "show"
+  );
+
+  endTimeMenu.classList.remove(
+    "show"
+  );
+
+
+  startTimeButton.classList.remove(
+    "open"
+  );
+
+  endTimeButton.classList.remove(
+    "open"
+  );
+
+}
+
+
+// 화면 다른 곳 클릭하면 닫기
+
+document.addEventListener(
+  "click",
+  () => {
+
+    closeDropdowns();
+
+  }
+);
+
+
+// ==========================================
+// 총 이용시간 계산
+// ==========================================
+
+function updateDuration() {
+
+  const durationDisplay =
+    document.getElementById(
+      "durationDisplay"
+    );
+
+
+  const durationText =
+    durationDisplay.querySelector(
+      "strong"
+    );
+
+
+  if (
+    !reservation.startTime ||
+    !reservation.endTime
+  ) {
+
+    durationText.textContent =
+      "선택해주세요";
+
+    return;
+
+  }
+
+
+  const start =
+    timeToMinutes(
+      reservation.startTime
+    );
+
+
+  const end =
+    timeToMinutes(
+      reservation.endTime
+    );
+
+
+  let difference =
+    end - start;
+
+
+  if (difference <= 0) {
+
+    durationText.textContent =
+      "선택해주세요";
+
+    return;
+
+  }
+
+
+  const hours =
+    Math.floor(
+      difference / 60
+    );
+
+
+  const minutes =
+    difference % 60;
+
+
+  let result = "";
+
+
+  if (hours > 0) {
+
+    result +=
+      `${hours}시간`;
+
+  }
+
+
+  if (minutes > 0) {
+
+    if (result) {
+      result += " ";
+    }
+
+    result +=
+      `${minutes}분`;
+
+  }
+
+
+  durationText.textContent =
+    result;
+
+}
+
+
+// ==========================================
+// 빠른 시간 표시
+// ==========================================
+
+function updateQuickTime() {
+
+  const quickTime =
+    document.getElementById(
+      "quickTime"
+    );
+
+
+  if (
+    reservation.startTime &&
+    reservation.endTime
+  ) {
+
+    quickTime.textContent =
+      `${reservation.startTime} ~ ${reservation.endTime}`;
+
+    return;
+
+  }
+
+
+  if (reservation.startTime) {
+
+    quickTime.textContent =
+      `${reservation.startTime} ~`;
+
+    return;
+
+  }
+
+
+  quickTime.textContent =
+    "선택하기";
+
+}
+
+
+// 초기화
+
+renderStartTimes();
+
+renderEndTimes();
+
+updateDuration();
 
 
         updateQuickTime();

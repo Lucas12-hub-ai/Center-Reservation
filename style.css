@@ -139,6 +139,59 @@ button {
 }
 
 /* =========================
+   ROOM (강의실 / 상담실)
+========================= */
+
+.room-section {
+  margin-top: -5px;
+  margin-bottom: 15px;
+}
+
+.room-section > strong {
+  display: block;
+  font-size: 15px;
+}
+
+.room-section > small {
+  display: block;
+  margin-top: 3px;
+  margin-bottom: 12px;
+  color: #999;
+  font-size: 12px;
+}
+
+.room-select-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+  gap: 10px;
+}
+
+.room-option {
+  background: #fafafa;
+  border: 1px solid #e5e5e5;
+  border-radius: 12px;
+  padding: 16px;
+  text-align: center;
+  font-size: 14px;
+  font-weight: 600;
+  transition: .2s;
+}
+
+.room-option:hover { border-color: #999; }
+
+.room-option.selected {
+  background: #fff9d8;
+  border: 2px solid #ffc900;
+  padding: 15px;
+}
+
+.room-option.full {
+  color: #ccc;
+  background: #f2f2f2;
+  cursor: not-allowed;
+}
+
+/* =========================
    CALENDAR
 ========================= */
 
@@ -398,7 +451,7 @@ button {
   border-radius: 14px;
   padding: 20px;
   display: grid;
-  grid-template-columns: repeat(4, 1fr);
+  grid-template-columns: repeat(5, 1fr);
   gap: 10px;
   margin-top: 20px;
 }

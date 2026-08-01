@@ -130,14 +130,25 @@ function renderRooms() {
       button.classList.add("selected");
     }
 
-    button.addEventListener("click", () => {
-      reservation.room = room;
+button.addEventListener("click", async () => {
 
-      document.getElementById("quickRoom").textContent = room;
+  reservation.room = room;
 
-      renderRooms();
-      validateReservation();
-    });
+  // 공간이 바뀌면 기존 시간 선택 초기화
+  reservation.startTime = "";
+  reservation.endTime = "";
+
+  document.getElementById("quickRoom").textContent = room;
+
+  renderRooms();
+
+  // Supabase에서 해당 공간의 예약 시간 가져오기
+  await loadBookedReservations();
+
+  updateDuration();
+  updateQuickTime();
+  validateReservation();
+});
 
     roomGrid.appendChild(button);
   });
@@ -192,22 +203,27 @@ function renderCalendar() {
       button.classList.add("selected");
     }
 
-    button.addEventListener("click", () => {
-      reservation.date = dateString;
+  button.addEventListener("click", async () => {
 
-      // 날짜가 변경되면 시간 초기화
-      reservation.startTime = "";
-      reservation.endTime = "";
+  reservation.date = dateString;
 
-      renderCalendar();
-      renderTimeSlots();
-      updateDuration();
+  // 날짜가 변경되면 시간 초기화
+  reservation.startTime = "";
+  reservation.endTime = "";
 
-      document.getElementById("quickDate").textContent = `${year}년 ${month + 1}월 ${day}일`;
+  renderCalendar();
 
-      updateQuickTime();
-      validateReservation();
-    });
+  document.getElementById("quickDate").textContent =
+    `${year}년 ${month + 1}월 ${day}일`;
+
+  // 센터 + 날짜 + 공간이 선택되어 있다면
+  // 해당 날짜의 예약을 가져오기
+  await loadBookedReservations();
+
+  updateDuration();
+  updateQuickTime();
+  validateReservation();
+});
 
     calendarDays.appendChild(button);
   }
@@ -267,11 +283,78 @@ const timeSlotGrid = document.getElementById("timeSlotGrid");
 //   "명동센터_2026-08-05": ["09:00", "09:30", "13:00"]
 // };
 
-const bookedSlots = {};
+// ==========================================
+// Supabase에서 예약된 시간 불러오기
+// ==========================================
 
+let bookedReservations = [];
+
+async function loadBookedReservations() {
+
+  // 센터 / 날짜 / 공간이 모두 선택되어야 조회
+  if (
+    !reservation.center ||
+    !reservation.date ||
+    !reservation.room
+  ) {
+    bookedReservations = [];
+    renderTimeSlots();
+    return;
+  }
+
+  try {
+
+    const { data, error } = await supabaseClient
+      .from("Reservations")
+      .select("start_time, end_time")
+      .eq("center", reservation.center)
+      .eq("date", reservation.date)
+      .eq("room", reservation.room);
+
+    if (error) {
+      console.error("예약 시간 조회 오류:", error);
+      bookedReservations = [];
+      return;
+    }
+
+    bookedReservations = data || [];
+
+    console.log(
+      "현재 예약된 시간:",
+      reservation.center,
+      reservation.date,
+      reservation.room,
+      bookedReservations
+    );
+
+    renderTimeSlots();
+
+  } catch (error) {
+
+    console.error("예약 조회 중 오류:", error);
+    bookedReservations = [];
+  }
+}
+
+
+// 특정 30분 슬롯이 이미 예약되어 있는지 확인
 function isBooked(time) {
-  const key = `${reservation.center}_${reservation.date}`;
-  return (bookedSlots[key] || []).includes(time);
+
+  const slotStart = timeToMinutes(time);
+  const slotEnd = slotStart + 30;
+
+  return bookedReservations.some(reservationItem => {
+
+    const bookedStart = timeToMinutes(reservationItem.start_time);
+    const bookedEnd = timeToMinutes(reservationItem.end_time);
+
+    // 시간 겹침 확인
+    return (
+      slotStart < bookedEnd &&
+      slotEnd > bookedStart
+    );
+
+  });
 }
 
 function generateSlots(open, close) {

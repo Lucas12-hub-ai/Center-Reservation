@@ -1,0 +1,597 @@
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  font-family:
+    -apple-system,
+    BlinkMacSystemFont,
+    "Pretendard",
+    "Noto Sans KR",
+    sans-serif;
+
+  background: #f7f7f7;
+  color: #171717;
+}
+
+button {
+  font-family: inherit;
+  cursor: pointer;
+}
+
+.header {
+  height: 72px;
+  background: #fff;
+  border-bottom: 1px solid #eee;
+
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+
+  padding: 0 6%;
+}
+
+.logo {
+  font-size: 20px;
+  font-weight: 800;
+  letter-spacing: -0.5px;
+}
+
+.header-sub {
+  color: #777;
+  font-size: 14px;
+}
+
+.container {
+  max-width: 1050px;
+  margin: auto;
+  padding: 70px 25px 100px;
+}
+
+.hero {
+  margin-bottom: 60px;
+}
+
+.hero-small {
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 2px;
+  margin-bottom: 20px;
+  color: #888;
+}
+
+.hero h1 {
+  font-size: clamp(38px, 6vw, 64px);
+  line-height: 1.08;
+  letter-spacing: -3px;
+  margin-bottom: 25px;
+}
+
+.hero p:last-child {
+  color: #777;
+  line-height: 1.7;
+}
+
+
+/* STEP */
+
+.steps {
+  display: flex;
+  align-items: center;
+  margin-bottom: 50px;
+}
+
+.step {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+
+  color: #aaa;
+  font-size: 14px;
+}
+
+.step span {
+  font-size: 12px;
+}
+
+.step.active {
+  color: #111;
+  font-weight: 700;
+}
+
+.line {
+  height: 1px;
+  background: #ddd;
+  flex: 1;
+  margin: 0 15px;
+}
+
+
+/* SECTION */
+
+.reservation-section {
+  display: none;
+}
+
+.active-section {
+  display: block;
+}
+
+.section-title {
+  margin-bottom: 30px;
+}
+
+.section-title > span {
+  font-size: 12px;
+  color: #999;
+  font-weight: 700;
+  letter-spacing: 1px;
+}
+
+.section-title h2 {
+  font-size: 32px;
+  margin: 8px 0;
+  letter-spacing: -1px;
+}
+
+.section-title p {
+  color: #888;
+  font-size: 14px;
+}
+
+
+/* CENTER */
+
+.center-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 18px;
+}
+
+.center-card {
+  background: white;
+  border: 1px solid #eee;
+  border-radius: 18px;
+  overflow: hidden;
+  text-align: left;
+  padding: 0;
+  transition: .2s;
+}
+
+.center-card:hover {
+  transform: translateY(-3px);
+}
+
+.center-card.selected {
+  border: 2px solid #111;
+}
+
+.center-image {
+  height: 200px;
+  background-size: cover;
+  background-position: center;
+}
+
+.seogyo1 {
+  background:
+    linear-gradient(135deg, #555, #aaa);
+}
+
+.seogyo2 {
+  background:
+    linear-gradient(135deg, #222, #777);
+}
+
+.myeongdong {
+  background:
+    linear-gradient(135deg, #999, #ddd);
+}
+
+.hapjeong {
+  background:
+    linear-gradient(135deg, #444, #aaa);
+}
+
+.center-info {
+  padding: 22px;
+}
+
+.center-info h3 {
+  font-size: 20px;
+  margin-bottom: 8px;
+}
+
+.center-info p {
+  color: #888;
+  font-size: 13px;
+  margin-bottom: 15px;
+}
+
+.center-info span {
+  font-size: 12px;
+  color: #555;
+}
+
+
+/* BUTTON */
+
+.next-button,
+.reserve-button {
+  width: 100%;
+  border: none;
+  background: #111;
+  color: white;
+  height: 58px;
+  border-radius: 8px;
+  margin-top: 30px;
+  font-size: 16px;
+  font-weight: 700;
+}
+
+.next-button:disabled {
+  background: #ddd;
+  color: #aaa;
+  cursor: default;
+}
+
+.navigation {
+  display: grid;
+  grid-template-columns: 1fr 2fr;
+  gap: 10px;
+  margin-top: 30px;
+}
+
+.navigation .next-button {
+  margin-top: 0;
+}
+
+.back-button {
+  height: 58px;
+  background: white;
+  border: 1px solid #ddd;
+  border-radius: 8px;
+  font-weight: 700;
+}
+
+
+/* CALENDAR */
+
+.calendar {
+  background: white;
+  padding: 30px;
+  border-radius: 18px;
+}
+
+.calendar-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 30px;
+}
+
+.calendar-header h3 {
+  font-size: 25px;
+}
+
+.calendar-header button {
+  background: none;
+  border: none;
+  font-size: 32px;
+  color: #777;
+}
+
+.weekdays,
+.calendar-days {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+}
+
+.weekdays {
+  border-bottom: 1px solid #eee;
+  padding-bottom: 15px;
+  margin-bottom: 10px;
+}
+
+.weekdays span {
+  text-align: center;
+  font-size: 13px;
+  font-weight: 700;
+}
+
+.sun {
+  color: #e03c3c;
+}
+
+.sat {
+  color: #2276c9;
+}
+
+.calendar-days button {
+  height: 65px;
+  background: none;
+  border: none;
+  border-radius: 50%;
+  font-size: 15px;
+}
+
+.calendar-days button:hover {
+  background: #f2f2f2;
+}
+
+.calendar-days button.today {
+  font-weight: 800;
+}
+
+.calendar-days button.selected {
+  background: #111;
+  color: white;
+}
+
+.calendar-days button.disabled {
+  color: #ccc;
+  cursor: default;
+}
+
+
+/* TIME */
+
+.selected-date {
+  background: #f1f1f1;
+  padding: 18px;
+  border-radius: 10px;
+  margin-bottom: 25px;
+  font-weight: 700;
+}
+
+.time-container {
+  background: white;
+  border-radius: 18px;
+  padding: 25px;
+}
+
+.time-container h3 {
+  font-size: 14px;
+  margin: 20px 0 10px;
+  color: #777;
+}
+
+.time-container h3:first-child {
+  margin-top: 0;
+}
+
+.time-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 5px;
+}
+
+.time-button {
+  height: 50px;
+  border: none;
+  background: #fff8ce;
+  font-weight: 600;
+  border-radius: 4px;
+}
+
+.time-button:hover {
+  background: #ffe56b;
+}
+
+.time-button.selected {
+  background: #ffc900;
+}
+
+
+/* DURATION */
+
+.duration-box {
+  margin-top: 20px;
+  padding: 22px;
+  background: white;
+  border-radius: 18px;
+}
+
+.duration-box > div:first-child {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 15px;
+}
+
+.duration-box strong {
+  color: #e02020;
+}
+
+.duration-buttons {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.duration-buttons button {
+  background: white;
+  border: 1px solid #ddd;
+  padding: 12px 18px;
+  border-radius: 30px;
+}
+
+.duration-buttons button.selected {
+  background: #111;
+  color: white;
+}
+
+
+/* PEOPLE */
+
+.people-counter {
+  background: white;
+  border-radius: 18px;
+  padding: 50px;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 45px;
+}
+
+.people-counter button {
+  width: 55px;
+  height: 55px;
+  border: 1px solid #ddd;
+  background: white;
+  border-radius: 50%;
+  font-size: 25px;
+}
+
+.people-counter div {
+  display: flex;
+  align-items: baseline;
+  gap: 5px;
+}
+
+.people-counter strong {
+  font-size: 45px;
+}
+
+.capacity-text {
+  text-align: center;
+  color: #888;
+  margin-top: 15px;
+}
+
+
+/* SUMMARY */
+
+.summary {
+  background: white;
+  border-radius: 18px;
+  padding: 10px 25px;
+}
+
+.summary-row {
+  min-height: 70px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  border-bottom: 1px solid #eee;
+}
+
+.summary-row:last-child {
+  border-bottom: none;
+}
+
+.summary-row span {
+  color: #888;
+  font-size: 14px;
+}
+
+.summary-row strong {
+  font-size: 16px;
+}
+
+.restart-button {
+  width: 100%;
+  border: none;
+  background: none;
+  padding: 20px;
+  color: #888;
+}
+
+
+/* COMPLETE */
+
+.complete-section {
+  text-align: center;
+}
+
+.complete-icon {
+  width: 80px;
+  height: 80px;
+  background: #111;
+  color: white;
+  border-radius: 50%;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  font-size: 35px;
+  margin: 0 auto 30px;
+}
+
+.complete-section > p:first-of-type {
+  font-size: 11px;
+  letter-spacing: 2px;
+  color: #999;
+  font-weight: 700;
+}
+
+.complete-section h2 {
+  margin: 15px 0;
+  font-size: 30px;
+}
+
+.complete-description {
+  color: #888;
+  line-height: 1.7;
+}
+
+.complete-summary {
+  background: white;
+  border-radius: 15px;
+  padding: 25px;
+  margin-top: 30px;
+  text-align: left;
+}
+
+
+/* MOBILE */
+
+@media (max-width: 650px) {
+
+  .container {
+    padding: 45px 18px 70px;
+  }
+
+  .hero {
+    margin-bottom: 40px;
+  }
+
+  .hero h1 {
+    font-size: 40px;
+  }
+
+  .center-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .center-image {
+    height: 170px;
+  }
+
+  .calendar {
+    padding: 15px;
+  }
+
+  .calendar-days button {
+    height: 52px;
+  }
+
+  .time-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  .people-counter {
+    padding: 40px 20px;
+  }
+
+  .steps {
+    margin-bottom: 35px;
+  }
+
+  .step b {
+    display: none;
+  }
+
+}

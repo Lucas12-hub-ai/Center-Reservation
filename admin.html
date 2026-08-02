@@ -27,6 +27,9 @@
       <button class="nav-item" data-view="byCenter">
         <span class="nav-icon">▥</span> 센터별 예약 현황
       </button>
+      <button class="nav-item" data-view="weekly">
+        <span class="nav-icon">▦</span> 주간 예약 현황
+      </button>
       <button class="nav-item" data-view="stats">
         <span class="nav-icon">▲</span> 통계
       </button>
@@ -219,6 +222,44 @@
             <tbody id="centerTableBody"></tbody>
           </table>
         </div>
+      </div>
+    </section>
+
+    <!-- ============ 주간 예약 현황 ============ -->
+    <section id="view-weekly" class="admin-view">
+      <div class="admin-header">
+        <div>
+          <h1>주간 예약 현황</h1>
+          <p>센터·공간을 선택하면 일~토 스케줄표로 볼 수 있어요.</p>
+        </div>
+      </div>
+
+      <div class="filter-card">
+        <div class="filter-group">
+          <label>센터</label>
+          <select id="weeklyFilterCenter">
+            <option value="">전체 센터</option>
+          </select>
+        </div>
+        <div class="filter-group">
+          <label>공간</label>
+          <select id="weeklyFilterRoom">
+            <option value="">전체 공간</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="list-card weekly-admin-card">
+        <div class="weekly-admin-header">
+          <strong id="weeklyAdminRange"></strong>
+          <div class="weekly-navigation">
+            <button id="weeklyPrev">‹</button>
+            <button id="weeklyThisWeek">이번주</button>
+            <button id="weeklyNext">›</button>
+          </div>
+        </div>
+
+        <div id="weeklyAdminCalendar" class="weekly-admin-calendar"></div>
       </div>
     </section>
 

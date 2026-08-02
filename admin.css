@@ -387,6 +387,87 @@ button { cursor: pointer; }
 .center-stat-card .count span { font-size: 13px; font-weight: 600; color: #888; margin-left: 3px; }
 
 /* =========================
+   주간 예약 현황
+========================= */
+
+.weekly-admin-card { padding: 0; overflow: hidden; }
+
+.weekly-admin-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 18px 20px;
+  border-bottom: 1px solid #eee;
+}
+
+.weekly-admin-header strong { font-size: 14px; color: #555; }
+
+.weekly-navigation { display: flex; align-items: center; gap: 5px; }
+
+.weekly-navigation button {
+  border: 1px solid #ddd;
+  background: white;
+  border-radius: 8px;
+  height: 34px;
+  padding: 0 11px;
+  font-size: 12px;
+  color: #555;
+}
+
+.weekly-navigation button:hover { background: #f5f5f5; }
+
+.weekly-navigation button:first-child,
+.weekly-navigation button:last-child {
+  width: 34px;
+  padding: 0;
+  font-size: 16px;
+}
+
+.weekly-admin-calendar {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  overflow-x: auto;
+}
+
+.week-admin-day { min-width: 140px; border-right: 1px solid #f0f0f0; }
+.week-admin-day:last-child { border-right: none; }
+
+.week-admin-day-header {
+  height: 60px;
+  padding: 10px 8px;
+  text-align: center;
+  border-bottom: 1px solid #eee;
+  background: #fafafa;
+}
+
+.week-admin-day-header .day-name { font-size: 11px; font-weight: 700; color: #777; }
+.week-admin-day-header .day-number { display: block; margin-top: 4px; font-size: 16px; font-weight: 800; }
+
+.week-admin-day-header.sun .day-name,
+.week-admin-day-header.sun .day-number { color: #d93434; }
+
+.week-admin-day-header.sat .day-name,
+.week-admin-day-header.sat .day-number { color: #2674c8; }
+
+.week-admin-day-header.today { background: #eff6ff; }
+
+.week-admin-day-body { min-height: 220px; padding: 8px; }
+
+.week-admin-empty { color: #ccc; font-size: 11px; text-align: center; padding-top: 35px; }
+
+.week-admin-reservation {
+  background: #f7f9fc;
+  border-left: 3px solid #2563eb;
+  border-radius: 7px;
+  padding: 8px;
+  margin-bottom: 7px;
+}
+
+.week-admin-reservation-time { font-size: 10px; font-weight: 800; color: #2563eb; margin-bottom: 4px; }
+.week-admin-reservation-name { font-size: 12px; font-weight: 800; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.week-admin-reservation-meta { margin-top: 2px; font-size: 10px; color: #888; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+
+/* =========================
    통계 / 막대그래프
 ========================= */
 

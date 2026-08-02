@@ -1,3 +1,17 @@
+:root {
+  --yellow-main: #e7b83c;
+  --yellow-light: #fff8e7;
+  --yellow-soft: #fff3cf;
+  --yellow-pale: #fffaf0;
+
+  --text-main: #222222;
+  --text-sub: #777777;
+
+  --border: #e9e6df;
+  --bg: #f8f7f4;
+  --card: #ffffff;
+}
+
 * {
   box-sizing: border-box;
   margin: 0;
@@ -6,8 +20,8 @@
 
 body {
   font-family: -apple-system, BlinkMacSystemFont, "Pretendard", "Noto Sans KR", sans-serif;
-  background: #f7f7f7;
-  color: #171717;
+  background: var(--bg);
+  color: var(--text-main);
 }
 
 button,
@@ -187,8 +201,8 @@ button {
 }
 
 .center-option.selected {
-  background: #fff9d8;
-  border: 2px solid #ffc900;
+  background: var(--yellow-light);
+  border: 2px solid var(--yellow-main);
   padding: 19px;
 }
 
@@ -237,8 +251,8 @@ button {
 }
 
 .room-option.selected {
-  background: #fff9d8;
-  border: 2px solid #ffc900;
+  background: var(--yellow-light);
+  border: 2px solid var(--yellow-main);
   padding: 15px;
 }
 
@@ -590,7 +604,7 @@ button {
   flex-shrink: 0;
   border: none;
   border-right: 1px solid rgba(0,0,0,.04);
-  background: #fff8cf;
+  background: #fff9ed;
   display: flex;
   align-items: flex-end;
   justify-content: center;
@@ -598,11 +612,11 @@ button {
 }
 
 .time-slot:hover {
-  background: #ffe985;
+  background: #ffe0c8;
 }
 
 .time-slot.selected {
-  background: #ffc900;
+  background: var(--yellow-soft);
 }
 
 .time-slot.booked {
@@ -611,8 +625,8 @@ button {
 }
 
 .time-slot.start-only {
-  background: #ffc900;
-  box-shadow: inset 0 0 0 2px #111;
+  background: #f5c94a;
+  box-shadow: inset 0 0 0 2px #c59618;
 }
 
 .slot-label {

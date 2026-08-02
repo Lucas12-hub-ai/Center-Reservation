@@ -129,6 +129,7 @@
         <div class="list-header">
           <strong id="listTitle">예약 목록 (총 0건)</strong>
           <div class="list-actions">
+            <button id="addReservationBtn" class="primary-btn">+ 예약 추가</button>
             <button id="refreshBtn" class="ghost-btn">↻ 새로고침</button>
             <button id="exportBtn" class="ghost-btn">⬇ 엑셀 다운로드</button>
           </div>
@@ -274,6 +275,85 @@
       <button id="closeModal" class="modal-close">✕</button>
     </div>
     <div id="modalBody" class="modal-body"></div>
+  </div>
+</div>
+
+<!-- 예약 추가 모달 -->
+<div id="addModal" class="modal-overlay">
+  <div class="modal-box">
+    <div class="modal-header">
+      <strong>예약 직접 추가</strong>
+      <button id="closeAddModal" class="modal-close">✕</button>
+    </div>
+
+    <form id="addForm" class="add-form">
+      <div class="form-row">
+        <div class="form-field">
+          <label>센터<em>*</em></label>
+          <select id="addCenter" required>
+            <option value="">선택해주세요</option>
+          </select>
+        </div>
+        <div class="form-field">
+          <label>공간<em>*</em></label>
+          <select id="addRoom" required>
+            <option value="">센터를 먼저 선택해주세요</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="form-row">
+        <div class="form-field">
+          <label>날짜<em>*</em></label>
+          <input type="date" id="addDate" required>
+        </div>
+        <div class="form-field">
+          <label>인원<em>*</em></label>
+          <input type="number" id="addPeople" min="1" value="2" required>
+        </div>
+      </div>
+
+      <div class="form-row">
+        <div class="form-field">
+          <label>시작시간<em>*</em></label>
+          <input type="time" id="addStartTime" step="1800" required>
+        </div>
+        <div class="form-field">
+          <label>종료시간<em>*</em></label>
+          <input type="time" id="addEndTime" step="1800" required>
+        </div>
+      </div>
+
+      <div class="form-row">
+        <div class="form-field">
+          <label>예약자<em>*</em></label>
+          <input type="text" id="addUserName" placeholder="이름" required>
+        </div>
+        <div class="form-field">
+          <label>부서<em>*</em></label>
+          <input type="text" id="addDepartment" placeholder="부서명" required>
+        </div>
+      </div>
+
+      <div class="form-row">
+        <div class="form-field full">
+          <label>연락처<em>*</em></label>
+          <input type="tel" id="addPhone" placeholder="010-0000-0000" required>
+        </div>
+      </div>
+
+      <div class="form-row">
+        <div class="form-field full">
+          <label>목적<em>*</em></label>
+          <textarea id="addPurpose" rows="3" placeholder="사용 목적" required></textarea>
+        </div>
+      </div>
+
+      <div class="form-actions">
+        <button type="button" id="cancelAddBtn" class="filter-reset">취소</button>
+        <button type="submit" id="submitAddBtn" class="filter-search">추가하기</button>
+      </div>
+    </form>
   </div>
 </div>
 

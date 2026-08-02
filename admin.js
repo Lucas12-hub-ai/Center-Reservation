@@ -11,10 +11,14 @@ const SUPABASE_PUBLISHABLE_KEY = "sb_publishable_v8DnBpF4GX4oABnGOfpRxA_QH6ruB5Q
 
 const centers = ["서교1센터", "서교2센터", "명동센터", "합정역센터"];
 
-const allRooms = [
-  "강의실", "강의실1", "강의실2",
-  "상담실", "상담실1", "상담실2"
-];
+const roomsByCenter = {
+  "서교1센터": ["강의실1", "강의실2", "상담실1", "상담실2"],
+  "서교2센터": ["강의실", "상담실"],
+  "명동센터": ["강의실", "상담실1", "상담실2"],
+  "합정역센터": ["강의실", "상담실"]
+};
+
+const allRooms = [...new Set(Object.values(roomsByCenter).flat())];
 
 // ==========================================
 // 상태
@@ -129,13 +133,35 @@ function initFilterOptions() {
     centerSelect.appendChild(option);
   });
 
+  updateRoomFilterOptions();
+
+  // 센터를 바꾸면 그 센터에 맞는 공간 목록으로 갱신
+  centerSelect.addEventListener("change", () => {
+    updateRoomFilterOptions();
+  });
+}
+
+// 필터 - 선택된 센터에 맞는 공간 목록으로 "공간" 드롭다운을 다시 그림
+function updateRoomFilterOptions() {
+  const center = document.getElementById("filterCenter").value;
   const roomSelect = document.getElementById("filterRoom");
-  allRooms.forEach(r => {
+  const currentValue = roomSelect.value;
+
+  roomSelect.innerHTML = `<option value="">전체 공간</option>`;
+
+  const rooms = center ? (roomsByCenter[center] || []) : allRooms;
+
+  rooms.forEach(r => {
     const option = document.createElement("option");
     option.value = r;
     option.textContent = r;
     roomSelect.appendChild(option);
   });
+
+  // 이전에 선택돼있던 공간이 새 목록에도 있으면 유지
+  if (rooms.includes(currentValue)) {
+    roomSelect.value = currentValue;
+  }
 }
 
 // ==========================================
@@ -290,6 +316,135 @@ document.getElementById("closeModal").addEventListener("click", () => {
 document.getElementById("detailModal").addEventListener("click", (e) => {
   if (e.target.id === "detailModal") {
     document.getElementById("detailModal").classList.remove("show");
+  }
+});
+
+// ==========================================
+// 예약 직접 추가
+// ==========================================
+
+const addModal = document.getElementById("addModal");
+const addForm = document.getElementById("addForm");
+const addCenterSelect = document.getElementById("addCenter");
+const addRoomSelect = document.getElementById("addRoom");
+
+// 센터 select 옵션 채우기 (최초 1회)
+centers.forEach(c => {
+  const option = document.createElement("option");
+  option.value = c;
+  option.textContent = c;
+  addCenterSelect.appendChild(option);
+});
+
+// 센터를 고르면 그 센터의 공간만 표시
+addCenterSelect.addEventListener("change", () => {
+  const center = addCenterSelect.value;
+  addRoomSelect.innerHTML = "";
+
+  if (!center) {
+    addRoomSelect.innerHTML = `<option value="">센터를 먼저 선택해주세요</option>`;
+    return;
+  }
+
+  addRoomSelect.innerHTML = `<option value="">선택해주세요</option>`;
+  (roomsByCenter[center] || []).forEach(room => {
+    const option = document.createElement("option");
+    option.value = room;
+    option.textContent = room;
+    addRoomSelect.appendChild(option);
+  });
+});
+
+function openAddModal() {
+  addForm.reset();
+  addRoomSelect.innerHTML = `<option value="">센터를 먼저 선택해주세요</option>`;
+  addModal.classList.add("show");
+}
+
+function closeAddModal() {
+  addModal.classList.remove("show");
+}
+
+document.getElementById("addReservationBtn").addEventListener("click", openAddModal);
+document.getElementById("closeAddModal").addEventListener("click", closeAddModal);
+document.getElementById("cancelAddBtn").addEventListener("click", closeAddModal);
+
+addModal.addEventListener("click", (e) => {
+  if (e.target.id === "addModal") closeAddModal();
+});
+
+addForm.addEventListener("submit", async (e) => {
+  e.preventDefault();
+
+  const center = addCenterSelect.value;
+  const room = addRoomSelect.value;
+  const date = document.getElementById("addDate").value;
+  const startTime = document.getElementById("addStartTime").value;
+  const endTime = document.getElementById("addEndTime").value;
+  const people = Number(document.getElementById("addPeople").value);
+  const userName = document.getElementById("addUserName").value.trim();
+  const department = document.getElementById("addDepartment").value.trim();
+  const phone = document.getElementById("addPhone").value.trim();
+  const purpose = document.getElementById("addPurpose").value.trim();
+
+  if (!center || !room) { alert("센터와 공간을 선택해주세요."); return; }
+  if (!date) { alert("날짜를 선택해주세요."); return; }
+  if (!startTime || !endTime) { alert("시작시간과 종료시간을 입력해주세요."); return; }
+  if (startTime >= endTime) { alert("종료시간은 시작시간보다 늦어야 해요."); return; }
+  if (!people || people < 1) { alert("인원을 확인해주세요."); return; }
+  if (!userName || !department || !phone || !purpose) { alert("예약자 정보를 모두 입력해주세요."); return; }
+
+  const submitBtn = document.getElementById("submitAddBtn");
+  submitBtn.disabled = true;
+  submitBtn.textContent = "추가 중...";
+
+  try {
+    const response = await fetch(
+      `${SUPABASE_URL}/rest/v1/Reservations`,
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "apikey": SUPABASE_PUBLISHABLE_KEY,
+          "Authorization": `Bearer ${SUPABASE_PUBLISHABLE_KEY}`,
+          "Prefer": "return=representation"
+        },
+        body: JSON.stringify({
+          center, room, date,
+          start_time: startTime,
+          end_time: endTime,
+          people,
+          user_name: userName,
+          department,
+          phone,
+          purpose
+        })
+      }
+    );
+
+    const result = await response.json();
+
+    if (!response.ok) {
+      console.error("예약 추가 실패:", result);
+      alert("예약 추가에 실패했습니다.\n\n" + JSON.stringify(result, null, 2));
+      return;
+    }
+
+    closeAddModal();
+
+    await fetchReservations();
+    applyFilters();
+    renderSummary();
+    renderTodayView();
+    renderCenterView();
+    renderStatsView();
+
+  } catch (error) {
+    console.error("예약 추가 오류:", error);
+    alert("예약 추가 중 문제가 발생했습니다.");
+  } finally {
+    submitBtn.disabled = false;
+    submitBtn.textContent = "추가하기";
   }
 });
 

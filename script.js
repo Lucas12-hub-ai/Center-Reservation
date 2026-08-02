@@ -1,27 +1,19 @@
-const SUPABASE_URL =
-  "https://ohnxhlbwzakwzhzhkhvt.supabase.co";
+const SUPABASE_URL = "https://ohnxhlbwzakwzhzhkhvt.supabase.co";
 
 const SUPABASE_PUBLISHABLE_KEY =
   "sb_publishable_v8DnBpF4GX4oABnGOfpRxA_QH6ruB5Q";
 
-
-console.log("Supabase:", window.supabase);
-console.log("Supabase Key:", SUPABASE_PUBLISHABLE_KEY);
-
-
-const supabaseClient =
-  window.supabase.createClient(
-    SUPABASE_URL,
-    SUPABASE_PUBLISHABLE_KEY
-  );
+const supabaseClient = window.supabase.createClient(
+  SUPABASE_URL,
+  SUPABASE_PUBLISHABLE_KEY
+);
 
 
-// =====================================================
-// 센터 설정
-// =====================================================
+// ==========================================
+// 센터
+// ==========================================
 
 const centers = {
-
   "서교1센터": {
     capacity: 50,
     open: "06:00",
@@ -45,13 +37,12 @@ const centers = {
     open: "06:00",
     close: "24:00"
   }
-
 };
 
 
-// =====================================================
-// 센터별 공간
-// =====================================================
+// ==========================================
+// 공간
+// ==========================================
 
 const roomsByCenter = {
 
@@ -81,15 +72,14 @@ const roomsByCenter = {
 };
 
 
-// =====================================================
-// 예약 데이터
-// =====================================================
+// ==========================================
+// 예약 객체
+// ==========================================
 
 const reservation = {
 
   center: "",
   capacity: 0,
-
   room: "",
 
   date: "",
@@ -102,14 +92,19 @@ const reservation = {
   userName: "",
   department: "",
   phone: "",
-  purpose: ""
+  purpose: "",
+
+  // 반복 예약
+  isRecurring: false,
+  recurringMonths: 1,
+  recurringGroupId: ""
 
 };
 
 
-// =====================================================
+// ==========================================
 // 페이지
-// =====================================================
+// ==========================================
 
 const reservationPage =
   document.getElementById("reservationPage");
@@ -136,28 +131,126 @@ function showPage(page) {
     top: 0,
     behavior: "smooth"
   });
+
 }
 
 
-// =====================================================
-// 센터 선택
-// =====================================================
+// ==========================================
+// 시간 함수
+// ==========================================
+
+function timeToMinutes(time) {
+
+  const [hour, minute] =
+    time.split(":").map(Number);
+
+  return hour * 60 + minute;
+
+}
+
+
+function minutesToTime(minutes) {
+
+  let hour =
+    Math.floor(minutes / 60);
+
+  const minute =
+    minutes % 60;
+
+  if (hour >= 24) {
+    hour = 24;
+  }
+
+  return `${String(hour).padStart(2, "0")}:${String(minute).padStart(2, "0")}`;
+
+}
+
+
+function addMinutes(time, amount) {
+
+  return minutesToTime(
+    timeToMinutes(time) + amount
+  );
+
+}
+
+
+function createTimeList() {
+
+  const times = [];
+
+  for (let hour = 0; hour < 24; hour++) {
+
+    for (let minute = 0; minute < 60; minute += 30) {
+
+      times.push(
+        `${String(hour).padStart(2, "0")}:${String(minute).padStart(2, "0")}`
+      );
+
+    }
+
+  }
+
+  return times;
+
+}
+
+
+const allTimes = createTimeList();
+
+
+// ==========================================
+// 페이지 요소
+// ==========================================
 
 const centerOptions =
   document.querySelectorAll(".center-option");
 
+const roomSection =
+  document.getElementById("roomSection");
+
+const roomGrid =
+  document.getElementById("roomGrid");
+
+const calendarDays =
+  document.getElementById("calendarDays");
+
+const monthTitle =
+  document.getElementById("monthTitle");
+
+const timeSlotNotice =
+  document.getElementById("timeSlotNotice");
+
+const timeSlotWrapperOuter =
+  document.getElementById("timeSlotWrapperOuter");
+
+const timeSlotWrapper =
+  document.getElementById("timeSlotWrapper");
+
+const timeSlotGrid =
+  document.getElementById("timeSlotGrid");
+
+
+// ==========================================
+// 예약 데이터
+// ==========================================
+
+let bookedReservations = [];
+
+
+// ==========================================
+// 센터 선택
+// ==========================================
 
 centerOptions.forEach(option => {
 
   option.addEventListener("click", async () => {
 
-    centerOptions
-      .forEach(item =>
-        item.classList.remove("selected")
-      );
+    centerOptions.forEach(item =>
+      item.classList.remove("selected")
+    );
 
     option.classList.add("selected");
-
 
     reservation.center =
       option.dataset.center;
@@ -165,48 +258,31 @@ centerOptions.forEach(option => {
     reservation.capacity =
       Number(option.dataset.capacity);
 
-
-    // 센터 변경 시 초기화
-
     reservation.room = "";
-
-    reservation.date = "";
 
     reservation.startTime = "";
     reservation.endTime = "";
 
-
-    document.getElementById("capacityText").textContent =
+    document.getElementById(
+      "capacityText"
+    ).textContent =
       `${reservation.center}은 최대 ${reservation.capacity}명까지 이용할 수 있습니다.`;
 
-
-    document.getElementById("quickCenter").textContent =
+    document.getElementById(
+      "quickCenter"
+    ).textContent =
       reservation.center;
 
-    document.getElementById("quickRoom").textContent =
+    document.getElementById(
+      "quickRoom"
+    ).textContent =
       "선택하기";
-
-    document.getElementById("quickDate").textContent =
-      "선택하기";
-
-    document.getElementById("quickTime").textContent =
-      "선택하기";
-
-
-    if (
-      reservation.people >
-      reservation.capacity
-    ) {
-
-      reservation.people =
-        reservation.capacity;
-
-      updatePeople();
-
-    }
-
 
     renderRooms();
+
+    renderWeeklyReservation();
+
+    renderCalendar();
 
     renderTimeSlots();
 
@@ -216,31 +292,14 @@ centerOptions.forEach(option => {
 
     validateReservation();
 
-
-    // 월간 달력 예약 점 갱신
-
-    await loadCalendarReservationDates();
-
-
-    // 주간 현황
-
-    renderWeeklySchedule();
-
   });
 
 });
 
 
-// =====================================================
-// 공간 선택
-// =====================================================
-
-const roomSection =
-  document.getElementById("roomSection");
-
-const roomGrid =
-  document.getElementById("roomGrid");
-
+// ==========================================
+// 공간
+// ==========================================
 
 function renderRooms() {
 
@@ -249,25 +308,21 @@ function renderRooms() {
   const rooms =
     roomsByCenter[reservation.center] || [];
 
-
   if (!rooms.length) {
 
-    roomSection.style.display =
-      "none";
+    roomSection.style.display = "none";
 
     return;
+
   }
 
-
-  roomSection.style.display =
-    "block";
+  roomSection.style.display = "block";
 
 
   rooms.forEach(room => {
 
     const button =
       document.createElement("button");
-
 
     button.type = "button";
 
@@ -278,13 +333,9 @@ function renderRooms() {
       room;
 
 
-    if (
-      reservation.room === room
-    ) {
+    if (reservation.room === room) {
 
-      button.classList.add(
-        "selected"
-      );
+      button.classList.add("selected");
 
     }
 
@@ -293,37 +344,28 @@ function renderRooms() {
       "click",
       async () => {
 
-        reservation.room =
-          room;
+        reservation.room = room;
 
-        reservation.startTime =
-          "";
-
-        reservation.endTime =
-          "";
-
+        reservation.startTime = "";
+        reservation.endTime = "";
 
         document.getElementById(
           "quickRoom"
         ).textContent = room;
 
-
         renderRooms();
-
 
         await loadBookedReservations();
 
-        await loadCalendarReservationDates();
+        await renderWeeklyReservation();
 
+        renderCalendar();
 
         updateDuration();
 
         updateQuickTime();
 
         validateReservation();
-
-
-        renderWeeklySchedule();
 
       }
     );
@@ -336,164 +378,27 @@ function renderRooms() {
 }
 
 
-// =====================================================
+// ==========================================
 // 달력
-// =====================================================
+// ==========================================
 
-const calendarDays =
-  document.getElementById(
-    "calendarDays"
-  );
+let currentDate = new Date();
 
-const monthTitle =
-  document.getElementById(
-    "monthTitle"
-  );
+const today = new Date();
 
 
-let currentDate =
-  new Date();
-
-
-const today =
-  new Date();
-
-
-/*
-  현재 달에 예약이 존재하는 날짜들
-*/
-let reservationDates =
-  new Set();
-
-
-function getDateString(date) {
+function dateToString(date) {
 
   const year =
     date.getFullYear();
 
   const month =
-    String(date.getMonth() + 1)
-      .padStart(2, "0");
+    String(date.getMonth() + 1).padStart(2, "0");
 
   const day =
-    String(date.getDate())
-      .padStart(2, "0");
-
+    String(date.getDate()).padStart(2, "0");
 
   return `${year}-${month}-${day}`;
-
-}
-
-
-async function loadCalendarReservationDates() {
-
-  reservationDates =
-    new Set();
-
-
-  if (
-    !reservation.center ||
-    !reservation.room
-  ) {
-
-    renderCalendar();
-
-    return;
-  }
-
-
-  const year =
-    currentDate.getFullYear();
-
-  const month =
-    currentDate.getMonth();
-
-
-  const firstDate =
-    new Date(
-      year,
-      month,
-      1
-    );
-
-
-  const lastDate =
-    new Date(
-      year,
-      month + 1,
-      0
-    );
-
-
-  const startDate =
-    getDateString(firstDate);
-
-  const endDate =
-    getDateString(lastDate);
-
-
-  try {
-
-    const {
-      data,
-      error
-    } =
-      await supabaseClient
-        .from("Reservations")
-        .select("date")
-        .eq(
-          "center",
-          reservation.center
-        )
-        .eq(
-          "room",
-          reservation.room
-        )
-        .gte(
-          "date",
-          startDate
-        )
-        .lte(
-          "date",
-          endDate
-        );
-
-
-    if (error) {
-
-      console.error(
-        "달력 예약 조회 오류:",
-        error
-      );
-
-      renderCalendar();
-
-      return;
-    }
-
-
-    (data || []).forEach(item => {
-
-      reservationDates.add(
-        item.date
-      );
-
-    });
-
-
-    renderCalendar();
-
-
-  } catch (error) {
-
-    console.error(
-      "달력 예약 조회 실패:",
-      error
-    );
-
-    renderCalendar();
-
-  }
 
 }
 
@@ -502,105 +407,66 @@ function renderCalendar() {
 
   calendarDays.innerHTML = "";
 
-
   const year =
     currentDate.getFullYear();
 
   const month =
     currentDate.getMonth();
 
-
   monthTitle.textContent =
     `${year}.${String(month + 1).padStart(2, "0")}`;
 
 
   const firstDay =
-    new Date(
-      year,
-      month,
-      1
-    ).getDay();
-
+    new Date(year, month, 1).getDay();
 
   const lastDate =
-    new Date(
-      year,
-      month + 1,
-      0
-    ).getDate();
+    new Date(year, month + 1, 0).getDate();
 
 
-  for (
-    let i = 0;
-    i < firstDay;
-    i++
-  ) {
+  for (let i = 0; i < firstDay; i++) {
 
     const empty =
       document.createElement("div");
 
-    calendarDays.appendChild(
-      empty
-    );
+    calendarDays.appendChild(empty);
 
   }
 
 
-  const todayOnly =
-    new Date(
-      today.getFullYear(),
-      today.getMonth(),
-      today.getDate()
-    );
-
-
-  for (
-    let day = 1;
-    day <= lastDate;
-    day++
-  ) {
+  for (let day = 1; day <= lastDate; day++) {
 
     const button =
       document.createElement("button");
 
-
-    button.type = "button";
-
-    button.textContent =
-      day;
+    button.textContent = day;
 
 
     const dateObject =
+      new Date(year, month, day);
+
+    const todayOnly =
       new Date(
-        year,
-        month,
-        day
+        today.getFullYear(),
+        today.getMonth(),
+        today.getDate()
       );
 
 
     const dateString =
-      getDateString(dateObject);
+      dateToString(dateObject);
 
 
-    // 지난 날짜
+    if (dateObject < todayOnly) {
 
-    if (
-      dateObject < todayOnly
-    ) {
+      button.classList.add("disabled");
 
-      button.classList.add(
-        "disabled"
-      );
-
-      calendarDays.appendChild(
-        button
-      );
+      calendarDays.appendChild(button);
 
       continue;
+
     }
 
-
-    // 오늘
 
     if (
       year === today.getFullYear() &&
@@ -608,36 +474,27 @@ function renderCalendar() {
       day === today.getDate()
     ) {
 
-      button.classList.add(
-        "today"
-      );
+      button.classList.add("today");
 
     }
 
-
-    // 예약 있는 날짜
-
-    if (
-      reservationDates.has(
-        dateString
-      )
-    ) {
-
-      button.classList.add(
-        "has-reservation"
-      );
-
-    }
-
-
-    // 현재 선택
 
     if (
       reservation.date === dateString
     ) {
 
+      button.classList.add("selected");
+
+    }
+
+
+    // 예약 여부 점 표시
+    if (
+      calendarReservationDates.has(dateString)
+    ) {
+
       button.classList.add(
-        "selected"
+        "has-reservation"
       );
 
     }
@@ -650,25 +507,17 @@ function renderCalendar() {
         reservation.date =
           dateString;
 
-
-        reservation.startTime =
-          "";
-
-        reservation.endTime =
-          "";
-
+        reservation.startTime = "";
+        reservation.endTime = "";
 
         document.getElementById(
           "quickDate"
         ).textContent =
           `${year}년 ${month + 1}월 ${day}일`;
 
-
         renderCalendar();
 
-
         await loadBookedReservations();
-
 
         updateDuration();
 
@@ -676,147 +525,191 @@ function renderCalendar() {
 
         validateReservation();
 
-
-        renderWeeklySchedule();
-
       }
     );
 
 
-    calendarDays.appendChild(
-      button
+    calendarDays.appendChild(button);
+
+  }
+
+}
+
+
+document.getElementById(
+  "prevMonth"
+).addEventListener(
+  "click",
+  async () => {
+
+    currentDate.setMonth(
+      currentDate.getMonth() - 1
+    );
+
+    await loadCalendarReservationDates();
+
+    renderCalendar();
+
+  }
+);
+
+
+document.getElementById(
+  "nextMonth"
+).addEventListener(
+  "click",
+  async () => {
+
+    currentDate.setMonth(
+      currentDate.getMonth() + 1
+    );
+
+    await loadCalendarReservationDates();
+
+    renderCalendar();
+
+  }
+);
+
+
+// ==========================================
+// 월간 예약 날짜
+// ==========================================
+
+let calendarReservationDates =
+  new Set();
+
+
+async function loadCalendarReservationDates() {
+
+  calendarReservationDates =
+    new Set();
+
+
+  if (
+    !reservation.center ||
+    !reservation.room
+  ) {
+
+    renderCalendar();
+
+    return;
+
+  }
+
+
+  const year =
+    currentDate.getFullYear();
+
+  const month =
+    currentDate.getMonth();
+
+
+  const startDate =
+    `${year}-${String(month + 1).padStart(2, "0")}-01`;
+
+
+  const lastDay =
+    new Date(
+      year,
+      month + 1,
+      0
+    ).getDate();
+
+
+  const endDate =
+    `${year}-${String(month + 1).padStart(2, "0")}-${String(lastDay).padStart(2, "0")}`;
+
+
+  const { data, error } =
+    await supabaseClient
+      .from("Reservations")
+      .select("date")
+      .eq("center", reservation.center)
+      .eq("room", reservation.room)
+      .gte("date", startDate)
+      .lte("date", endDate);
+
+
+  if (error) {
+
+    console.error(
+      "달력 예약 조회 오류:",
+      error
+    );
+
+    return;
+
+  }
+
+
+  (data || []).forEach(item => {
+
+    calendarReservationDates.add(
+      item.date
+    );
+
+  });
+
+}
+
+
+// ==========================================
+// 시간 슬롯
+// ==========================================
+
+function generateSlots(open, close) {
+
+  const start =
+    timeToMinutes(open);
+
+  const end =
+    timeToMinutes(close);
+
+  const slots = [];
+
+  for (
+    let minute = start;
+    minute < end;
+    minute += 30
+  ) {
+
+    slots.push(
+      minutesToTime(minute)
     );
 
   }
 
-}
-
-
-// 이전 달
-
-document
-  .getElementById("prevMonth")
-  .addEventListener(
-    "click",
-    async () => {
-
-      currentDate.setMonth(
-        currentDate.getMonth() - 1
-      );
-
-
-      await loadCalendarReservationDates();
-
-    }
-  );
-
-
-// 다음 달
-
-document
-  .getElementById("nextMonth")
-  .addEventListener(
-    "click",
-    async () => {
-
-      currentDate.setMonth(
-        currentDate.getMonth() + 1
-      );
-
-
-      await loadCalendarReservationDates();
-
-    }
-  );
-
-
-renderCalendar();
-
-
-// =====================================================
-// 시간
-// =====================================================
-
-function createTimeList() {
-
-  const times = [];
-
-
-  for (
-    let hour = 0;
-    hour < 24;
-    hour++
-  ) {
-
-    for (
-      let minute = 0;
-      minute < 60;
-      minute += 30
-    ) {
-
-      times.push(
-        `${String(hour).padStart(2, "0")}:${String(minute).padStart(2, "0")}`
-      );
-
-    }
-
-  }
-
-
-  return times;
+  return slots;
 
 }
 
 
-const allTimes =
-  createTimeList();
+function isBooked(time) {
+
+  const slotStart =
+    timeToMinutes(time);
+
+  const slotEnd =
+    slotStart + 30;
 
 
-function timeToMinutes(time) {
+  return bookedReservations.some(item => {
 
-  const [
-    hour,
-    minute
-  ] =
-    time
-      .split(":")
-      .map(Number);
+    const bookedStart =
+      timeToMinutes(item.start_time);
 
+    const bookedEnd =
+      timeToMinutes(item.end_time);
 
-  return (
-    hour * 60 +
-    minute
-  );
+    return (
+      slotStart < bookedEnd &&
+      slotEnd > bookedStart
+    );
+
+  });
 
 }
-
-
-// =====================================================
-// 시간 슬롯
-// =====================================================
-
-const timeSlotNotice =
-  document.getElementById(
-    "timeSlotNotice"
-  );
-
-const timeSlotWrapperOuter =
-  document.getElementById(
-    "timeSlotWrapperOuter"
-  );
-
-const timeSlotWrapper =
-  document.getElementById(
-    "timeSlotWrapper"
-  );
-
-const timeSlotGrid =
-  document.getElementById(
-    "timeSlotGrid"
-  );
-
-
-let bookedReservations = [];
 
 
 async function loadBookedReservations() {
@@ -832,66 +725,35 @@ async function loadBookedReservations() {
     renderTimeSlots();
 
     return;
+
   }
 
 
-  try {
-
-    const {
-      data,
-      error
-    } =
-      await supabaseClient
-        .from("Reservations")
-        .select(
-          "start_time, end_time"
-        )
-        .eq(
-          "center",
-          reservation.center
-        )
-        .eq(
-          "date",
-          reservation.date
-        )
-        .eq(
-          "room",
-          reservation.room
-        );
-
-
-    if (error) {
-
-      console.error(
-        "예약 시간 조회 오류:",
-        error
+  const { data, error } =
+    await supabaseClient
+      .from("Reservations")
+      .select(`
+        start_time,
+        end_time
+      `)
+      .eq(
+        "center",
+        reservation.center
+      )
+      .eq(
+        "date",
+        reservation.date
+      )
+      .eq(
+        "room",
+        reservation.room
       );
 
-      bookedReservations = [];
 
-      renderTimeSlots();
-
-      return;
-    }
-
-
-    bookedReservations =
-      data || [];
-
-
-    console.log(
-      "현재 예약된 시간:",
-      bookedReservations
-    );
-
-
-    renderTimeSlots();
-
-
-  } catch (error) {
+  if (error) {
 
     console.error(
-      "예약 조회 중 오류:",
+      "예약 시간 조회 오류:",
       error
     );
 
@@ -899,120 +761,22 @@ async function loadBookedReservations() {
 
     renderTimeSlots();
 
-  }
-
-}
-
-
-function isBooked(time) {
-
-  const slotStart =
-    timeToMinutes(time);
-
-  const slotEnd =
-    slotStart + 30;
-
-
-  return bookedReservations.some(
-    item => {
-
-      const bookedStart =
-        timeToMinutes(
-          item.start_time
-        );
-
-      const bookedEnd =
-        timeToMinutes(
-          item.end_time
-        );
-
-
-      return (
-        slotStart < bookedEnd &&
-        slotEnd > bookedStart
-      );
-
-    }
-  );
-
-}
-
-
-function generateSlots(
-  open,
-  close
-) {
-
-  const [
-    oh,
-    om
-  ] =
-    open
-      .split(":")
-      .map(Number);
-
-
-  const [
-    ch,
-    cm
-  ] =
-    close
-      .split(":")
-      .map(Number);
-
-
-  const startMinutes =
-    oh * 60 + om;
-
-  const endMinutes =
-    ch * 60 + cm;
-
-
-  const slots = [];
-
-
-  for (
-    let m = startMinutes;
-    m < endMinutes;
-    m += 30
-  ) {
-
-    const h =
-      Math.floor(m / 60);
-
-    const mm =
-      m % 60;
-
-
-    slots.push(
-      `${String(h).padStart(2, "0")}:${String(mm).padStart(2, "0")}`
-    );
+    return;
 
   }
 
 
-  return slots;
+  bookedReservations =
+    data || [];
+
+  renderTimeSlots();
 
 }
 
 
-function addThirtyMinutes(time) {
-
-  const minutes =
-    timeToMinutes(time) + 30;
-
-
-  const h =
-    Math.floor(minutes / 60);
-
-  const m =
-    minutes % 60;
-
-
-  return `${String(h).padStart(2, "0")}:${String(m).padStart(2, "0")}`;
-
-}
-
+// ==========================================
+// 시간 슬롯 표시
+// ==========================================
 
 function renderTimeSlots() {
 
@@ -1028,6 +792,7 @@ function renderTimeSlots() {
       "none";
 
     return;
+
   }
 
 
@@ -1041,7 +806,6 @@ function renderTimeSlots() {
   const center =
     centers[reservation.center];
 
-
   const slots =
     generateSlots(
       center.open,
@@ -1051,17 +815,12 @@ function renderTimeSlots() {
 
   const startMinutes =
     reservation.startTime
-      ? timeToMinutes(
-          reservation.startTime
-        )
+      ? timeToMinutes(reservation.startTime)
       : null;
-
 
   const endMinutes =
     reservation.endTime
-      ? timeToMinutes(
-          reservation.endTime
-        )
+      ? timeToMinutes(reservation.endTime)
       : null;
 
 
@@ -1070,35 +829,25 @@ function renderTimeSlots() {
     const minutes =
       timeToMinutes(time);
 
-
-    const isHourMark =
-      minutes % 60 === 0;
-
-
     const booked =
       isBooked(time);
 
-
     const button =
       document.createElement("button");
-
 
     button.type = "button";
 
     button.className =
       "time-slot";
 
-
     button.title =
       time;
 
 
-    if (isHourMark) {
+    if (minutes % 60 === 0) {
 
       button.innerHTML =
-        `<span class="slot-label">
-          ${String(Math.floor(minutes / 60)).padStart(2, "0")}
-        </span>`;
+        `<span class="slot-label">${String(Math.floor(minutes / 60)).padStart(2, "0")}</span>`;
 
     }
 
@@ -1116,6 +865,7 @@ function renderTimeSlots() {
       );
 
       return;
+
     }
 
 
@@ -1131,6 +881,8 @@ function renderTimeSlots() {
       );
 
     }
+
+
     else if (
       startMinutes !== null &&
       endMinutes === null &&
@@ -1160,9 +912,13 @@ function renderTimeSlots() {
 }
 
 
+// ==========================================
+// 시간 선택
+// ==========================================
+
 function handleSlotClick(time) {
 
-  const clickedMinutes =
+  const clicked =
     timeToMinutes(time);
 
 
@@ -1178,17 +934,16 @@ function handleSlotClick(time) {
       "";
 
   }
+
   else {
 
-    const startMinutes =
+    const start =
       timeToMinutes(
         reservation.startTime
       );
 
 
-    if (
-      clickedMinutes <= startMinutes
-    ) {
+    if (clicked <= start) {
 
       reservation.startTime =
         time;
@@ -1197,29 +952,31 @@ function handleSlotClick(time) {
         "";
 
     }
+
     else {
 
-      const candidateEnd =
-        addThirtyMinutes(time);
+      const end =
+        addMinutes(time, 30);
 
 
       if (
         hasBookedBetween(
           reservation.startTime,
-          candidateEnd
+          end
         )
       ) {
 
         alert(
-          "선택한 구간 중간에 이미 예약이 있어요.\n다른 시간을 선택해주세요."
+          "선택한 구간 중간에 이미 예약이 있어요."
         );
 
         return;
+
       }
 
 
       reservation.endTime =
-        candidateEnd;
+        end;
 
     }
 
@@ -1237,39 +994,38 @@ function handleSlotClick(time) {
 }
 
 
+// ==========================================
+// 예약 중간 충돌
+// ==========================================
+
 function hasBookedBetween(
   startTime,
   endTime
 ) {
 
-  const center =
-    centers[reservation.center];
-
-
-  const slots =
-    generateSlots(
-      center.open,
-      center.close
-    );
-
-
-  const startMinutes =
+  const start =
     timeToMinutes(startTime);
 
-  const endMinutes =
+  const end =
     timeToMinutes(endTime);
 
 
-  return slots.some(time => {
+  return bookedReservations.some(item => {
 
-    const minutes =
-      timeToMinutes(time);
+    const bookedStart =
+      timeToMinutes(
+        item.start_time
+      );
+
+    const bookedEnd =
+      timeToMinutes(
+        item.end_time
+      );
 
 
     return (
-      minutes >= startMinutes &&
-      minutes < endMinutes &&
-      isBooked(time)
+      start < bookedEnd &&
+      end > bookedStart
     );
 
   });
@@ -1277,22 +1033,121 @@ function hasBookedBetween(
 }
 
 
-// =====================================================
-// 이용시간 표시
-// =====================================================
+// ==========================================
+// 빠른 시간 선택
+// ==========================================
+
+document
+  .querySelectorAll(".quick-time-button")
+  .forEach(button => {
+
+    button.addEventListener(
+      "click",
+      () => {
+
+        if (!reservation.startTime) {
+
+          alert(
+            "먼저 시작시간을 선택해주세요."
+          );
+
+          return;
+
+        }
+
+
+        const duration =
+          button.dataset.duration;
+
+
+        let endTime;
+
+
+        if (duration === "all") {
+
+          endTime =
+            centers[
+              reservation.center
+            ].close;
+
+        }
+
+        else {
+
+          endTime =
+            addMinutes(
+              reservation.startTime,
+              Number(duration)
+            );
+
+        }
+
+
+        const close =
+          timeToMinutes(
+            centers[
+              reservation.center
+            ].close
+          );
+
+
+        if (
+          timeToMinutes(endTime) > close
+        ) {
+
+          alert(
+            "센터 운영시간을 초과합니다."
+          );
+
+          return;
+
+        }
+
+
+        if (
+          hasBookedBetween(
+            reservation.startTime,
+            endTime
+          )
+        ) {
+
+          alert(
+            "선택한 시간 안에 이미 예약된 시간이 있습니다."
+          );
+
+          return;
+
+        }
+
+
+        reservation.endTime =
+          endTime;
+
+
+        renderTimeSlots();
+
+        updateDuration();
+
+        updateQuickTime();
+
+        validateReservation();
+
+      }
+    );
+
+  });
+
+
+// ==========================================
+// 총 이용시간
+// ==========================================
 
 function updateDuration() {
 
-  const durationDisplay =
-    document.getElementById(
-      "durationDisplay"
-    );
-
-
-  const durationText =
-    durationDisplay.querySelector(
-      "strong"
-    );
+  const strong =
+    document
+      .getElementById("durationDisplay")
+      .querySelector("strong");
 
 
   if (
@@ -1300,34 +1155,30 @@ function updateDuration() {
     !reservation.endTime
   ) {
 
-    durationText.textContent =
+    strong.textContent =
       "선택해주세요";
 
     return;
+
   }
 
 
-  const start =
+  const difference =
+    timeToMinutes(
+      reservation.endTime
+    ) -
     timeToMinutes(
       reservation.startTime
     );
 
-  const end =
-    timeToMinutes(
-      reservation.endTime
-    );
-
-
-  const difference =
-    end - start;
-
 
   if (difference <= 0) {
 
-    durationText.textContent =
+    strong.textContent =
       "선택해주세요";
 
     return;
+
   }
 
 
@@ -1343,7 +1194,7 @@ function updateDuration() {
   let result = "";
 
 
-  if (hours > 0) {
+  if (hours) {
 
     result +=
       `${hours}시간`;
@@ -1351,7 +1202,7 @@ function updateDuration() {
   }
 
 
-  if (minutes > 0) {
+  if (minutes) {
 
     if (result) {
       result += " ";
@@ -1363,19 +1214,19 @@ function updateDuration() {
   }
 
 
-  durationText.textContent =
+  strong.textContent =
     result;
 
 }
 
 
-// =====================================================
+// ==========================================
 // 빠른 시간 표시
-// =====================================================
+// ==========================================
 
 function updateQuickTime() {
 
-  const quickTime =
+  const element =
     document.getElementById(
       "quickTime"
     );
@@ -1386,65 +1237,444 @@ function updateQuickTime() {
     reservation.endTime
   ) {
 
-    quickTime.textContent =
+    element.textContent =
       `${reservation.startTime} ~ ${reservation.endTime}`;
 
     return;
+
   }
 
 
   if (reservation.startTime) {
 
-    quickTime.textContent =
+    element.textContent =
       `${reservation.startTime} ~`;
 
     return;
+
   }
 
 
-  quickTime.textContent =
+  element.textContent =
     "선택하기";
 
 }
 
 
-// =====================================================
-// 시간 좌우 이동
-// =====================================================
+// ==========================================
+// 주간 예약 현황
+// ==========================================
 
-document
-  .getElementById("prevSlot")
-  .addEventListener(
-    "click",
-    () => {
+let weekOffset = 0;
 
-      timeSlotWrapper.scrollBy({
-        left: -156,
-        behavior: "smooth"
-      });
+
+function getStartOfWeek(date) {
+
+  const result =
+    new Date(date);
+
+  const day =
+    result.getDay();
+
+  result.setDate(
+    result.getDate() - day
+  );
+
+  result.setHours(
+    0, 0, 0, 0
+  );
+
+  return result;
+
+}
+
+
+function getWeekDates() {
+
+  const base =
+    new Date();
+
+  base.setDate(
+    base.getDate() +
+    weekOffset * 7
+  );
+
+
+  const start =
+    getStartOfWeek(base);
+
+  const dates = [];
+
+
+  for (let i = 0; i < 7; i++) {
+
+    const date =
+      new Date(start);
+
+    date.setDate(
+      start.getDate() + i
+    );
+
+    dates.push(date);
+
+  }
+
+
+  return dates;
+
+}
+
+
+async function renderWeeklyReservation() {
+
+  const section =
+    document.getElementById(
+      "weeklyReservationSection"
+    );
+
+
+  if (
+    !reservation.center ||
+    !reservation.room
+  ) {
+
+    section.style.display =
+      "none";
+
+    return;
+
+  }
+
+
+  section.style.display =
+    "block";
+
+
+  const dates =
+    getWeekDates();
+
+
+  const startDate =
+    dateToString(dates[0]);
+
+  const endDate =
+    dateToString(dates[6]);
+
+
+  document.getElementById(
+    "weeklyDateRange"
+  ).textContent =
+    `${dates[0].getFullYear()}년 ${dates[0].getMonth() + 1}월 ${dates[0].getDate()}일 ~ ${dates[6].getMonth() + 1}월 ${dates[6].getDate()}일`;
+
+
+  const { data, error } =
+    await supabaseClient
+      .from("Reservations")
+      .select(`
+        date,
+        start_time,
+        end_time,
+        user_name,
+        department,
+        purpose
+      `)
+      .eq(
+        "center",
+        reservation.center
+      )
+      .eq(
+        "room",
+        reservation.room
+      )
+      .gte(
+        "date",
+        startDate
+      )
+      .lte(
+        "date",
+        endDate
+      )
+      .order(
+        "start_time",
+        { ascending: true }
+      );
+
+
+  if (error) {
+
+    console.error(
+      "주간 예약 조회 오류:",
+      error
+    );
+
+    return;
+
+  }
+
+
+  const reservations =
+    data || [];
+
+
+  const calendar =
+    document.getElementById(
+      "weeklyCalendar"
+    );
+
+
+  calendar.innerHTML = "";
+
+
+  const dayNames =
+    [
+      "일",
+      "월",
+      "화",
+      "수",
+      "목",
+      "금",
+      "토"
+    ];
+
+
+  const todayString =
+    dateToString(
+      new Date()
+    );
+
+
+  dates.forEach(
+    (date, index) => {
+
+      const dateString =
+        dateToString(date);
+
+
+      const dayColumn =
+        document.createElement(
+          "div"
+        );
+
+      dayColumn.className =
+        "week-day";
+
+
+      const header =
+        document.createElement(
+          "div"
+        );
+
+      header.className =
+        "week-day-header";
+
+
+      if (index === 0) {
+        header.classList.add("sun");
+      }
+
+      if (index === 6) {
+        header.classList.add("sat");
+      }
+
+      if (dateString === todayString) {
+        header.classList.add("today");
+      }
+
+
+      header.innerHTML = `
+        <span class="day-name">${dayNames[index]}</span>
+        <span class="day-number">${date.getDate()}</span>
+      `;
+
+
+      const body =
+        document.createElement(
+          "div"
+        );
+
+      body.className =
+        "week-day-body";
+
+
+      const dayReservations =
+        reservations.filter(
+          item =>
+            item.date === dateString
+        );
+
+
+      if (!dayReservations.length) {
+
+        body.innerHTML =
+          `<div class="week-empty">예약 없음</div>`;
+
+      }
+
+
+      dayReservations.forEach(
+        item => {
+
+          const card =
+            document.createElement(
+              "div"
+            );
+
+          card.className =
+            "week-reservation";
+
+
+          card.innerHTML = `
+            <div class="week-reservation-time">
+              ${item.start_time} ~ ${item.end_time}
+            </div>
+
+            <div class="week-reservation-name">
+              ${escapeHTML(item.user_name || "")}
+            </div>
+
+            <div class="week-reservation-department">
+              ${escapeHTML(item.department || "")}
+            </div>
+
+            <div class="week-reservation-purpose">
+              ${escapeHTML(item.purpose || "")}
+            </div>
+          `;
+
+
+          body.appendChild(card);
+
+        }
+      );
+
+
+      dayColumn.appendChild(header);
+
+      dayColumn.appendChild(body);
+
+      calendar.appendChild(dayColumn);
 
     }
   );
 
+}
+
+
+// ==========================================
+// 주간 이동
+// ==========================================
+
+document.getElementById(
+  "prevWeek"
+).addEventListener(
+  "click",
+  async () => {
+
+    weekOffset--;
+
+    await renderWeeklyReservation();
+
+  }
+);
+
+
+document.getElementById(
+  "nextWeek"
+).addEventListener(
+  "click",
+  async () => {
+
+    weekOffset++;
+
+    await renderWeeklyReservation();
+
+  }
+);
+
+
+document.getElementById(
+  "thisWeekButton"
+).addEventListener(
+  "click",
+  async () => {
+
+    weekOffset = 0;
+
+    await renderWeeklyReservation();
+
+  }
+);
+
+
+// ==========================================
+// HTML escape
+// ==========================================
+
+function escapeHTML(value) {
+
+  return String(value)
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&#039;");
+
+}
+
+
+// ==========================================
+// 반복 예약
+// ==========================================
 
 document
-  .getElementById("nextSlot")
-  .addEventListener(
-    "click",
-    () => {
+  .querySelectorAll(
+    'input[name="reservationType"]'
+  )
+  .forEach(radio => {
 
-      timeSlotWrapper.scrollBy({
-        left: 156,
-        behavior: "smooth"
-      });
+    radio.addEventListener(
+      "change",
+      () => {
 
-    }
-  );
+        const recurring =
+          document.querySelector(
+            'input[name="reservationType"]:checked'
+          ).value === "recurring";
 
 
-// =====================================================
+        reservation.isRecurring =
+          recurring;
+
+
+        document.getElementById(
+          "recurringOptions"
+        ).style.display =
+          recurring
+            ? "block"
+            : "none";
+
+      }
+    );
+
+  });
+
+
+document.getElementById(
+  "recurringMonths"
+).addEventListener(
+  "change",
+  event => {
+
+    reservation.recurringMonths =
+      Number(event.target.value);
+
+  }
+);
+
+
+// ==========================================
 // 인원
-// =====================================================
+// ==========================================
 
 const peopleCount =
   document.getElementById(
@@ -1457,7 +1687,6 @@ function updatePeople() {
   peopleCount.value =
     reservation.people;
 
-
   document.getElementById(
     "quickPeople"
   ).textContent =
@@ -1466,46 +1695,46 @@ function updatePeople() {
 }
 
 
-document
-  .getElementById("minusPeople")
-  .addEventListener(
-    "click",
-    () => {
+document.getElementById(
+  "minusPeople"
+).addEventListener(
+  "click",
+  () => {
 
-      if (
-        reservation.people > 1
-      ) {
+    if (
+      reservation.people > 1
+    ) {
 
-        reservation.people--;
+      reservation.people--;
 
-        updatePeople();
-
-      }
+      updatePeople();
 
     }
-  );
+
+  }
+);
 
 
-document
-  .getElementById("plusPeople")
-  .addEventListener(
-    "click",
-    () => {
+document.getElementById(
+  "plusPeople"
+).addEventListener(
+  "click",
+  () => {
 
-      if (
-        reservation.capacity &&
-        reservation.people <
-        reservation.capacity
-      ) {
+    if (
+      reservation.capacity &&
+      reservation.people <
+      reservation.capacity
+    ) {
 
-        reservation.people++;
+      reservation.people++;
 
-        updatePeople();
-
-      }
+      updatePeople();
 
     }
-  );
+
+  }
+);
 
 
 peopleCount.addEventListener(
@@ -1538,7 +1767,6 @@ peopleCount.addEventListener(
       value =
         reservation.capacity;
 
-
       alert(
         `${reservation.center}은 최대 ${reservation.capacity}명까지 이용할 수 있습니다.`
       );
@@ -1549,19 +1777,15 @@ peopleCount.addEventListener(
     reservation.people =
       value;
 
-
     updatePeople();
 
   }
 );
 
 
-updatePeople();
-
-
-// =====================================================
+// ==========================================
 // 예약 가능 여부
-// =====================================================
+// ==========================================
 
 function validateReservation() {
 
@@ -1572,7 +1796,6 @@ function validateReservation() {
 
 
   const complete =
-
     reservation.center &&
     reservation.room &&
     reservation.date &&
@@ -1587,607 +1810,121 @@ function validateReservation() {
 }
 
 
-validateReservation();
+// ==========================================
+// 다음
+// ==========================================
 
+document.getElementById(
+  "nextButton"
+).addEventListener(
+  "click",
+  () => {
 
-// =====================================================
-// 주간 예약현황
-// =====================================================
-
-const weeklySection =
-  document.getElementById(
-    "weeklyScheduleSection"
-  );
-
-const weeklyGrid =
-  document.getElementById(
-    "weeklyGrid"
-  );
-
-const weeklyDateRange =
-  document.getElementById(
-    "weeklyDateRange"
-  );
-
-const weeklyRoomName =
-  document.getElementById(
-    "weeklyRoomName"
-  );
-
-
-let weeklyBaseDate =
-  new Date();
-
-
-function getStartOfWeek(date) {
-
-  const result =
-    new Date(date);
-
-
-  const day =
-    result.getDay();
-
-
-  result.setDate(
-    result.getDate() - day
-  );
-
-
-  result.setHours(
-    0,
-    0,
-    0,
-    0
-  );
-
-
-  return result;
-
-}
-
-
-function formatShortDate(date) {
-
-  return `${date.getMonth() + 1}.${date.getDate()}`;
-
-}
-
-
-function renderWeeklySchedule() {
-
-  if (
-    !reservation.center ||
-    !reservation.room
-  ) {
-
-    weeklySection.style.display =
-      "none";
-
-    return;
-  }
-
-
-  weeklySection.style.display =
-    "block";
-
-
-  weeklyRoomName.textContent =
-    `${reservation.center} · ${reservation.room}`;
-
-
-  const start =
-    getStartOfWeek(
-      weeklyBaseDate
-    );
-
-
-  const end =
-    new Date(start);
-
-
-  end.setDate(
-    end.getDate() + 6
-  );
-
-
-  weeklyDateRange.textContent =
-    `${start.getFullYear()}년 ${formatShortDate(start)}일 ~ ${formatShortDate(end)}일`;
-
-
-  loadWeeklyReservations(
-    start
-  );
-
-}
-
-
-async function loadWeeklyReservations(
-  weekStart
-) {
-
-  weeklyGrid.innerHTML = "";
-
-
-  // 먼저 요일 7개 생성
-
-  const days = [];
-
-
-  for (
-    let i = 0;
-    i < 7;
-    i++
-  ) {
-
-    const date =
-      new Date(weekStart);
-
-
-    date.setDate(
-      date.getDate() + i
-    );
-
-
-    days.push(date);
-
-
-    createWeeklyDay(
-      date
-    );
+    showPage(userPage);
 
   }
+);
 
 
-  if (
-    !reservation.center ||
-    !reservation.room
-  ) {
+// ==========================================
+// 예약자 정보
+// ==========================================
 
-    return;
+document.getElementById(
+  "checkReservation"
+).addEventListener(
+  "click",
+  () => {
 
-  }
+    const name =
+      document.getElementById(
+        "userName"
+      ).value.trim();
 
+    const department =
+      document.getElementById(
+        "department"
+      ).value.trim();
 
-  const weekEnd =
-    new Date(weekStart);
+    const phone =
+      document.getElementById(
+        "phone"
+      ).value.trim();
 
-
-  weekEnd.setDate(
-    weekEnd.getDate() + 6
-  );
-
-
-  try {
-
-    const {
-      data,
-      error
-    } =
-      await supabaseClient
-        .from("Reservations")
-        .select(
-          "date, start_time, end_time, user_name, department, purpose"
-        )
-        .eq(
-          "center",
-          reservation.center
-        )
-        .eq(
-          "room",
-          reservation.room
-        )
-        .gte(
-          "date",
-          getDateString(weekStart)
-        )
-        .lte(
-          "date",
-          getDateString(weekEnd)
-        )
-        .order(
-          "start_time",
-          {
-            ascending: true
-          }
-        );
+    const purpose =
+      document.getElementById(
+        "purpose"
+      ).value.trim();
 
 
-    if (error) {
+    if (!name) {
 
-      console.error(
-        "주간 예약 조회 오류:",
-        error
+      alert(
+        "예약자 이름을 입력해주세요."
       );
 
       return;
+
     }
 
 
-    const reservations =
-      data || [];
+    if (!department) {
 
-
-    reservations.forEach(
-      item => {
-
-        const dayIndex =
-          days.findIndex(
-            date =>
-              getDateString(date) ===
-              item.date
-          );
-
-
-        if (
-          dayIndex === -1
-        ) {
-
-          return;
-
-        }
-
-
-        const dayElement =
-          weeklyGrid.children[
-            dayIndex
-          ];
-
-
-        const reservationContainer =
-          dayElement.querySelector(
-            ".weekly-reservations"
-          );
-
-
-        const reservationElement =
-          document.createElement(
-            "div"
-          );
-
-
-        reservationElement.className =
-          "weekly-reservation";
-
-
-        reservationElement.innerHTML = `
-
-          <span class="weekly-reservation-time">
-            ${item.start_time} ~ ${item.end_time}
-          </span>
-
-          <span class="weekly-reservation-name">
-            ${escapeHtml(item.user_name || "예약자")}
-          </span>
-
-          <span class="weekly-reservation-department">
-            ${escapeHtml(item.department || "")}
-          </span>
-
-          <span class="weekly-reservation-purpose">
-            ${escapeHtml(item.purpose || "")}
-          </span>
-
-        `;
-
-
-        reservationContainer
-          .appendChild(
-            reservationElement
-          );
-
-
-        const emptyMessage =
-          reservationContainer.querySelector(
-            ".no-reservation"
-          );
-
-
-        if (
-          emptyMessage
-        ) {
-
-          emptyMessage.remove();
-
-        }
-
-      }
-    );
-
-
-  } catch (error) {
-
-    console.error(
-      "주간 예약 처리 오류:",
-      error
-    );
-
-  }
-
-}
-
-
-function createWeeklyDay(
-  date
-) {
-
-  const dayNames = [
-    "일",
-    "월",
-    "화",
-    "수",
-    "목",
-    "금",
-    "토"
-  ];
-
-
-  const day =
-    date.getDay();
-
-
-  const dayElement =
-    document.createElement(
-      "div"
-    );
-
-
-  dayElement.className =
-    "weekly-day";
-
-
-  if (day === 0) {
-
-    dayElement.classList.add(
-      "sun"
-    );
-
-  }
-
-  if (day === 6) {
-
-    dayElement.classList.add(
-      "sat"
-    );
-
-  }
-
-
-  const todayString =
-    getDateString(
-      today
-    );
-
-
-  if (
-    getDateString(date) ===
-    todayString
-  ) {
-
-    dayElement.classList.add(
-      "today"
-    );
-
-  }
-
-
-  dayElement.innerHTML = `
-
-    <div class="weekly-day-header">
-
-      <span class="weekly-day-name">
-        ${dayNames[day]}
-      </span>
-
-      <span class="weekly-day-date">
-        ${date.getDate()}
-      </span>
-
-    </div>
-
-    <div class="weekly-reservations">
-
-      <div class="no-reservation">
-        예약 없음
-      </div>
-
-    </div>
-
-  `;
-
-
-  weeklyGrid.appendChild(
-    dayElement
-  );
-
-}
-
-
-// 이전 주
-
-document
-  .getElementById("prevWeek")
-  .addEventListener(
-    "click",
-    () => {
-
-      weeklyBaseDate.setDate(
-        weeklyBaseDate.getDate() - 7
+      alert(
+        "부서를 입력해주세요."
       );
 
-
-      renderWeeklySchedule();
+      return;
 
     }
-  );
 
 
-// 다음 주
+    if (!phone) {
 
-document
-  .getElementById("nextWeek")
-  .addEventListener(
-    "click",
-    () => {
-
-      weeklyBaseDate.setDate(
-        weeklyBaseDate.getDate() + 7
+      alert(
+        "연락처를 입력해주세요."
       );
 
-
-      renderWeeklySchedule();
-
-    }
-  );
-
-
-// 이번 주
-
-document
-  .getElementById("thisWeek")
-  .addEventListener(
-    "click",
-    () => {
-
-      weeklyBaseDate =
-        new Date();
-
-      renderWeeklySchedule();
+      return;
 
     }
-  );
 
 
-// =====================================================
-// HTML 문자 안전 처리
-// =====================================================
+    if (!purpose) {
 
-function escapeHtml(value) {
+      alert(
+        "사용 목적을 입력해주세요."
+      );
 
-  return String(value)
-    .replaceAll("&", "&amp;")
-    .replaceAll("<", "&lt;")
-    .replaceAll(">", "&gt;")
-    .replaceAll('"', "&quot;")
-    .replaceAll("'", "&#039;");
-
-}
-
-
-// =====================================================
-// 예약자 정보 페이지
-// =====================================================
-
-document
-  .getElementById("nextButton")
-  .addEventListener(
-    "click",
-    () => {
-
-      showPage(userPage);
+      return;
 
     }
-  );
 
 
-document
-  .getElementById("checkReservation")
-  .addEventListener(
-    "click",
-    () => {
+    reservation.userName =
+      name;
 
-      const name =
-        document
-          .getElementById("userName")
-          .value
-          .trim();
+    reservation.department =
+      department;
 
+    reservation.phone =
+      phone;
 
-      const department =
-        document
-          .getElementById("department")
-          .value
-          .trim();
+    reservation.purpose =
+      purpose;
 
 
-      const phone =
-        document
-          .getElementById("phone")
-          .value
-          .trim();
+    updateConfirmation();
+
+    showPage(confirmPage);
+
+  }
+);
 
 
-      const purpose =
-        document
-          .getElementById("purpose")
-          .value
-          .trim();
-
-
-      if (!name) {
-
-        alert(
-          "예약자 이름을 입력해주세요."
-        );
-
-        return;
-      }
-
-
-      if (!department) {
-
-        alert(
-          "부서를 입력해주세요."
-        );
-
-        return;
-      }
-
-
-      if (!phone) {
-
-        alert(
-          "연락처를 입력해주세요."
-        );
-
-        return;
-      }
-
-
-      if (!purpose) {
-
-        alert(
-          "사용 목적을 입력해주세요."
-        );
-
-        return;
-      }
-
-
-      reservation.userName =
-        name;
-
-      reservation.department =
-        department;
-
-      reservation.phone =
-        phone;
-
-      reservation.purpose =
-        purpose;
-
-
-      updateConfirmation();
-
-      showPage(confirmPage);
-
-    }
-  );
-
-
-// =====================================================
+// ==========================================
 // 확인 페이지
-// =====================================================
+// ==========================================
 
 function updateConfirmation() {
 
@@ -2224,6 +1961,14 @@ function updateConfirmation() {
 
 
   document.getElementById(
+    "confirmReservationType"
+  ).textContent =
+    reservation.isRecurring
+      ? `고정 사용 · ${reservation.recurringMonths}개월`
+      : "일회성 사용";
+
+
+  document.getElementById(
     "confirmName"
   ).textContent =
     reservation.userName;
@@ -2249,13 +1994,11 @@ function updateConfirmation() {
 }
 
 
-// =====================================================
+// ==========================================
 // 날짜 표시
-// =====================================================
+// ==========================================
 
-function formatDate(
-  dateString
-) {
+function formatDate(dateString) {
 
   const [
     year,
@@ -2270,197 +2013,217 @@ function formatDate(
 }
 
 
-// =====================================================
+// ==========================================
 // 이전
-// =====================================================
+// ==========================================
 
-document
-  .getElementById("backToReservation")
-  .addEventListener(
-    "click",
-    () => {
+document.getElementById(
+  "backToReservation"
+).addEventListener(
+  "click",
+  () => {
 
-      showPage(
-        reservationPage
-      );
+    showPage(reservationPage);
 
-    }
+  }
+);
+
+
+document.getElementById(
+  "backToUser"
+).addEventListener(
+  "click",
+  () => {
+
+    showPage(userPage);
+
+  }
+);
+
+
+// ==========================================
+// 반복 예약 날짜 생성
+// ==========================================
+
+function getRecurringDates() {
+
+  const dates = [];
+
+  if (
+    !reservation.isRecurring ||
+    !reservation.date
+  ) {
+
+    return [
+      reservation.date
+    ];
+
+  }
+
+
+  const start =
+    new Date(
+      `${reservation.date}T00:00:00`
+    );
+
+
+  const end =
+    new Date(start);
+
+
+  end.setMonth(
+    end.getMonth() +
+    reservation.recurringMonths
   );
 
 
-document
-  .getElementById("backToUser")
-  .addEventListener(
-    "click",
-    () => {
+  const targetDay =
+    start.getDay();
 
-      showPage(
-        userPage
+
+  const current =
+    new Date(start);
+
+
+  while (current < end) {
+
+    if (
+      current.getDay() ===
+      targetDay
+    ) {
+
+      dates.push(
+        dateToString(current)
       );
 
     }
-  );
+
+    current.setDate(
+      current.getDate() + 1
+    );
+
+  }
 
 
-// =====================================================
-// 예약 저장
-// =====================================================
+  return dates;
 
-document
-  .getElementById("reserveButton")
-  .addEventListener(
-    "click",
-    async () => {
-
-      const reserveButton =
-        document.getElementById(
-          "reserveButton"
-        );
+}
 
 
-      reserveButton.disabled =
-        true;
+// ==========================================
+// 예약 신청
+// ==========================================
+
+document.getElementById(
+  "reserveButton"
+).addEventListener(
+  "click",
+  async () => {
+
+    const button =
+      document.getElementById(
+        "reserveButton"
+      );
 
 
-      reserveButton.textContent =
-        "예약 저장 중...";
+    button.disabled =
+      true;
+
+    button.textContent =
+      "예약 저장 중...";
 
 
-      try {
+    try {
 
-        const {
-          data,
-          error
-        } =
-          await supabaseClient
-            .from("Reservations")
-            .insert({
-
-              center:
-                reservation.center,
-
-              room:
-                reservation.room,
-
-              date:
-                reservation.date,
-
-              start_time:
-                reservation.startTime,
-
-              end_time:
-                reservation.endTime,
-
-              people:
-                reservation.people,
-
-              user_name:
-                reservation.userName,
-
-              department:
-                reservation.department,
-
-              phone:
-                reservation.phone,
-
-              purpose:
-                reservation.purpose
-
-            })
-            .select();
+      let groupId = null;
 
 
-        console.log(
-          "Supabase data:",
-          data
-        );
+      if (
+        reservation.isRecurring
+      ) {
 
-        console.log(
-          "Supabase error:",
-          error
-        );
+        groupId =
+          crypto.randomUUID();
 
-
-        if (error) {
-
-          alert(
-            "예약 저장에 실패했습니다.\n\n" +
-            JSON.stringify(
-              error,
-              null,
-              2
-            )
-          );
+      }
 
 
-          reserveButton.disabled =
-            false;
-
-          reserveButton.textContent =
-            "예약 신청하기";
+      const dates =
+        getRecurringDates();
 
 
-          return;
+      const rows =
+        dates.map(date => ({
 
-        }
+          center:
+            reservation.center,
 
+          room:
+            reservation.room,
 
-        const summary = `
+          date:
+            date,
 
-          <strong>
-            ${escapeHtml(reservation.center)}
-            ·
-            ${escapeHtml(reservation.room)}
-          </strong>
+          start_time:
+            reservation.startTime,
 
-          <br>
+          end_time:
+            reservation.endTime,
 
-          ${formatDate(reservation.date)}
+          people:
+            reservation.people,
 
-          <br>
+          user_name:
+            reservation.userName,
 
-          ${reservation.startTime}
-          ~
-          ${reservation.endTime}
+          department:
+            reservation.department,
 
-          <br>
+          phone:
+            reservation.phone,
 
-          ${reservation.people}명
+          purpose:
+            reservation.purpose,
 
-          <br><br>
+          is_recurring:
+            reservation.isRecurring,
 
-          예약자 :
-          ${escapeHtml(reservation.userName)}
+          recurring_months:
+            reservation.isRecurring
+              ? reservation.recurringMonths
+              : null,
 
-          <br>
+          recurring_group_id:
+            groupId
 
-          부서 :
-          ${escapeHtml(reservation.department)}
-
-        `;
-
-
-        document.getElementById(
-          "completeSummary"
-        ).innerHTML =
-          summary;
-
-
-        showPage(
-          completePage
-        );
+        }));
 
 
-      } catch (error) {
+      const {
+        data,
+        error
+      } =
+        await supabaseClient
+          .from("Reservations")
+          .insert(rows)
+          .select();
 
-        console.error(
-          "예약 처리 오류:",
-          error
-        );
 
+      console.log(
+        "Supabase data:",
+        data
+      );
+
+      console.log(
+        "Supabase error:",
+        error
+      );
+
+
+      if (error) {
 
         alert(
-          "예약 처리 중 문제가 발생했습니다.\n\n" +
+          "예약 저장에 실패했습니다.\n\n" +
           JSON.stringify(
             error,
             null,
@@ -2469,62 +2232,149 @@ document
         );
 
 
-        reserveButton.disabled =
+        button.disabled =
           false;
 
-        reserveButton.textContent =
+        button.textContent =
           "예약 신청하기";
+
+        return;
 
       }
 
-    }
-  );
+
+      const recurringText =
+        reservation.isRecurring
+          ? `<br>고정 사용 : ${reservation.recurringMonths}개월`
+          : "";
 
 
-// =====================================================
-// 처음으로
-// =====================================================
+      const summary = `
 
-document
-  .getElementById("homeButton")
-  .addEventListener(
-    "click",
-    () => {
+        <strong>
+          ${escapeHTML(reservation.center)}
+          ·
+          ${escapeHTML(reservation.room)}
+        </strong>
 
-      location.reload();
+        <br>
 
-    }
-  );
+        ${formatDate(reservation.date)}
+
+        <br>
+
+        ${reservation.startTime}
+        ~
+        ${reservation.endTime}
+
+        ${recurringText}
+
+        <br>
+
+        ${reservation.people}명
+
+        <br><br>
+
+        예약자 :
+        ${escapeHTML(reservation.userName)}
+
+        <br>
+
+        부서 :
+        ${escapeHTML(reservation.department)}
+
+      `;
 
 
-// =====================================================
-// 로고
-// =====================================================
+      document.getElementById(
+        "completeSummary"
+      ).innerHTML =
+        summary;
 
-document
-  .getElementById("logoHome")
-  .addEventListener(
-    "click",
-    () => {
 
       showPage(
-        reservationPage
+        completePage
       );
 
+
     }
-  );
+
+    catch (error) {
+
+      console.error(
+        "예약 처리 오류:",
+        error
+      );
 
 
-// =====================================================
-// 초기화
-// =====================================================
+      alert(
+        "예약 처리 중 문제가 발생했습니다.\n\n" +
+        JSON.stringify(
+          error,
+          null,
+          2
+        )
+      );
+
+
+      button.disabled =
+        false;
+
+      button.textContent =
+        "예약 신청하기";
+
+    }
+
+  }
+);
+
+
+// ==========================================
+// 처음으로
+// ==========================================
+
+document.getElementById(
+  "homeButton"
+).addEventListener(
+  "click",
+  () => {
+
+    location.reload();
+
+  }
+);
+
+
+// ==========================================
+// 로고
+// ==========================================
+
+document.getElementById(
+  "logoHome"
+).addEventListener(
+  "click",
+  () => {
+
+    showPage(
+      reservationPage
+    );
+
+  }
+);
+
+
+// ==========================================
+// 초기 실행
+// ==========================================
+
+updatePeople();
+
+renderCalendar();
 
 renderTimeSlots();
 
 updateDuration();
 
 updateQuickTime();
-
-updatePeople();
 
 validateReservation();

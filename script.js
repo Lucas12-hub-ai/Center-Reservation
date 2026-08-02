@@ -89,10 +89,11 @@ const reservation = {
 
   people: 2,
 
-  userName: "",
   department: "",
+  region: "",
+  userName: "",
   phone: "",
-  purpose: "",
+  purpose: ""
 
   // 반복 예약
   isRecurring: false,
@@ -1836,16 +1837,21 @@ document.getElementById(
   "click",
   () => {
 
-    const name =
-      document.getElementById(
-        "userName"
-      ).value.trim();
-
     const department =
       document.getElementById(
         "department"
       ).value.trim();
 
+    const region =
+      document.getElementById(
+        "region"
+      ).value.trim();
+
+    const name =
+      document.getElementById(
+        "userName"
+      ).value.trim();
+    
     const phone =
       document.getElementById(
         "phone"
@@ -1855,18 +1861,6 @@ document.getElementById(
       document.getElementById(
         "purpose"
       ).value.trim();
-
-
-    if (!name) {
-
-      alert(
-        "예약자 이름을 입력해주세요."
-      );
-
-      return;
-
-    }
-
 
     if (!department) {
 
@@ -1878,7 +1872,22 @@ document.getElementById(
 
     }
 
+    if (!region) {
+      alert(
+        "센터(지역)를 입력해주세요."
+      );
+      return;
 
+      if (!name) {
+
+      alert(
+        "예약자 이름을 입력해주세요."
+      );
+
+      return;
+
+    }
+      
     if (!phone) {
 
       alert(
@@ -1900,13 +1909,16 @@ document.getElementById(
 
     }
 
-
-    reservation.userName =
-      name;
-
+    
     reservation.department =
       department;
 
+    reservation.region =
+      region; 
+
+    reservation.userName =
+      name;
+      
     reservation.phone =
       phone;
 
@@ -1967,18 +1979,20 @@ function updateConfirmation() {
       ? `고정 사용 · ${reservation.recurringMonths}개월`
       : "일회성 사용";
 
-
-  document.getElementById(
-    "confirmName"
-  ).textContent =
-    reservation.userName;
-
-
   document.getElementById(
     "confirmDepartment"
   ).textContent =
     reservation.department;
 
+  document.getElementById(
+    "confirmRegion"
+  ).textContent =
+    reservation.region;
+  
+  document.getElementById(
+    "confirmName"
+  ).textContent =
+    reservation.userName;
 
   document.getElementById(
     "confirmPhone"
@@ -2178,6 +2192,9 @@ document.getElementById(
 
           department:
             reservation.department,
+
+          region: 
+            reservation.region,
 
           phone:
             reservation.phone,

@@ -437,6 +437,7 @@ addForm.addEventListener("submit", async (e) => {
     renderSummary();
     renderTodayView();
     renderCenterView();
+    renderWeeklyAdminView();
     renderStatsView();
 
   } catch (error) {
@@ -480,6 +481,7 @@ async function deleteReservation(id) {
     renderSummary();
     renderTodayView();
     renderCenterView();
+    renderWeeklyAdminView();
     renderStatsView();
 
   } catch (error) {
@@ -633,6 +635,154 @@ function renderCenterView() {
 }
 
 // ==========================================
+// 주간 예약 현황 (관리자)
+// ==========================================
+
+let weeklyAdminOffset = 0;
+
+function initWeeklyFilterOptions() {
+  const centerSelect = document.getElementById("weeklyFilterCenter");
+  centers.forEach(c => {
+    const option = document.createElement("option");
+    option.value = c;
+    option.textContent = c;
+    centerSelect.appendChild(option);
+  });
+
+  updateWeeklyRoomOptions();
+
+  centerSelect.addEventListener("change", () => {
+    updateWeeklyRoomOptions();
+    renderWeeklyAdminView();
+  });
+
+  document.getElementById("weeklyFilterRoom").addEventListener("change", renderWeeklyAdminView);
+}
+
+function updateWeeklyRoomOptions() {
+  const center = document.getElementById("weeklyFilterCenter").value;
+  const roomSelect = document.getElementById("weeklyFilterRoom");
+  const currentValue = roomSelect.value;
+
+  roomSelect.innerHTML = `<option value="">전체 공간</option>`;
+
+  const rooms = center ? (roomsByCenter[center] || []) : allRooms;
+
+  rooms.forEach(r => {
+    const option = document.createElement("option");
+    option.value = r;
+    option.textContent = r;
+    roomSelect.appendChild(option);
+  });
+
+  if (rooms.includes(currentValue)) {
+    roomSelect.value = currentValue;
+  }
+}
+
+function getWeeklyAdminDates() {
+  const base = new Date();
+  base.setDate(base.getDate() + weeklyAdminOffset * 7);
+
+  const day = base.getDay();
+  const start = new Date(base);
+  start.setDate(base.getDate() - day);
+  start.setHours(0, 0, 0, 0);
+
+  const dates = [];
+  for (let i = 0; i < 7; i++) {
+    const d = new Date(start);
+    d.setDate(start.getDate() + i);
+    dates.push(d);
+  }
+  return dates;
+}
+
+function renderWeeklyAdminView() {
+  const dates = getWeeklyAdminDates();
+  const startStr = toDateString(dates[0]);
+  const endStr = toDateString(dates[6]);
+
+  document.getElementById("weeklyAdminRange").textContent =
+    `${dates[0].getFullYear()}년 ${dates[0].getMonth() + 1}월 ${dates[0].getDate()}일 ~ ${dates[6].getMonth() + 1}월 ${dates[6].getDate()}일`;
+
+  const center = document.getElementById("weeklyFilterCenter").value;
+  const room = document.getElementById("weeklyFilterRoom").value;
+
+  const weekRows = allReservations.filter(r => {
+    if (r.date < startStr || r.date > endStr) return false;
+    if (center && r.center !== center) return false;
+    if (room && r.room !== room) return false;
+    return true;
+  });
+
+  const dayNames = ["일", "월", "화", "수", "목", "금", "토"];
+  const todayStr = toDateString(new Date());
+
+  const calendar = document.getElementById("weeklyAdminCalendar");
+  calendar.innerHTML = "";
+
+  dates.forEach((date, index) => {
+    const dateStr = toDateString(date);
+
+    const dayColumn = document.createElement("div");
+    dayColumn.className = "week-admin-day";
+
+    const header = document.createElement("div");
+    header.className = "week-admin-day-header";
+    if (index === 0) header.classList.add("sun");
+    if (index === 6) header.classList.add("sat");
+    if (dateStr === todayStr) header.classList.add("today");
+
+    header.innerHTML = `
+      <span class="day-name">${dayNames[index]}</span>
+      <span class="day-number">${date.getDate()}</span>
+    `;
+
+    const body = document.createElement("div");
+    body.className = "week-admin-day-body";
+
+    const dayReservations = weekRows
+      .filter(r => r.date === dateStr)
+      .sort((a, b) => (a.start_time || "").localeCompare(b.start_time || ""));
+
+    if (dayReservations.length === 0) {
+      body.innerHTML = `<div class="week-admin-empty">예약 없음</div>`;
+    }
+
+    dayReservations.forEach(r => {
+      const card = document.createElement("div");
+      card.className = "week-admin-reservation";
+      card.innerHTML = `
+        <div class="week-admin-reservation-time">${r.start_time} ~ ${r.end_time}</div>
+        <div class="week-admin-reservation-name">${r.center} · ${r.room}</div>
+        <div class="week-admin-reservation-meta">${r.user_name || ""} / ${r.department || ""}</div>
+      `;
+      body.appendChild(card);
+    });
+
+    dayColumn.appendChild(header);
+    dayColumn.appendChild(body);
+    calendar.appendChild(dayColumn);
+  });
+}
+
+document.getElementById("weeklyPrev").addEventListener("click", () => {
+  weeklyAdminOffset--;
+  renderWeeklyAdminView();
+});
+
+document.getElementById("weeklyNext").addEventListener("click", () => {
+  weeklyAdminOffset++;
+  renderWeeklyAdminView();
+});
+
+document.getElementById("weeklyThisWeek").addEventListener("click", () => {
+  weeklyAdminOffset = 0;
+  renderWeeklyAdminView();
+});
+
+// ==========================================
 // 통계 화면
 // ==========================================
 
@@ -730,6 +880,7 @@ document.querySelectorAll(".nav-item").forEach(btn => {
 
     if (btn.dataset.view === "today") renderTodayView();
     if (btn.dataset.view === "byCenter") renderCenterView();
+    if (btn.dataset.view === "weekly") renderWeeklyAdminView();
     if (btn.dataset.view === "stats") renderStatsView();
   });
 });
@@ -744,6 +895,7 @@ document.getElementById("refreshBtn").addEventListener("click", async () => {
   await fetchReservations();
   applyFilters();
   renderSummary();
+  renderWeeklyAdminView();
 });
 document.getElementById("exportBtn").addEventListener("click", exportCSV);
 
@@ -759,6 +911,7 @@ document.getElementById("pageSizeSelect").addEventListener("change", (e) => {
 
 async function init() {
   initFilterOptions();
+  initWeeklyFilterOptions();
   await fetchReservations();
 
   filteredReservations = [...allReservations];

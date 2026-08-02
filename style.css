@@ -5,20 +5,15 @@
 }
 
 body {
-  font-family:
-    -apple-system,
-    BlinkMacSystemFont,
-    "Pretendard",
-    "Noto Sans KR",
-    sans-serif;
-
+  font-family: -apple-system, BlinkMacSystemFont, "Pretendard", "Noto Sans KR", sans-serif;
   background: #f7f7f7;
   color: #171717;
 }
 
 button,
 input,
-textarea {
+textarea,
+select {
   font-family: inherit;
 }
 
@@ -26,20 +21,13 @@ button {
   cursor: pointer;
 }
 
-
-/* =====================================================
-   HEADER
-===================================================== */
-
 .header {
   height: 72px;
   background: white;
   border-bottom: 1px solid #eeeeee;
-
   display: flex;
   align-items: center;
   justify-content: space-between;
-
   padding: 0 6%;
 }
 
@@ -55,24 +43,17 @@ button {
   color: #777;
 }
 
-
-/* =====================================================
-   CONTAINER
-===================================================== */
-
 .container {
   width: 100%;
   max-width: 900px;
-
   margin: 0 auto;
-
   padding: 65px 20px 100px;
 }
 
 
-/* =====================================================
+/* =========================
    PAGE
-===================================================== */
+========================= */
 
 .page {
   display: none;
@@ -82,11 +63,6 @@ button {
   display: block;
 }
 
-
-/* =====================================================
-   PAGE HEADING
-===================================================== */
-
 .page-heading {
   margin-bottom: 35px;
 }
@@ -94,30 +70,26 @@ button {
 .page-heading > span {
   font-size: 11px;
   font-weight: 800;
-
   letter-spacing: 2px;
-
   color: #999;
 }
 
 .page-heading h1 {
   margin-top: 8px;
-
   font-size: 38px;
   letter-spacing: -1.5px;
 }
 
 .page-heading p {
   margin-top: 12px;
-
   color: #888;
   font-size: 14px;
 }
 
 
-/* =====================================================
+/* =========================
    SECTION TITLE
-===================================================== */
+========================= */
 
 .section-title {
   margin-bottom: 12px;
@@ -125,116 +97,88 @@ button {
 
 .section-title strong {
   display: block;
-
   font-size: 15px;
 }
 
 .section-title small {
   display: block;
-
   margin-top: 4px;
-
   color: #999;
   font-size: 12px;
 }
 
 
-/* =====================================================
+/* =========================
    FORM CARD
-===================================================== */
+========================= */
 
 .form-card {
   background: white;
-
   border-radius: 18px;
-
   padding: 28px;
-
   margin-bottom: 15px;
-
   border: 1px solid #eeeeee;
 }
 
 .form-label {
   display: flex;
   align-items: center;
-
   gap: 12px;
-
   margin-bottom: 22px;
 }
 
 .label-icon {
   width: 38px;
   height: 38px;
-
   display: flex;
   align-items: center;
   justify-content: center;
-
   background: #f3f3f3;
-
   border-radius: 10px;
-
   font-size: 18px;
 }
 
 .form-label strong {
   display: block;
-
   font-size: 16px;
 }
 
 .form-label small {
   display: block;
-
   margin-top: 4px;
-
   color: #999;
   font-size: 12px;
 }
 
 
-/* =====================================================
+/* =========================
    CENTER
-===================================================== */
+========================= */
 
 .center-select-grid {
   display: grid;
-
   grid-template-columns: repeat(2, 1fr);
-
   gap: 10px;
-
-  margin-top: 12px;
   margin-bottom: 15px;
 }
 
 .center-option {
   background: #fafafa;
-
   border: 1px solid #e5e5e5;
-
   border-radius: 12px;
-
   padding: 20px;
-
   text-align: left;
-
   transition: .2s;
 }
 
 .center-option strong {
   display: block;
-
   font-size: 16px;
-
   margin-bottom: 7px;
 }
 
 .center-option span {
   color: #999;
-
   font-size: 12px;
 }
 
@@ -244,44 +188,47 @@ button {
 
 .center-option.selected {
   background: #fff9d8;
-
   border: 2px solid #ffc900;
-
   padding: 19px;
 }
 
 
-/* =====================================================
+/* =========================
    ROOM
-===================================================== */
+========================= */
 
 .room-section {
-  margin-bottom: 20px;
+  margin-top: -5px;
+  margin-bottom: 15px;
+}
+
+.room-section > strong {
+  display: block;
+  font-size: 15px;
+}
+
+.room-section > small {
+  display: block;
+  margin-top: 3px;
+  margin-bottom: 12px;
+  color: #999;
+  font-size: 12px;
 }
 
 .room-select-grid {
   display: grid;
-
-  grid-template-columns:
-    repeat(auto-fit, minmax(140px, 1fr));
-
+  grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
   gap: 10px;
 }
 
 .room-option {
   background: #fafafa;
-
   border: 1px solid #e5e5e5;
-
   border-radius: 12px;
-
   padding: 16px;
-
   text-align: center;
-
   font-size: 14px;
   font-weight: 600;
-
   transition: .2s;
 }
 
@@ -291,349 +238,214 @@ button {
 
 .room-option.selected {
   background: #fff9d8;
-
   border: 2px solid #ffc900;
-
   padding: 15px;
 }
 
 
-/* =====================================================
-   WEEKLY SCHEDULE
-===================================================== */
+/* ==================================================
+   주간 예약 현황
+================================================== */
 
-.weekly-schedule-section {
+.weekly-reservation-section {
   background: white;
-
   border: 1px solid #eeeeee;
-
   border-radius: 18px;
-
-  padding: 24px;
-
   margin-bottom: 15px;
-
   overflow: hidden;
 }
 
-
-.weekly-heading {
+.weekly-header {
+  padding: 24px 26px 18px;
   display: flex;
-
-  align-items: center;
   justify-content: space-between;
-
-  gap: 20px;
-
-  margin-bottom: 18px;
+  align-items: center;
+  gap: 15px;
+  border-bottom: 1px solid #eeeeee;
 }
 
-.section-kicker {
-  display: block;
-
+.weekly-header > div:first-child > span {
   font-size: 9px;
   font-weight: 800;
-
-  letter-spacing: 1.7px;
-
+  letter-spacing: 1.5px;
   color: #aaa;
-
-  margin-bottom: 5px;
 }
 
-.weekly-heading h2 {
-  font-size: 20px;
-
-  letter-spacing: -0.7px;
-}
-
-.weekly-heading p {
+.weekly-header h2 {
   margin-top: 6px;
-
-  color: #999;
-
-  font-size: 12px;
+  font-size: 20px;
+  letter-spacing: -0.5px;
 }
 
-
-/* 주간 이동 */
+.weekly-header p {
+  margin-top: 6px;
+  font-size: 12px;
+  color: #999;
+}
 
 .weekly-navigation {
   display: flex;
   align-items: center;
-
-  gap: 6px;
-
-  flex-shrink: 0;
+  gap: 5px;
 }
 
-.week-nav-button,
-.this-week-button {
-  height: 34px;
-
+.weekly-navigation button {
   border: 1px solid #ddd;
-
   background: white;
-
-  border-radius: 7px;
-
+  border-radius: 8px;
+  height: 34px;
+  padding: 0 11px;
+  font-size: 12px;
   color: #555;
 }
 
-.week-nav-button {
-  width: 34px;
-
-  font-size: 18px;
-}
-
-.this-week-button {
-  padding: 0 12px;
-
-  font-size: 12px;
-
-  font-weight: 700;
-}
-
-.week-nav-button:hover,
-.this-week-button:hover {
+.weekly-navigation button:hover {
   background: #f7f7f7;
 }
 
-
-/* 현재 공간 */
-
-.weekly-room-info {
-  display: flex;
-  align-items: center;
-
-  gap: 8px;
-
-  background: #fafafa;
-
-  border-radius: 9px;
-
-  padding: 11px 13px;
-
-  margin-bottom: 12px;
-}
-
-.weekly-room-info span {
-  color: #999;
-
-  font-size: 11px;
-}
-
-.weekly-room-info strong {
-  font-size: 12px;
+.weekly-navigation button:first-child,
+.weekly-navigation button:last-child {
+  width: 34px;
+  padding: 0;
+  font-size: 18px;
 }
 
 
-/* =====================================================
-   WEEKLY GRID
-===================================================== */
+/* =========================
+   WEEKLY CALENDAR
+========================= */
 
-.weekly-grid {
+.weekly-calendar {
   display: grid;
-
-  grid-template-columns: repeat(7, minmax(0, 1fr));
-
-  border-top: 1px solid #eeeeee;
-  border-left: 1px solid #eeeeee;
-
-  overflow: hidden;
-
-  border-radius: 8px 8px 0 0;
+  grid-template-columns: repeat(7, 1fr);
+  overflow-x: auto;
 }
 
-.weekly-day {
-  min-width: 0;
-
-  min-height: 145px;
-
+.week-day {
+  min-width: 110px;
   border-right: 1px solid #eeeeee;
-  border-bottom: 1px solid #eeeeee;
-
-  background: white;
 }
 
-.weekly-day.today {
-  background: #fffdf1;
+.week-day:last-child {
+  border-right: none;
 }
 
-
-/* 요일 */
-
-.weekly-day-header {
-  padding: 10px 7px;
-
-  background: #fafafa;
-
-  border-bottom: 1px solid #eeeeee;
-
+.week-day-header {
+  height: 68px;
+  padding: 12px 8px;
   text-align: center;
+  border-bottom: 1px solid #eeeeee;
+  background: #fafafa;
 }
 
-.weekly-day-name {
-  display: block;
-
+.week-day-header .day-name {
   font-size: 11px;
-
+  font-weight: 700;
   color: #777;
 }
 
-.weekly-day-date {
+.week-day-header .day-number {
   display: block;
-
-  margin-top: 3px;
-
-  font-size: 14px;
-
+  margin-top: 5px;
+  font-size: 17px;
   font-weight: 800;
 }
 
-.weekly-day.sun .weekly-day-name,
-.weekly-day.sun .weekly-day-date {
-  color: #df3030;
+.week-day-header.sun .day-name,
+.week-day-header.sun .day-number {
+  color: #d93434;
 }
 
-.weekly-day.sat .weekly-day-name,
-.weekly-day.sat .weekly-day-date {
+.week-day-header.sat .day-name,
+.week-day-header.sat .day-number {
   color: #2674c8;
 }
 
-
-/* 예약 */
-
-.weekly-reservations {
-  padding: 7px;
+.week-day-header.today {
+  background: #fff9d8;
 }
 
-.weekly-reservation {
-  background: #f1f1f1;
-
-  border-left: 3px solid #bbb;
-
-  border-radius: 5px;
-
-  padding: 7px;
-
-  margin-bottom: 5px;
-
-  overflow: hidden;
+.week-day-body {
+  min-height: 190px;
+  padding: 8px;
+  background: white;
 }
 
-.weekly-reservation:last-child {
-  margin-bottom: 0;
+.week-empty {
+  color: #ccc;
+  font-size: 11px;
+  text-align: center;
+  padding-top: 35px;
 }
 
-.weekly-reservation-time {
-  display: block;
+.week-reservation {
+  background: #f7f7f7;
+  border-left: 3px solid #ffc900;
+  border-radius: 7px;
+  padding: 8px;
+  margin-bottom: 7px;
+}
 
+.week-reservation-time {
   font-size: 10px;
-
   font-weight: 800;
-
-  color: #555;
-
+  color: #8a7000;
   margin-bottom: 4px;
 }
 
-.weekly-reservation-name {
-  display: block;
-
-  font-size: 11px;
-
-  font-weight: 700;
-
+.week-reservation-name {
+  font-size: 12px;
+  font-weight: 800;
   white-space: nowrap;
-
   overflow: hidden;
-
   text-overflow: ellipsis;
 }
 
-.weekly-reservation-department {
-  display: block;
-
+.week-reservation-department {
   margin-top: 2px;
-
-  font-size: 9px;
-
-  color: #888;
-
-  white-space: nowrap;
-
-  overflow: hidden;
-
-  text-overflow: ellipsis;
-}
-
-.weekly-reservation-purpose {
-  display: block;
-
-  margin-top: 3px;
-
-  font-size: 9px;
-
-  line-height: 1.3;
-
-  color: #999;
-
-  white-space: nowrap;
-
-  overflow: hidden;
-
-  text-overflow: ellipsis;
-}
-
-
-/* 예약 없음 */
-
-.no-reservation {
-  padding: 15px 5px;
-
-  text-align: center;
-
-  color: #ccc;
-
   font-size: 10px;
+  color: #888;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
+.week-reservation-purpose {
+  margin-top: 5px;
+  font-size: 10px;
+  line-height: 1.35;
+  color: #999;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
 
-/* 주간 하단 안내 */
-
-.weekly-notice {
+.weekly-legend {
+  padding: 12px 18px;
+  border-top: 1px solid #eeeeee;
   display: flex;
   align-items: center;
-
   gap: 6px;
-
-  margin-top: 10px;
-
+  font-size: 11px;
   color: #999;
-
-  font-size: 10px;
 }
 
-.notice-dot {
-  width: 7px;
-  height: 7px;
-
+.legend-dot {
+  width: 6px;
+  height: 6px;
   border-radius: 50%;
-
-  background: #aaa;
+  background: #63b85c;
 }
 
 
-/* =====================================================
+/* =========================
    CALENDAR
-===================================================== */
+========================= */
 
 .calendar {
   background: #fafafa;
-
   border-radius: 14px;
-
   padding: 20px;
 }
 
@@ -641,20 +453,15 @@ button {
   display: flex;
   align-items: center;
   justify-content: space-between;
-
   margin-bottom: 20px;
 }
 
 .calendar-header button {
   border: none;
-
   background: transparent;
-
   font-size: 30px;
-
   width: 40px;
   height: 40px;
-
   color: #555;
 }
 
@@ -665,21 +472,17 @@ button {
 .weekdays,
 .calendar-days {
   display: grid;
-
   grid-template-columns: repeat(7, 1fr);
 }
 
 .weekdays {
   padding-bottom: 12px;
-
   border-bottom: 1px solid #ddd;
 }
 
 .weekdays span {
   text-align: center;
-
   font-size: 12px;
-
   font-weight: 700;
 }
 
@@ -691,23 +494,14 @@ button {
   color: #2674c8;
 }
 
-
-/* 날짜 */
-
 .calendar-days button {
-  position: relative;
-
   height: 55px;
-
   border: none;
-
   background: transparent;
-
   border-radius: 50%;
-
   font-size: 14px;
-
   margin: 2px;
+  position: relative;
 }
 
 .calendar-days button:hover {
@@ -718,152 +512,59 @@ button {
   font-weight: 800;
 }
 
-
-/* 선택 */
-
 .calendar-days button.selected {
   background: #ffc900;
-
   color: #111;
-
   font-weight: 800;
 }
-
-
-/* 비활성 */
 
 .calendar-days button.disabled {
   color: #ccc;
-
   cursor: default;
 }
 
-
-/* =====================================================
-   CALENDAR 예약 표시 DOT
-===================================================== */
-
 .calendar-days button.has-reservation::after {
   content: "";
-
   position: absolute;
-
-  left: 50%;
-
-  bottom: 4px;
-
-  transform: translateX(-50%);
-
   width: 5px;
   height: 5px;
-
+  background: #63b85c;
   border-radius: 50%;
-
-  background: #43a047;
-}
-
-.calendar-days button.selected.has-reservation::after {
-  background: #111;
+  left: 50%;
+  bottom: 4px;
+  transform: translateX(-50%);
 }
 
 
-/* =====================================================
+/* =========================
    TIME
-===================================================== */
-
-.time-badge {
-  font-size: 9px;
-
-  font-weight: 800;
-
-  letter-spacing: 1px;
-
-  padding: 5px 8px;
-
-  border-radius: 5px;
-}
-
-.time-badge.start {
-  background: #fff1a8;
-
-  color: #725c00;
-}
-
-.time-badge.end {
-  background: #ffe0a3;
-
-  color: #855500;
-}
-
-
-.time-notice {
-  margin-top: 5px;
-
-  padding: 13px;
-
-  background: #fafafa;
-
-  border-radius: 8px;
-
-  color: #888;
-
-  font-size: 12px;
-
-  line-height: 1.6;
-}
-
-
-/* =====================================================
-   TIME SLOT
-===================================================== */
+========================= */
 
 .time-slot-nav {
   display: flex;
-
   align-items: center;
-
   gap: 10px;
 }
 
 .slot-nav-btn {
   flex-shrink: 0;
-
   width: 36px;
   height: 36px;
-
   border-radius: 50%;
-
   border: 1px solid #ddd;
-
   background: white;
-
   font-size: 16px;
-
   color: #555;
-
   display: flex;
-
   align-items: center;
   justify-content: center;
-
-  transition: .15s;
-}
-
-.slot-nav-btn:hover {
-  background: #f5f5f5;
-
-  border-color: #aaa;
 }
 
 .time-slot-wrapper {
   flex: 1;
-
   min-width: 0;
-
   overflow-x: auto;
-
   scroll-behavior: smooth;
-
   padding-bottom: 6px;
 }
 
@@ -871,60 +572,29 @@ button {
   height: 6px;
 }
 
-.time-slot-wrapper::-webkit-scrollbar-track {
-  background: transparent;
-}
-
 .time-slot-wrapper::-webkit-scrollbar-thumb {
   background: #ddd;
-
   border-radius: 10px;
 }
 
 .time-slot-grid {
   display: inline-flex;
-
   border: 1px solid #eee;
-
   border-radius: 10px;
-
   overflow: hidden;
 }
 
 .time-slot {
   width: 26px;
   height: 56px;
-
   flex-shrink: 0;
-
   border: none;
-
   border-right: 1px solid rgba(0,0,0,.04);
-
   background: #fff8cf;
-
   display: flex;
-
   align-items: flex-end;
   justify-content: center;
-
   padding-bottom: 6px;
-
-  transition: .15s;
-}
-
-.time-slot:last-child {
-  border-right: none;
-}
-
-.slot-label {
-  font-size: 10px;
-
-  font-weight: 700;
-
-  color: #a68b00;
-
-  pointer-events: none;
 }
 
 .time-slot:hover {
@@ -935,53 +605,85 @@ button {
   background: #ffc900;
 }
 
-.time-slot.selected .slot-label {
-  color: #171717;
-}
-
 .time-slot.booked {
   background: #eeeeee;
-
   cursor: not-allowed;
+}
+
+.time-slot.start-only {
+  background: #ffc900;
+  box-shadow: inset 0 0 0 2px #111;
+}
+
+.slot-label {
+  font-size: 10px;
+  font-weight: 700;
+  color: #a68b00;
+}
+
+.time-slot.selected .slot-label {
+  color: #171717;
 }
 
 .time-slot.booked .slot-label {
   color: #bbb;
 }
 
-.time-slot.start-only {
-  background: #ffc900;
 
-  box-shadow:
-    inset 0 0 0 2px #111;
+/* =========================
+   QUICK TIME
+========================= */
+
+.quick-time {
+  margin-top: 16px;
+}
+
+.quick-time > span {
+  display: block;
+  font-size: 11px;
+  color: #999;
+  margin-bottom: 8px;
+}
+
+.quick-time-buttons {
+  display: flex;
+  gap: 7px;
+  flex-wrap: wrap;
+}
+
+.quick-time-button {
+  border: 1px solid #ddd;
+  background: white;
+  border-radius: 7px;
+  padding: 8px 12px;
+  font-size: 11px;
+  color: #555;
+}
+
+.quick-time-button:hover {
+  border-color: #aaa;
+  background: #fafafa;
+}
+
+.quick-time-button.all-day {
+  background: #f5f5f5;
+  font-weight: 700;
 }
 
 
-/* =====================================================
-   DURATION
-===================================================== */
-
 .duration-display {
   margin-top: 16px;
-
   padding: 16px 18px;
-
   background: #111;
-
   color: white;
-
   border-radius: 10px;
-
   display: flex;
-
   align-items: center;
-
   justify-content: space-between;
 }
 
 .duration-display span {
   font-size: 12px;
-
   color: #aaa;
 }
 
@@ -990,160 +692,180 @@ button {
 }
 
 
-/* =====================================================
+/* =========================
+   RESERVATION TYPE
+========================= */
+
+.reservation-type {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+}
+
+.type-option {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  padding: 15px;
+  border: 1px solid #ddd;
+  border-radius: 10px;
+  cursor: pointer;
+}
+
+.type-option:has(input:checked) {
+  border-color: #ffc900;
+  background: #fff9d8;
+}
+
+.type-option input {
+  margin-top: 3px;
+  accent-color: #111;
+}
+
+.type-option strong {
+  display: block;
+  font-size: 13px;
+}
+
+.type-option small {
+  display: block;
+  margin-top: 4px;
+  color: #999;
+  font-size: 11px;
+}
+
+.recurring-options {
+  margin-top: 15px;
+  padding: 15px;
+  background: #fafafa;
+  border-radius: 10px;
+}
+
+.recurring-options label {
+  display: block;
+  margin-bottom: 8px;
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.recurring-options select {
+  width: 100%;
+  height: 45px;
+  border: 1px solid #ddd;
+  background: white;
+  border-radius: 7px;
+  padding: 0 12px;
+}
+
+.recurring-options p {
+  margin-top: 8px;
+  font-size: 11px;
+  color: #999;
+}
+
+
+/* =========================
    PEOPLE
-===================================================== */
+========================= */
 
 .people-counter {
   display: flex;
-
   align-items: center;
   justify-content: center;
-
   gap: 30px;
-
   padding: 20px;
 }
 
 .people-counter button {
   width: 52px;
   height: 52px;
-
   border-radius: 50%;
-
   border: 1px solid #ddd;
-
   background: white;
-
   font-size: 25px;
 }
 
 .people-number {
   display: flex;
-
   align-items: baseline;
-
   gap: 5px;
-
   min-width: 80px;
-
   justify-content: center;
 }
 
 .people-number span {
   font-size: 14px;
-
   color: #777;
 }
 
 .people-input {
   width: 70px;
-
   border: none;
-
   background: transparent;
-
   font-size: 40px;
-
   font-weight: 700;
-
   text-align: right;
-
   outline: none;
-
-  font-family: inherit;
-
   color: #171717;
-
   -moz-appearance: textfield;
 }
 
 .people-input::-webkit-outer-spin-button,
 .people-input::-webkit-inner-spin-button {
   -webkit-appearance: none;
-
-  margin: 0;
-}
-
-.people-input:focus {
-  color: #b88a00;
 }
 
 .capacity-text {
   text-align: center;
-
   color: #999;
-
   font-size: 12px;
 }
 
 
-/* =====================================================
-   QUICK SUMMARY
-===================================================== */
+/* =========================
+   SUMMARY
+========================= */
 
 .selection-summary {
   background: #111;
-
   color: white;
-
   border-radius: 14px;
-
   padding: 20px;
-
   display: grid;
-
   grid-template-columns: repeat(5, 1fr);
-
   gap: 10px;
-
   margin-top: 20px;
 }
 
 .selection-summary span {
   display: block;
-
   color: #999;
-
   font-size: 11px;
-
   margin-bottom: 6px;
 }
 
 .selection-summary strong {
   display: block;
-
   font-size: 14px;
-
   white-space: nowrap;
-
   overflow: hidden;
-
   text-overflow: ellipsis;
 }
 
 
-/* =====================================================
+/* =========================
    BUTTON
-===================================================== */
+========================= */
 
 .main-button {
   width: 100%;
-
   height: 58px;
-
   border: none;
-
   border-radius: 8px;
-
   background: #111;
-
   color: white;
-
   font-size: 16px;
-
   font-weight: 700;
-
   margin-top: 15px;
 }
 
@@ -1153,33 +875,23 @@ button {
 
 .main-button:disabled {
   background: #ddd;
-
   color: #aaa;
-
   cursor: default;
 }
 
 .sub-button {
   height: 58px;
-
   background: white;
-
   border: 1px solid #ddd;
-
   border-radius: 8px;
-
   font-size: 15px;
-
   font-weight: 700;
 }
 
 .navigation {
   display: grid;
-
   grid-template-columns: 1fr 2fr;
-
   gap: 10px;
-
   margin-top: 20px;
 }
 
@@ -1188,9 +900,9 @@ button {
 }
 
 
-/* =====================================================
+/* =========================
    INPUT
-===================================================== */
+========================= */
 
 .input-group {
   margin-bottom: 24px;
@@ -1202,38 +914,26 @@ button {
 
 .input-group label {
   display: block;
-
   font-size: 14px;
-
   font-weight: 700;
-
   margin-bottom: 9px;
 }
 
 .input-group label em {
   color: #e52b2b;
-
   font-style: normal;
-
   margin-left: 3px;
 }
 
 .input-group input,
 .input-group textarea {
   width: 100%;
-
   border: 1px solid #ddd;
-
   background: #fafafa;
-
   border-radius: 8px;
-
   padding: 15px;
-
   font-size: 14px;
-
   outline: none;
-
   resize: vertical;
 }
 
@@ -1244,26 +944,22 @@ button {
 .input-group input:focus,
 .input-group textarea:focus {
   background: white;
-
   border-color: #111;
 }
 
 
-/* =====================================================
+/* =========================
    CONFIRM
-===================================================== */
+========================= */
 
 .confirm-card {
   background: white;
-
   border-radius: 18px;
-
   border: 1px solid #eee;
 }
 
 .confirm-section {
   padding: 25px;
-
   border-bottom: 1px solid #eee;
 }
 
@@ -1273,20 +969,15 @@ button {
 
 .confirm-section h3 {
   font-size: 15px;
-
   margin-bottom: 10px;
 }
 
 .confirm-row {
   min-height: 58px;
-
   display: flex;
-
   align-items: center;
   justify-content: space-between;
-
   border-bottom: 1px solid #f0f0f0;
-
   gap: 20px;
 }
 
@@ -1296,103 +987,79 @@ button {
 
 .confirm-row span {
   color: #999;
-
   font-size: 13px;
-
   flex-shrink: 0;
 }
 
 .confirm-row strong {
   font-size: 14px;
-
   text-align: right;
 }
 
 .purpose-row {
   align-items: flex-start;
-
   padding: 17px 0;
 }
 
 .purpose-row strong {
   white-space: pre-wrap;
-
   line-height: 1.5;
 }
 
 
-/* =====================================================
+/* =========================
    COMPLETE
-===================================================== */
+========================= */
 
 .complete-page {
   text-align: center;
-
   padding-top: 60px;
 }
 
 .complete-icon {
   width: 80px;
   height: 80px;
-
   background: #111;
-
   color: white;
-
   border-radius: 50%;
-
   margin: 0 auto 25px;
-
   display: flex;
-
   align-items: center;
   justify-content: center;
-
   font-size: 35px;
 }
 
 .complete-page > span {
   font-size: 10px;
-
   letter-spacing: 2px;
-
   color: #999;
-
   font-weight: 800;
 }
 
 .complete-page h1 {
   font-size: 30px;
-
   margin: 15px 0 10px;
 }
 
 .complete-page > p {
   color: #888;
-
   font-size: 14px;
 }
 
 .complete-summary {
   text-align: left;
-
   background: white;
-
   border-radius: 15px;
-
   border: 1px solid #eee;
-
   margin-top: 30px;
-
   padding: 25px;
-
   line-height: 1.9;
 }
 
 
-/* =====================================================
+/* =========================
    MOBILE
-===================================================== */
+========================= */
 
 @media (max-width: 650px) {
 
@@ -1424,42 +1091,8 @@ button {
     height: 47px;
   }
 
-
-  /* 주간 예약 */
-
-  .weekly-schedule-section {
-    padding: 18px 12px;
-  }
-
-  .weekly-heading {
-    align-items: flex-start;
-
-    flex-direction: column;
-  }
-
-  .weekly-navigation {
-    width: 100%;
-
-    justify-content: flex-end;
-  }
-
-  .weekly-grid {
-    overflow-x: auto;
-
-    grid-template-columns:
-      repeat(7, minmax(110px, 1fr));
-
-    width: 100%;
-  }
-
-  .weekly-day {
-    min-height: 130px;
-  }
-
-
   .selection-summary {
     grid-template-columns: repeat(2, 1fr);
-
     gap: 18px;
   }
 
@@ -1470,4 +1103,24 @@ button {
   .confirm-row {
     min-height: 55px;
   }
+
+  .weekly-header {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+
+  .weekly-navigation {
+    width: 100%;
+    justify-content: space-between;
+  }
+
+  .weekly-calendar {
+    overflow-x: auto;
+    grid-template-columns: repeat(7, 110px);
+  }
+
+  .reservation-type {
+    grid-template-columns: 1fr;
+  }
+
 }

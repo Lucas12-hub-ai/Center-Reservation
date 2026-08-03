@@ -93,7 +93,7 @@ const reservation = {
   region: "",
   userName: "",
   phone: "",
-  purpose: ""
+  purpose: "",
 
   // 반복 예약
   isRecurring: false,
@@ -1877,8 +1877,9 @@ document.getElementById(
         "센터(지역)를 입력해주세요."
       );
       return;
+    }
 
-      if (!name) {
+    if (!name) {
 
       alert(
         "예약자 이름을 입력해주세요."

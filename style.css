@@ -1,16 +1,37 @@
+/* =========================================================
+   CENTER RENTAL
+   Design System
+========================================================= */
+
 :root {
   --yellow-main: #e7b83c;
-  --yellow-light: #fff8e7;
+  --yellow: #ffd86b;
+  --yellow-light: #fff7e6;
   --yellow-soft: #fff3cf;
   --yellow-pale: #fffaf0;
 
   --text-main: #222222;
   --text-sub: #777777;
+  --text-light: #999999;
 
   --border: #e9e6df;
-  --bg: #f8f7f4;
+  --border-light: #f0ede7;
+
+  --bg: #f7f6f2;
   --card: #ffffff;
+
+  --shadow:
+    0 8px 30px rgba(40, 35, 20, 0.05);
+
+  --radius-lg: 20px;
+  --radius-md: 14px;
+  --radius-sm: 10px;
 }
+
+
+/* =========================================================
+   RESET
+========================================================= */
 
 * {
   box-sizing: border-box;
@@ -18,10 +39,28 @@
   padding: 0;
 }
 
+html {
+  scroll-behavior: smooth;
+}
+
 body {
-  font-family: -apple-system, BlinkMacSystemFont, "Pretendard", "Noto Sans KR", sans-serif;
-  background: var(--bg);
+  font-family:
+    -apple-system,
+    BlinkMacSystemFont,
+    "Pretendard",
+    "Noto Sans KR",
+    sans-serif;
+
+  background:
+    radial-gradient(
+      circle at 20% 10%,
+      rgba(255, 231, 170, 0.12),
+      transparent 30%
+    ),
+    var(--bg);
+
   color: var(--text-main);
+  letter-spacing: -0.3px;
 }
 
 button,
@@ -35,39 +74,79 @@ button {
   cursor: pointer;
 }
 
+button:focus-visible,
+input:focus-visible,
+textarea:focus-visible,
+select:focus-visible {
+  outline: 2px solid var(--yellow-main);
+  outline-offset: 2px;
+}
+
+
+/* =========================================================
+   HEADER
+========================================================= */
+
 .header {
+  width: 100%;
   height: 72px;
-  background: white;
+
+  background: rgba(255, 255, 255, 0.96);
+
   border-bottom: 1px solid #eeeeee;
+
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 0 6%;
+
+  padding: 0 42px;
+
+  position: relative;
+  z-index: 10;
 }
 
 .logo {
-  font-size: 20px;
+  font-size: 19px;
   font-weight: 800;
-  letter-spacing: -0.5px;
+  letter-spacing: -0.8px;
   cursor: pointer;
 }
 
 .header-title {
-  font-size: 14px;
-  color: #777;
+  display: flex;
+  align-items: center;
+  gap: 7px;
+
+  font-size: 13px;
+  color: #333;
 }
+
+.header-title::before {
+  content: "◷";
+
+  font-size: 19px;
+  color: #444;
+}
+
+
+/* =========================================================
+   MAIN CONTAINER
+========================================================= */
 
 .container {
-  width: 100%;
-  max-width: 900px;
+  width: min(100%, 1120px);
+
   margin: 0 auto;
-  padding: 65px 20px 100px;
+
+  padding:
+    58px 36px
+    100px;
 }
 
 
-/* =========================
+/* =========================================================
    PAGE
-========================= */
+========================================================= */
 
 .page {
   display: none;
@@ -77,267 +156,549 @@ button {
   display: block;
 }
 
+
+/* =========================================================
+   PAGE HEADING
+========================================================= */
+
 .page-heading {
-  margin-bottom: 35px;
+  margin-bottom: 34px;
 }
 
 .page-heading > span {
+  display: inline-block;
+
   font-size: 11px;
   font-weight: 800;
+
   letter-spacing: 2px;
-  color: #999;
+
+  color: #c7962d;
 }
 
 .page-heading h1 {
-  margin-top: 8px;
-  font-size: 38px;
-  letter-spacing: -1.5px;
+  margin-top: 10px;
+
+  font-size: 40px;
+  line-height: 1.15;
+
+  font-weight: 800;
+
+  letter-spacing: -1.8px;
 }
 
 .page-heading p {
   margin-top: 12px;
-  color: #888;
+
+  color: #777;
+
   font-size: 14px;
+  line-height: 1.7;
 }
 
 
-/* =========================
+/* =========================================================
+   HERO / TOP VISUAL
+========================================================= */
+
+.page-heading {
+  position: relative;
+
+  padding:
+    32px
+    36px
+    34px;
+
+  border-radius: 18px;
+
+  overflow: hidden;
+
+  background:
+    radial-gradient(
+      ellipse at 75% 45%,
+      rgba(255, 255, 255, 0.95) 0%,
+      rgba(255, 248, 229, 0.88) 30%,
+      rgba(255, 239, 196, 0.65) 60%,
+      rgba(255, 232, 173, 0.35) 100%
+    );
+
+  border: 1px solid #f2e9d5;
+
+  min-height: 180px;
+}
+
+.page-heading::after {
+  content: "";
+
+  position: absolute;
+
+  width: 380px;
+  height: 180px;
+
+  right: -70px;
+  bottom: -45px;
+
+  background:
+    radial-gradient(
+      ellipse,
+      rgba(255,255,255,0.9),
+      rgba(255,255,255,0)
+    );
+
+  pointer-events: none;
+}
+
+.page-heading > * {
+  position: relative;
+  z-index: 2;
+}
+
+
+/* =========================================================
    SECTION TITLE
-========================= */
+========================================================= */
 
 .section-title {
-  margin-bottom: 12px;
+  margin-bottom: 14px;
 }
 
 .section-title strong {
   display: block;
-  font-size: 15px;
+
+  font-size: 17px;
+  font-weight: 800;
+
+  letter-spacing: -0.6px;
 }
 
 .section-title small {
   display: block;
-  margin-top: 4px;
+
+  margin-top: 5px;
+
   color: #999;
+
   font-size: 12px;
 }
 
 
-/* =========================
+/* =========================================================
    FORM CARD
-========================= */
+========================================================= */
 
 .form-card {
-  background: white;
-  border-radius: 18px;
+  background: var(--card);
+
+  border-radius: var(--radius-lg);
+
   padding: 28px;
-  margin-bottom: 15px;
-  border: 1px solid #eeeeee;
+
+  margin-bottom: 16px;
+
+  border: 1px solid var(--border-light);
+
+  box-shadow: var(--shadow);
 }
 
 .form-label {
   display: flex;
   align-items: center;
+
   gap: 12px;
-  margin-bottom: 22px;
+
+  margin-bottom: 20px;
 }
 
 .label-icon {
-  width: 38px;
-  height: 38px;
+  width: 42px;
+  height: 42px;
+
   display: flex;
   align-items: center;
   justify-content: center;
-  background: #f3f3f3;
-  border-radius: 10px;
+
+  background: var(--yellow-pale);
+
+  border: 1px solid #f7e6bd;
+
+  border-radius: 50%;
+
   font-size: 18px;
+
+  color: #b48724;
 }
 
 .form-label strong {
   display: block;
+
   font-size: 16px;
+  font-weight: 800;
 }
 
 .form-label small {
   display: block;
+
   margin-top: 4px;
+
   color: #999;
+
   font-size: 12px;
 }
 
 
-/* =========================
-   CENTER
-========================= */
+/* =========================================================
+   CENTER SELECT
+========================================================= */
 
 .center-select-grid {
   display: grid;
-  grid-template-columns: repeat(2, 1fr);
-  gap: 10px;
-  margin-bottom: 15px;
+
+  grid-template-columns:
+    repeat(2, minmax(0, 1fr));
+
+  gap: 14px;
+
+  margin-bottom: 18px;
 }
 
 .center-option {
-  background: #fafafa;
-  border: 1px solid #e5e5e5;
-  border-radius: 12px;
-  padding: 20px;
+  position: relative;
+
+  min-height: 112px;
+
+  background: #fff;
+
+  border: 1px solid #e6e3dc;
+
+  border-radius: 14px;
+
+  padding: 22px 22px 22px 76px;
+
   text-align: left;
-  transition: .2s;
+
+  transition:
+    transform .2s ease,
+    border-color .2s ease,
+    background .2s ease,
+    box-shadow .2s ease;
+}
+
+.center-option::before {
+  content: "▥";
+
+  position: absolute;
+
+  left: 20px;
+  top: 50%;
+
+  transform: translateY(-50%);
+
+  width: 48px;
+  height: 48px;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  border-radius: 50%;
+
+  background: var(--yellow-pale);
+
+  border: 1px solid #f7e8c5;
+
+  color: #a47b25;
+
+  font-size: 22px;
 }
 
 .center-option strong {
   display: block;
+
   font-size: 16px;
+  font-weight: 800;
+
   margin-bottom: 7px;
 }
 
 .center-option span {
-  color: #999;
+  color: #888;
+
   font-size: 12px;
 }
 
 .center-option:hover {
-  border-color: #999;
+  border-color: #d7ad52;
+
+  transform: translateY(-1px);
+
+  box-shadow:
+    0 6px 20px rgba(210, 165, 65, 0.08);
 }
 
 .center-option.selected {
-  background: var(--yellow-light);
-  border: 2px solid var(--yellow-main);
-  padding: 19px;
+  background:
+    linear-gradient(
+      135deg,
+      #fffaf0,
+      #fff7e4
+    );
+
+  border: 1.5px solid #e8ae24;
+
+  padding: 21px 21px 21px 75px;
+
+  box-shadow:
+    0 6px 20px rgba(220, 170, 50, 0.08);
+}
+
+.center-option.selected::after {
+  content: "✓";
+
+  position: absolute;
+
+  top: 14px;
+  right: 14px;
+
+  width: 22px;
+  height: 22px;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  border-radius: 50%;
+
+  background: #e7a91b;
+
+  color: white;
+
+  font-size: 12px;
+  font-weight: 800;
 }
 
 
-/* =========================
+/* =========================================================
    ROOM
-========================= */
+========================================================= */
 
 .room-section {
-  margin-top: -5px;
-  margin-bottom: 15px;
+  margin-top: 5px;
+
+  margin-bottom: 18px;
 }
 
 .room-section > strong {
   display: block;
-  font-size: 15px;
+
+  font-size: 17px;
+  font-weight: 800;
 }
 
 .room-section > small {
   display: block;
-  margin-top: 3px;
-  margin-bottom: 12px;
+
+  margin-top: 5px;
+  margin-bottom: 13px;
+
   color: #999;
+
   font-size: 12px;
 }
 
 .room-select-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
-  gap: 10px;
+
+  grid-template-columns:
+    repeat(2, minmax(0, 1fr));
+
+  gap: 14px;
 }
 
 .room-option {
-  background: #fafafa;
-  border: 1px solid #e5e5e5;
-  border-radius: 12px;
-  padding: 16px;
-  text-align: center;
-  font-size: 14px;
-  font-weight: 600;
+  position: relative;
+
+  min-height: 74px;
+
+  background: #fff;
+
+  border: 1px solid #e5e2dc;
+
+  border-radius: 13px;
+
+  padding: 0 24px;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  font-size: 16px;
+
+  font-weight: 700;
+
   transition: .2s;
 }
 
 .room-option:hover {
-  border-color: #999;
+  border-color: #d8b45c;
+
+  box-shadow:
+    0 5px 18px rgba(210, 165, 65, 0.07);
 }
 
 .room-option.selected {
-  background: var(--yellow-light);
-  border: 2px solid var(--yellow-main);
-  padding: 15px;
+  background: #fff8e5;
+
+  border: 1.5px solid #e8ae24;
+
+  padding: 0 23px;
+}
+
+.room-option.selected::after {
+  content: "✓";
+
+  position: absolute;
+
+  top: 50%;
+  right: 15px;
+
+  transform: translateY(-50%);
+
+  width: 23px;
+  height: 23px;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  border-radius: 50%;
+
+  background: #e7a91b;
+
+  color: white;
+
+  font-size: 12px;
 }
 
 
-/* ==================================================
-   주간 예약 현황
-================================================== */
+/* =========================================================
+   WEEKLY RESERVATION
+========================================================= */
 
 .weekly-reservation-section {
   background: white;
-  border: 1px solid #eeeeee;
-  border-radius: 18px;
-  margin-bottom: 15px;
+
+  border: 1px solid #ece9e3;
+
+  border-radius: 19px;
+
+  margin-bottom: 18px;
+
   overflow: hidden;
+
+  box-shadow:
+    0 8px 30px rgba(40, 35, 20, 0.04);
 }
 
 .weekly-header {
-  padding: 24px 26px 18px;
+  padding: 25px 27px 20px;
+
   display: flex;
+
   justify-content: space-between;
   align-items: center;
+
   gap: 15px;
-  border-bottom: 1px solid #eeeeee;
+
+  border-bottom: 1px solid #eeeae3;
 }
 
 .weekly-header > div:first-child > span {
   font-size: 9px;
+
   font-weight: 800;
+
   letter-spacing: 1.5px;
-  color: #aaa;
+
+  color: #d49e28;
 }
 
 .weekly-header h2 {
   margin-top: 6px;
-  font-size: 20px;
-  letter-spacing: -0.5px;
+
+  font-size: 22px;
+
+  font-weight: 800;
+
+  letter-spacing: -1px;
 }
 
 .weekly-header p {
   margin-top: 6px;
+
   font-size: 12px;
+
   color: #999;
 }
 
 .weekly-navigation {
   display: flex;
+
   align-items: center;
-  gap: 5px;
+
+  gap: 7px;
 }
 
 .weekly-navigation button {
-  border: 1px solid #ddd;
+  border: 1px solid #e5e2dc;
+
   background: white;
-  border-radius: 8px;
-  height: 34px;
-  padding: 0 11px;
+
+  border-radius: 9px;
+
+  height: 38px;
+
+  padding: 0 13px;
+
   font-size: 12px;
+
   color: #555;
+
+  transition: .2s;
 }
 
 .weekly-navigation button:hover {
-  background: #f7f7f7;
+  background: #fff9ed;
+
+  border-color: #e3bd66;
 }
 
 .weekly-navigation button:first-child,
 .weekly-navigation button:last-child {
-  width: 34px;
+  width: 38px;
+
   padding: 0;
+
   font-size: 18px;
 }
 
 
-/* =========================
+/* =========================================================
    WEEKLY CALENDAR
-========================= */
+========================================================= */
 
 .weekly-calendar {
   display: grid;
-  grid-template-columns: repeat(7, 1fr);
+
+  grid-template-columns:
+    repeat(7, minmax(110px, 1fr));
+
   overflow-x: auto;
 }
 
 .week-day {
   min-width: 110px;
-  border-right: 1px solid #eeeeee;
+
+  border-right: 1px solid #eeeae4;
 }
 
 .week-day:last-child {
@@ -345,23 +706,32 @@ button {
 }
 
 .week-day-header {
-  height: 68px;
+  height: 70px;
+
   padding: 12px 8px;
+
   text-align: center;
-  border-bottom: 1px solid #eeeeee;
-  background: #fafafa;
+
+  border-bottom: 1px solid #eeeae4;
+
+  background: #fcfbf8;
 }
 
 .week-day-header .day-name {
   font-size: 11px;
+
   font-weight: 700;
+
   color: #777;
 }
 
 .week-day-header .day-number {
   display: block;
+
   margin-top: 5px;
+
   font-size: 17px;
+
   font-weight: 800;
 }
 
@@ -376,127 +746,180 @@ button {
 }
 
 .week-day-header.today {
-  background: #fff9d8;
+  background: #fff6d9;
 }
 
 .week-day-body {
   min-height: 190px;
-  padding: 8px;
+
+  padding: 9px;
+
   background: white;
 }
 
 .week-empty {
   color: #ccc;
+
   font-size: 11px;
+
   text-align: center;
+
   padding-top: 35px;
 }
 
 .week-reservation {
-  background: #f7f7f7;
-  border-left: 3px solid #ffc900;
-  border-radius: 7px;
-  padding: 8px;
+  background: #fff9ec;
+
+  border-left: 3px solid #e9b329;
+
+  border-radius: 8px;
+
+  padding: 9px;
+
   margin-bottom: 7px;
 }
 
 .week-reservation-time {
   font-size: 10px;
+
   font-weight: 800;
-  color: #8a7000;
+
+  color: #9d770e;
+
   margin-bottom: 4px;
 }
 
 .week-reservation-name {
   font-size: 12px;
+
   font-weight: 800;
+
   white-space: nowrap;
+
   overflow: hidden;
+
   text-overflow: ellipsis;
 }
 
 .week-reservation-department {
   margin-top: 2px;
+
   font-size: 10px;
+
   color: #888;
+
   white-space: nowrap;
+
   overflow: hidden;
+
   text-overflow: ellipsis;
 }
 
 .week-reservation-purpose {
   margin-top: 5px;
+
   font-size: 10px;
+
   line-height: 1.35;
+
   color: #999;
+
   display: -webkit-box;
+
   -webkit-line-clamp: 2;
+
   -webkit-box-orient: vertical;
+
   overflow: hidden;
 }
 
 .weekly-legend {
   padding: 12px 18px;
-  border-top: 1px solid #eeeeee;
+
+  border-top: 1px solid #eeeae4;
+
   display: flex;
+
   align-items: center;
+
   gap: 6px;
+
   font-size: 11px;
+
   color: #999;
 }
 
 .legend-dot {
   width: 6px;
   height: 6px;
+
   border-radius: 50%;
+
   background: #63b85c;
 }
 
 
-/* =========================
+/* =========================================================
    CALENDAR
-========================= */
+========================================================= */
 
 .calendar {
-  background: #fafafa;
-  border-radius: 14px;
+  background: #fffdf9;
+
+  border: 1px solid #eee9df;
+
+  border-radius: 15px;
+
   padding: 20px;
 }
 
 .calendar-header {
   display: flex;
+
   align-items: center;
   justify-content: space-between;
+
   margin-bottom: 20px;
 }
 
 .calendar-header button {
   border: none;
+
   background: transparent;
-  font-size: 30px;
+
+  font-size: 28px;
+
   width: 40px;
   height: 40px;
+
   color: #555;
 }
 
 .calendar-header strong {
   font-size: 20px;
+
+  font-weight: 800;
 }
 
 .weekdays,
 .calendar-days {
   display: grid;
-  grid-template-columns: repeat(7, 1fr);
+
+  grid-template-columns:
+    repeat(7, 1fr);
 }
 
 .weekdays {
   padding-bottom: 12px;
-  border-bottom: 1px solid #ddd;
+
+  border-bottom: 1px solid #e9e4da;
 }
 
 .weekdays span {
   text-align: center;
+
   font-size: 12px;
+
   font-weight: 700;
 }
 
@@ -510,16 +933,24 @@ button {
 
 .calendar-days button {
   height: 55px;
+
   border: none;
+
   background: transparent;
+
   border-radius: 50%;
+
   font-size: 14px;
+
   margin: 2px;
+
   position: relative;
+
+  transition: .15s;
 }
 
 .calendar-days button:hover {
-  background: #eeeeee;
+  background: #f5f1e8;
 }
 
 .calendar-days button.today {
@@ -528,91 +959,133 @@ button {
 
 .calendar-days button.selected {
   background: #ffc900;
+
   color: #111;
+
   font-weight: 800;
 }
 
 .calendar-days button.disabled {
   color: #ccc;
+
   cursor: default;
 }
 
 .calendar-days button.has-reservation::after {
   content: "";
+
   position: absolute;
+
   width: 5px;
   height: 5px;
+
   background: #63b85c;
+
   border-radius: 50%;
+
   left: 50%;
   bottom: 4px;
+
   transform: translateX(-50%);
 }
 
 
-/* =========================
+/* =========================================================
    TIME
-========================= */
+========================================================= */
 
 .time-slot-nav {
   display: flex;
+
   align-items: center;
+
   gap: 10px;
 }
 
 .slot-nav-btn {
   flex-shrink: 0;
-  width: 36px;
-  height: 36px;
+
+  width: 38px;
+  height: 38px;
+
   border-radius: 50%;
-  border: 1px solid #ddd;
+
+  border: 1px solid #e1ded7;
+
   background: white;
+
   font-size: 16px;
+
   color: #555;
+
   display: flex;
+
   align-items: center;
   justify-content: center;
+
+  transition: .2s;
+}
+
+.slot-nav-btn:hover {
+  background: #fff8e7;
+
+  border-color: #ddb65b;
 }
 
 .time-slot-wrapper {
   flex: 1;
+
   min-width: 0;
+
   overflow-x: auto;
+
   scroll-behavior: smooth;
+
   padding-bottom: 6px;
 }
 
 .time-slot-wrapper::-webkit-scrollbar {
-  height: 6px;
+  height: 5px;
 }
 
 .time-slot-wrapper::-webkit-scrollbar-thumb {
-  background: #ddd;
+  background: #ddd5c8;
+
   border-radius: 10px;
 }
 
 .time-slot-grid {
   display: inline-flex;
-  border: 1px solid #eee;
+
+  border: 1px solid #eee7dc;
+
   border-radius: 10px;
+
   overflow: hidden;
 }
 
 .time-slot {
   width: 26px;
   height: 56px;
+
   flex-shrink: 0;
+
   border: none;
+
   border-right: 1px solid rgba(0,0,0,.04);
+
   background: #fff9ed;
+
   display: flex;
+
   align-items: flex-end;
   justify-content: center;
+
   padding-bottom: 6px;
 }
 
 .time-slot:hover {
-  background: #ffe0c8;
+  background: #ffe9bf;
 }
 
 .time-slot.selected {
@@ -621,17 +1094,22 @@ button {
 
 .time-slot.booked {
   background: #eeeeee;
+
   cursor: not-allowed;
 }
 
 .time-slot.start-only {
   background: #f5c94a;
-  box-shadow: inset 0 0 0 2px #c59618;
+
+  box-shadow:
+    inset 0 0 0 2px #c59618;
 }
 
 .slot-label {
   font-size: 10px;
+
   font-weight: 700;
+
   color: #a68b00;
 }
 
@@ -644,9 +1122,9 @@ button {
 }
 
 
-/* =========================
+/* =========================================================
    QUICK TIME
-========================= */
+========================================================= */
 
 .quick-time {
   margin-top: 16px;
@@ -654,50 +1132,75 @@ button {
 
 .quick-time > span {
   display: block;
+
   font-size: 11px;
+
   color: #999;
+
   margin-bottom: 8px;
 }
 
 .quick-time-buttons {
   display: flex;
+
   gap: 7px;
+
   flex-wrap: wrap;
 }
 
 .quick-time-button {
-  border: 1px solid #ddd;
+  border: 1px solid #ddd8ce;
+
   background: white;
-  border-radius: 7px;
+
+  border-radius: 8px;
+
   padding: 8px 12px;
+
   font-size: 11px;
+
   color: #555;
+
+  transition: .2s;
 }
 
 .quick-time-button:hover {
-  border-color: #aaa;
-  background: #fafafa;
+  border-color: #d3ae58;
+
+  background: #fffaf0;
 }
 
 .quick-time-button.all-day {
-  background: #f5f5f5;
+  background: #f5f3ee;
+
   font-weight: 700;
 }
 
 
+/* =========================================================
+   DURATION
+========================================================= */
+
 .duration-display {
   margin-top: 16px;
-  padding: 16px 18px;
-  background: #111;
+
+  padding: 17px 18px;
+
+  background: #222;
+
   color: white;
+
   border-radius: 10px;
+
   display: flex;
+
   align-items: center;
   justify-content: space-between;
 }
 
 .duration-display span {
   font-size: 12px;
+
   color: #aaa;
 }
 
@@ -706,121 +1209,183 @@ button {
 }
 
 
-/* =========================
+/* =========================================================
    RESERVATION TYPE
-========================= */
+========================================================= */
 
 .reservation-type {
   display: grid;
-  grid-template-columns: 1fr 1fr;
+
+  grid-template-columns:
+    1fr 1fr;
+
   gap: 10px;
 }
 
 .type-option {
   display: flex;
+
   align-items: flex-start;
+
   gap: 10px;
-  padding: 15px;
-  border: 1px solid #ddd;
-  border-radius: 10px;
+
+  padding: 16px;
+
+  border: 1px solid #ddd9d1;
+
+  border-radius: 11px;
+
   cursor: pointer;
+
+  transition: .2s;
+}
+
+.type-option:hover {
+  border-color: #d9b25b;
 }
 
 .type-option:has(input:checked) {
-  border-color: #ffc900;
-  background: #fff9d8;
+  border-color: #e5ae27;
+
+  background: #fff8e5;
 }
 
 .type-option input {
   margin-top: 3px;
-  accent-color: #111;
+
+  accent-color: #e3a918;
 }
 
 .type-option strong {
   display: block;
+
   font-size: 13px;
 }
 
 .type-option small {
   display: block;
+
   margin-top: 4px;
+
   color: #999;
+
   font-size: 11px;
 }
 
 .recurring-options {
   margin-top: 15px;
+
   padding: 15px;
-  background: #fafafa;
+
+  background: #faf8f3;
+
   border-radius: 10px;
 }
 
 .recurring-options label {
   display: block;
+
   margin-bottom: 8px;
+
   font-size: 12px;
+
   font-weight: 700;
 }
 
 .recurring-options select {
   width: 100%;
+
   height: 45px;
+
   border: 1px solid #ddd;
+
   background: white;
+
   border-radius: 7px;
+
   padding: 0 12px;
 }
 
 .recurring-options p {
   margin-top: 8px;
+
   font-size: 11px;
+
   color: #999;
 }
 
 
-/* =========================
+/* =========================================================
    PEOPLE
-========================= */
+========================================================= */
 
 .people-counter {
   display: flex;
+
   align-items: center;
   justify-content: center;
+
   gap: 30px;
+
   padding: 20px;
 }
 
 .people-counter button {
   width: 52px;
   height: 52px;
+
   border-radius: 50%;
-  border: 1px solid #ddd;
+
+  border: 1px solid #ddd8ce;
+
   background: white;
+
   font-size: 25px;
+
+  transition: .2s;
+}
+
+.people-counter button:hover {
+  background: #fff8e7;
+
+  border-color: #dcb458;
 }
 
 .people-number {
   display: flex;
+
   align-items: baseline;
+
   gap: 5px;
+
   min-width: 80px;
+
   justify-content: center;
 }
 
 .people-number span {
   font-size: 14px;
+
   color: #777;
 }
 
 .people-input {
   width: 70px;
+
   border: none;
+
   background: transparent;
+
   font-size: 40px;
+
   font-weight: 700;
+
   text-align: right;
+
   outline: none;
+
   color: #171717;
+
   -moz-appearance: textfield;
 }
 
@@ -831,81 +1396,131 @@ button {
 
 .capacity-text {
   text-align: center;
+
   color: #999;
+
   font-size: 12px;
 }
 
 
-/* =========================
+/* =========================================================
    SUMMARY
-========================= */
+========================================================= */
 
 .selection-summary {
-  background: #111;
+  background: #222;
+
   color: white;
+
   border-radius: 14px;
-  padding: 20px;
+
+  padding: 21px;
+
   display: grid;
-  grid-template-columns: repeat(5, 1fr);
+
+  grid-template-columns:
+    repeat(5, 1fr);
+
   gap: 10px;
+
   margin-top: 20px;
 }
 
 .selection-summary span {
   display: block;
+
   color: #999;
+
   font-size: 11px;
+
   margin-bottom: 6px;
 }
 
 .selection-summary strong {
   display: block;
+
   font-size: 14px;
+
   white-space: nowrap;
+
   overflow: hidden;
+
   text-overflow: ellipsis;
 }
 
 
-/* =========================
+/* =========================================================
    BUTTON
-========================= */
+========================================================= */
 
 .main-button {
   width: 100%;
+
   height: 58px;
+
   border: none;
-  border-radius: 8px;
-  background: #111;
+
+  border-radius: 9px;
+
+  background: #222;
+
   color: white;
+
   font-size: 16px;
+
   font-weight: 700;
+
   margin-top: 15px;
+
+  transition: .2s;
 }
 
 .main-button:hover {
   background: #333;
+
+  transform: translateY(-1px);
 }
 
 .main-button:disabled {
   background: #ddd;
+
   color: #aaa;
+
   cursor: default;
+
+  transform: none;
 }
 
 .sub-button {
   height: 58px;
+
   background: white;
+
   border: 1px solid #ddd;
-  border-radius: 8px;
+
+  border-radius: 9px;
+
   font-size: 15px;
+
   font-weight: 700;
+
+  transition: .2s;
+}
+
+.sub-button:hover {
+  background: #faf8f2;
+
+  border-color: #d7b45e;
 }
 
 .navigation {
   display: grid;
-  grid-template-columns: 1fr 2fr;
+
+  grid-template-columns:
+    1fr 2fr;
+
   gap: 10px;
+
   margin-top: 20px;
 }
 
@@ -914,9 +1529,9 @@ button {
 }
 
 
-/* =========================
+/* =========================================================
    INPUT
-========================= */
+========================================================= */
 
 .input-group {
   margin-bottom: 24px;
@@ -928,27 +1543,41 @@ button {
 
 .input-group label {
   display: block;
+
   font-size: 14px;
+
   font-weight: 700;
+
   margin-bottom: 9px;
 }
 
 .input-group label em {
   color: #e52b2b;
+
   font-style: normal;
+
   margin-left: 3px;
 }
 
 .input-group input,
 .input-group textarea {
   width: 100%;
-  border: 1px solid #ddd;
-  background: #fafafa;
-  border-radius: 8px;
+
+  border: 1px solid #ddd9d1;
+
+  background: #faf9f6;
+
+  border-radius: 9px;
+
   padding: 15px;
+
   font-size: 14px;
+
   outline: none;
+
   resize: vertical;
+
+  transition: .2s;
 }
 
 .input-group input {
@@ -958,23 +1587,35 @@ button {
 .input-group input:focus,
 .input-group textarea:focus {
   background: white;
-  border-color: #111;
+
+  border-color: #d9aa35;
+
+  box-shadow:
+    0 0 0 3px rgba(231, 184, 60, 0.10);
 }
 
 
-/* =========================
+/* =========================================================
    CONFIRM
-========================= */
+========================================================= */
 
 .confirm-card {
   background: white;
+
   border-radius: 18px;
-  border: 1px solid #eee;
+
+  border: 1px solid #eeeae3;
+
+  box-shadow:
+    0 8px 30px rgba(40, 35, 20, 0.04);
+
+  overflow: hidden;
 }
 
 .confirm-section {
   padding: 25px;
-  border-bottom: 1px solid #eee;
+
+  border-bottom: 1px solid #eeeae3;
 }
 
 .confirm-section:last-child {
@@ -983,15 +1624,20 @@ button {
 
 .confirm-section h3 {
   font-size: 15px;
+
   margin-bottom: 10px;
 }
 
 .confirm-row {
   min-height: 58px;
+
   display: flex;
+
   align-items: center;
   justify-content: space-between;
-  border-bottom: 1px solid #f0f0f0;
+
+  border-bottom: 1px solid #f0eee9;
+
   gap: 20px;
 }
 
@@ -1001,100 +1647,227 @@ button {
 
 .confirm-row span {
   color: #999;
+
   font-size: 13px;
+
   flex-shrink: 0;
 }
 
 .confirm-row strong {
   font-size: 14px;
+
   text-align: right;
 }
 
 .purpose-row {
   align-items: flex-start;
+
   padding: 17px 0;
 }
 
 .purpose-row strong {
   white-space: pre-wrap;
+
   line-height: 1.5;
 }
 
 
-/* =========================
+/* =========================================================
    COMPLETE
-========================= */
+========================================================= */
 
 .complete-page {
   text-align: center;
+
   padding-top: 60px;
 }
 
 .complete-icon {
   width: 80px;
   height: 80px;
-  background: #111;
+
+  background: #222;
+
   color: white;
+
   border-radius: 50%;
+
   margin: 0 auto 25px;
+
   display: flex;
+
   align-items: center;
   justify-content: center;
+
   font-size: 35px;
+
+  box-shadow:
+    0 8px 25px rgba(0,0,0,.12);
 }
 
 .complete-page > span {
   font-size: 10px;
+
   letter-spacing: 2px;
-  color: #999;
+
+  color: #b28a2d;
+
   font-weight: 800;
 }
 
 .complete-page h1 {
   font-size: 30px;
+
   margin: 15px 0 10px;
 }
 
 .complete-page > p {
   color: #888;
+
   font-size: 14px;
 }
 
 .complete-summary {
   text-align: left;
+
   background: white;
+
   border-radius: 15px;
-  border: 1px solid #eee;
+
+  border: 1px solid #eeeae3;
+
   margin-top: 30px;
+
   padding: 25px;
+
   line-height: 1.9;
+
+  box-shadow:
+    0 8px 30px rgba(40, 35, 20, 0.04);
 }
 
 
-/* =========================
+/* =========================================================
    MOBILE
-========================= */
+========================================================= */
 
-@media (max-width: 650px) {
-
-  .container {
-    padding: 45px 15px 70px;
-  }
+@media (max-width: 800px) {
 
   .header {
-    padding: 0 20px;
+    padding: 0 24px;
+  }
+
+  .container {
+    padding:
+      40px 20px
+      70px;
+  }
+
+  .page-heading {
+    padding: 28px 24px;
   }
 
   .page-heading h1 {
-    font-size: 32px;
+    font-size: 34px;
   }
 
   .center-select-grid {
     grid-template-columns: 1fr;
   }
 
+  .room-select-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .selection-summary {
+    grid-template-columns:
+      repeat(2, 1fr);
+
+    gap: 18px;
+  }
+
+  .weekly-calendar {
+    grid-template-columns:
+      repeat(7, 110px);
+
+    overflow-x: auto;
+  }
+
+  .weekly-header {
+    align-items: flex-start;
+
+    flex-direction: column;
+  }
+
+  .weekly-navigation {
+    width: 100%;
+
+    justify-content: space-between;
+  }
+}
+
+
+@media (max-width: 650px) {
+
+  .header {
+    height: 64px;
+
+    padding: 0 18px;
+  }
+
+  .logo {
+    font-size: 17px;
+  }
+
+  .header-title {
+    font-size: 11px;
+  }
+
+  .container {
+    padding:
+      25px 14px
+      60px;
+  }
+
+  .page-heading {
+    min-height: 155px;
+
+    padding:
+      25px 20px;
+  }
+
+  .page-heading h1 {
+    font-size: 30px;
+
+    letter-spacing: -1.3px;
+  }
+
+  .page-heading p {
+    font-size: 13px;
+  }
+
   .form-card {
-    padding: 20px;
+    padding: 20px 17px;
+
+    border-radius: 16px;
+  }
+
+  .center-option {
+    min-height: 100px;
+
+    padding-left: 70px;
+  }
+
+  .center-option.selected {
+    padding-left: 69px;
+  }
+
+  .center-option::before {
+    left: 17px;
+  }
+
+  .room-option {
+    min-height: 68px;
   }
 
   .calendar {
@@ -1106,12 +1879,15 @@ button {
   }
 
   .selection-summary {
-    grid-template-columns: repeat(2, 1fr);
+    grid-template-columns:
+      repeat(2, 1fr);
+
     gap: 18px;
   }
 
   .navigation {
-    grid-template-columns: 1fr 1.7fr;
+    grid-template-columns:
+      1fr 1.7fr;
   }
 
   .confirm-row {
@@ -1119,22 +1895,49 @@ button {
   }
 
   .weekly-header {
-    align-items: flex-start;
-    flex-direction: column;
+    padding: 21px 19px 17px;
   }
 
-  .weekly-navigation {
-    width: 100%;
-    justify-content: space-between;
+  .weekly-header h2 {
+    font-size: 19px;
   }
 
   .weekly-calendar {
-    overflow-x: auto;
-    grid-template-columns: repeat(7, 110px);
+    grid-template-columns:
+      repeat(7, 105px);
   }
 
   .reservation-type {
-    grid-template-columns: 1fr;
+    grid-template-columns:
+      1fr;
   }
 
+  .people-counter {
+    gap: 20px;
+  }
+}
+
+
+/* =========================================================
+   VERY SMALL MOBILE
+========================================================= */
+
+@media (max-width: 400px) {
+
+  .page-heading h1 {
+    font-size: 27px;
+  }
+
+  .selection-summary {
+    padding: 17px;
+  }
+
+  .people-input {
+    font-size: 34px;
+  }
+
+  .people-counter button {
+    width: 46px;
+    height: 46px;
+  }
 }

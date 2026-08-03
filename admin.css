@@ -1,6 +1,6 @@
 /* =========================================================
    ADMIN RESERVATION
-   관리자 예약 페이지 전체 스타일
+   관리자 예약 페이지
 ========================================================= */
 
 :root {
@@ -53,6 +53,7 @@ body {
 
   background: var(--bg);
   color: var(--text);
+
   line-height: 1.5;
 }
 
@@ -73,19 +74,21 @@ button:disabled {
 
 
 /* =========================================================
-   ADMIN HEADER
+   HEADER
 ========================================================= */
 
 .admin-header {
   height: 70px;
-  background: var(--white);
-  border-bottom: 1px solid var(--border);
 
   display: flex;
   align-items: center;
   justify-content: space-between;
 
   padding: 0 32px;
+
+  background: var(--white);
+
+  border-bottom: 1px solid var(--border);
 
   position: sticky;
   top: 0;
@@ -95,11 +98,12 @@ button:disabled {
 .admin-logo {
   display: flex;
   align-items: center;
-  gap: 10px;
+  gap: 9px;
 
   font-size: 19px;
   font-weight: 800;
-  letter-spacing: -0.5px;
+
+  letter-spacing: -0.6px;
 }
 
 .admin-logo span {
@@ -109,17 +113,19 @@ button:disabled {
 .admin-header-right {
   display: flex;
   align-items: center;
-  gap: 10px;
+  gap: 8px;
 }
 
 .admin-header-right button {
   height: 36px;
-  padding: 0 14px;
+
+  padding: 0 13px;
 
   border: 1px solid var(--border);
   border-radius: 8px;
 
   background: white;
+
   color: #555;
 
   font-size: 12px;
@@ -132,7 +138,7 @@ button:disabled {
 
 
 /* =========================================================
-   ADMIN CONTAINER
+   CONTAINER
 ========================================================= */
 
 .admin-container {
@@ -156,24 +162,25 @@ button:disabled {
 .admin-page-heading .eyebrow {
   display: block;
 
-  margin-bottom: 7px;
+  margin-bottom: 6px;
+
+  color: #aaa;
 
   font-size: 10px;
   font-weight: 800;
 
   letter-spacing: 2px;
-
-  color: #aaa;
 }
 
 .admin-page-heading h1 {
   font-size: 30px;
   font-weight: 800;
+
   letter-spacing: -1.2px;
 }
 
 .admin-page-heading p {
-  margin-top: 7px;
+  margin-top: 6px;
 
   color: var(--sub);
 
@@ -182,7 +189,7 @@ button:disabled {
 
 
 /* =========================================================
-   ADMIN TABS
+   TABS
 ========================================================= */
 
 .admin-tabs {
@@ -215,6 +222,7 @@ button:disabled {
 .admin-tab.active {
   background: var(--black);
   border-color: var(--black);
+
   color: white;
 }
 
@@ -224,16 +232,16 @@ button:disabled {
 ========================================================= */
 
 .admin-card {
+  padding: 24px;
+
+  margin-bottom: 18px;
+
   background: white;
 
   border: 1px solid var(--border);
   border-radius: var(--radius);
 
   box-shadow: var(--shadow);
-
-  padding: 24px;
-
-  margin-bottom: 18px;
 }
 
 
@@ -248,7 +256,7 @@ button:disabled {
 
   gap: 20px;
 
-  margin-bottom: 22px;
+  margin-bottom: 20px;
 }
 
 .admin-card-title strong {
@@ -265,13 +273,14 @@ button:disabled {
 
   margin-top: 4px;
 
-  font-size: 11px;
   color: var(--muted);
+
+  font-size: 11px;
 }
 
 
 /* =========================================================
-   DIRECT RESERVATION LAYOUT
+   DIRECT RESERVATION
 ========================================================= */
 
 .direct-reservation {
@@ -297,14 +306,14 @@ button:disabled {
 ========================================================= */
 
 .admin-form-section {
+  padding: 24px;
+
+  margin-bottom: 18px;
+
   background: white;
 
   border: 1px solid var(--border);
   border-radius: var(--radius);
-
-  padding: 24px;
-
-  margin-bottom: 18px;
 }
 
 .admin-form-section-title {
@@ -336,7 +345,8 @@ button:disabled {
 .admin-form-grid {
   display: grid;
 
-  grid-template-columns: repeat(2, minmax(0, 1fr));
+  grid-template-columns:
+    repeat(2, minmax(0, 1fr));
 
   gap: 16px;
 }
@@ -368,14 +378,15 @@ button:disabled {
 
   margin-bottom: 7px;
 
+  color: #444;
+
   font-size: 12px;
   font-weight: 800;
-
-  color: #444;
 }
 
 .admin-form-group label .required {
   margin-left: 3px;
+
   color: var(--red);
 }
 
@@ -383,6 +394,8 @@ button:disabled {
 .admin-form-group select,
 .admin-form-group textarea {
   width: 100%;
+
+  outline: none;
 
   border: 1px solid var(--border-dark);
   border-radius: 9px;
@@ -393,8 +406,6 @@ button:disabled {
 
   font-size: 13px;
 
-  outline: none;
-
   transition:
     border-color .15s,
     background .15s,
@@ -404,6 +415,7 @@ button:disabled {
 .admin-form-group input,
 .admin-form-group select {
   height: 46px;
+
   padding: 0 13px;
 }
 
@@ -428,33 +440,7 @@ button:disabled {
 
 
 /* =========================================================
-   예약자 정보
-========================================================= */
-
-.reservation-user-grid {
-  display: grid;
-
-  grid-template-columns:
-    1fr 1fr;
-
-  gap: 14px;
-}
-
-
-/* 센터 / 연락처 등을 한 줄로 보여주는 경우 */
-
-.user-info-row {
-  display: grid;
-
-  grid-template-columns:
-    repeat(2, minmax(0, 1fr));
-
-  gap: 14px;
-}
-
-
-/* =========================================================
-   CENTER / ROOM SELECT
+   CENTER / ROOM
 ========================================================= */
 
 .admin-option-grid {
@@ -469,16 +455,22 @@ button:disabled {
 .admin-option {
   min-height: 58px;
 
+  padding: 12px 14px;
+
+  text-align: left;
+
   border: 1px solid var(--border-dark);
   border-radius: 10px;
 
   background: #fafafa;
 
-  padding: 12px 14px;
-
-  text-align: left;
-
   transition: .15s;
+}
+
+.admin-option:hover {
+  background: white;
+
+  border-color: #aaa;
 }
 
 .admin-option strong {
@@ -493,25 +485,22 @@ button:disabled {
 
   margin-top: 3px;
 
-  font-size: 10px;
   color: var(--muted);
-}
 
-.admin-option:hover {
-  border-color: #aaa;
-  background: white;
+  font-size: 10px;
 }
 
 .admin-option.selected {
-  border: 2px solid var(--yellow);
+  padding: 11px 13px;
+
   background: var(--yellow-light);
 
-  padding: 11px 13px;
+  border: 2px solid var(--yellow);
 }
 
 
 /* =========================================================
-   ROOM
+   ROOM GRID
 ========================================================= */
 
 .room-grid {
@@ -531,22 +520,25 @@ button:disabled {
 
   background: #fafafa;
 
+  color: #555;
+
   font-size: 12px;
   font-weight: 700;
-
-  color: #555;
 
   transition: .15s;
 }
 
 .room-option:hover {
   background: white;
+
   border-color: #aaa;
 }
 
 .room-option.selected {
-  border: 2px solid var(--yellow);
   background: var(--yellow-light);
+
+  border: 2px solid var(--yellow);
+
   color: #7b5c00;
 }
 
@@ -567,12 +559,12 @@ button:disabled {
 .reservation-type-option {
   position: relative;
 
+  padding: 15px;
+
   border: 1px solid var(--border-dark);
   border-radius: 10px;
 
   background: white;
-
-  padding: 15px;
 
   cursor: pointer;
 
@@ -587,6 +579,7 @@ button:disabled {
   position: absolute;
 
   opacity: 0;
+
   pointer-events: none;
 }
 
@@ -602,15 +595,17 @@ button:disabled {
 
   margin-top: 4px;
 
-  font-size: 10px;
   color: var(--muted);
+
+  font-size: 10px;
 }
 
 .reservation-type-option:has(input:checked) {
-  border: 2px solid var(--yellow);
+  padding: 14px;
+
   background: var(--yellow-light);
 
-  padding: 14px;
+  border: 2px solid var(--yellow);
 }
 
 .reservation-type-option:has(input:checked) strong {
@@ -619,19 +614,21 @@ button:disabled {
 
 
 /* =========================================================
-   RECURRING OPTIONS
+   RECURRING
 ========================================================= */
 
 .recurring-options {
+  display: none;
+
   margin-top: 14px;
 
   padding: 16px;
 
-  border-radius: 10px;
-
   background: #faf9f6;
 
   border: 1px solid #eee;
+
+  border-radius: 10px;
 }
 
 .recurring-options-title {
@@ -650,127 +647,13 @@ button:disabled {
   gap: 12px;
 }
 
-
-/* =========================================================
-   요일 선택
-========================================================= */
-
-.weekday-selector {
-  display: grid;
-
-  grid-template-columns:
-    repeat(7, 1fr);
-
-  gap: 6px;
-
-  margin-top: 8px;
-}
-
-.weekday-option {
-  height: 42px;
-
-  border: 1px solid var(--border-dark);
-  border-radius: 8px;
-
-  background: white;
-
-  color: #666;
-
-  font-size: 12px;
-  font-weight: 700;
-
-  transition: .15s;
-}
-
-.weekday-option:hover {
-  background: #fafafa;
-}
-
-.weekday-option.selected {
-  border-color: var(--yellow);
-
-  background: var(--yellow);
-
-  color: #171717;
-}
-
-.weekday-option.sun {
-  color: var(--red);
-}
-
-.weekday-option.sat {
-  color: var(--blue);
-}
-
-.weekday-option.selected.sun,
-.weekday-option.selected.sat {
-  color: #171717;
-}
-
-
-/* =========================================================
-   날짜 다중 선택
-========================================================= */
-
-.selected-dates {
-  display: flex;
-
-  flex-wrap: wrap;
-
-  gap: 6px;
-
-  margin-top: 12px;
-}
-
-.selected-date {
-  display: inline-flex;
-
-  align-items: center;
-  gap: 5px;
-
-  height: 28px;
-
-  padding: 0 9px;
-
-  border-radius: 6px;
-
-  background: var(--yellow-light);
-
-  border: 1px solid #f0d889;
-
-  color: #755900;
-
-  font-size: 10px;
-  font-weight: 700;
-}
-
-.selected-date button {
-  width: 16px;
-  height: 16px;
-
-  padding: 0;
-
-  border: none;
-
-  background: transparent;
-
-  color: #987900;
-
-  font-size: 13px;
-
-  line-height: 16px;
-}
-
-
-/* =========================================================
-   MONTHS
-========================================================= */
-
 .recurring-months {
   width: 100%;
   height: 46px;
 
   padding: 0 12px;
+
+  outline: none;
 
   border: 1px solid var(--border-dark);
   border-radius: 9px;
@@ -778,8 +661,6 @@ button:disabled {
   background: white;
 
   font-size: 12px;
-
-  outline: none;
 }
 
 
@@ -788,20 +669,19 @@ button:disabled {
 ========================================================= */
 
 .admin-calendar {
-  border: 1px solid var(--border);
-
-  border-radius: 12px;
-
   overflow: hidden;
 
   background: white;
+
+  border: 1px solid var(--border);
+
+  border-radius: 12px;
 }
 
 .admin-calendar-header {
   height: 58px;
 
   display: flex;
-
   align-items: center;
   justify-content: space-between;
 
@@ -824,13 +704,19 @@ button:disabled {
 
   background: white;
 
-  font-size: 16px;
   color: #555;
+
+  font-size: 16px;
 }
 
 .admin-calendar-header button:hover {
   background: #f7f7f7;
 }
+
+
+/* =========================================================
+   CALENDAR WEEK
+========================================================= */
 
 .admin-calendar-weekdays,
 .admin-calendar-days {
@@ -849,10 +735,10 @@ button:disabled {
 .admin-calendar-weekdays span {
   text-align: center;
 
+  color: #888;
+
   font-size: 10px;
   font-weight: 800;
-
-  color: #888;
 }
 
 .admin-calendar-weekdays .sun {
@@ -862,6 +748,11 @@ button:disabled {
 .admin-calendar-weekdays .sat {
   color: var(--blue);
 }
+
+
+/* =========================================================
+   CALENDAR DAYS
+========================================================= */
 
 .admin-calendar-days {
   padding: 8px;
@@ -873,18 +764,24 @@ button:disabled {
   height: 42px;
 
   border: none;
-
   border-radius: 8px;
 
   background: transparent;
 
-  font-size: 11px;
-
   color: #444;
+
+  font-size: 11px;
 }
 
 .admin-calendar-days button:hover {
   background: #f1f1f1;
+}
+
+.admin-calendar-days button.today {
+  font-weight: 800;
+
+  box-shadow:
+    inset 0 0 0 1px var(--yellow-dark);
 }
 
 .admin-calendar-days button.selected {
@@ -895,35 +792,69 @@ button:disabled {
   font-weight: 800;
 }
 
-.admin-calendar-days button.recurring-selected {
-  background: var(--yellow-light);
-
-  box-shadow:
-    inset 0 0 0 1px var(--yellow);
-}
-
 .admin-calendar-days button.disabled {
   color: #ccc;
 
   cursor: default;
 }
 
-.admin-calendar-days button.has-reservation::after {
-  content: "";
+.admin-calendar-empty {
+  height: 42px;
+}
 
-  position: absolute;
 
-  width: 4px;
-  height: 4px;
+/* =========================================================
+   SELECTED DATES
+========================================================= */
 
-  border-radius: 50%;
+#adminSelectedDates {
+  display: flex;
 
-  background: var(--green);
+  flex-wrap: wrap;
 
-  bottom: 5px;
-  left: 50%;
+  gap: 7px;
 
-  transform: translateX(-50%);
+  min-height: 28px;
+
+  margin-top: 12px;
+}
+
+#adminSelectedDates > span {
+  color: var(--muted);
+
+  font-size: 11px;
+}
+
+.selected-date-chip {
+  display: inline-flex;
+
+  align-items: center;
+  gap: 6px;
+
+  min-height: 29px;
+
+  padding: 0 9px;
+
+  border: 1px solid #f0d889;
+  border-radius: 7px;
+
+  background: var(--yellow-light);
+
+  color: #755900;
+
+  font-size: 10px;
+  font-weight: 700;
+}
+
+.selected-date-chip:hover {
+  background: var(--yellow-soft);
+}
+
+.selected-date-chip span {
+  color: #987900;
+
+  font-size: 14px;
+  line-height: 1;
 }
 
 
@@ -937,7 +868,6 @@ button:disabled {
 
 .admin-time-section-title {
   display: flex;
-
   align-items: center;
   justify-content: space-between;
 
@@ -951,159 +881,8 @@ button:disabled {
 
 .admin-time-section-title span {
   color: var(--muted);
-  font-size: 10px;
-}
-
-.admin-time-wrapper {
-  overflow-x: auto;
-
-  padding-bottom: 5px;
-}
-
-.admin-time-wrapper::-webkit-scrollbar {
-  height: 5px;
-}
-
-.admin-time-wrapper::-webkit-scrollbar-thumb {
-  background: #ddd;
-  border-radius: 10px;
-}
-
-.admin-time-grid {
-  display: inline-flex;
-
-  border: 1px solid var(--border);
-
-  border-radius: 9px;
-
-  overflow: hidden;
-}
-
-.admin-time-slot {
-  width: 28px;
-  height: 55px;
-
-  flex-shrink: 0;
-
-  border: none;
-  border-right: 1px solid #eee;
-
-  background: #fffaf0;
-
-  display: flex;
-
-  align-items: flex-end;
-  justify-content: center;
-
-  padding-bottom: 6px;
-
-  transition: .1s;
-}
-
-.admin-time-slot:last-child {
-  border-right: none;
-}
-
-.admin-time-slot:hover {
-  background: #ffe9b3;
-}
-
-.admin-time-slot.selected {
-  background: var(--yellow);
-}
-
-.admin-time-slot.booked {
-  background: #eee;
-
-  color: #bbb;
-
-  cursor: not-allowed;
-}
-
-.admin-time-slot span {
-  font-size: 9px;
-  font-weight: 800;
-}
-
-.admin-time-slot.selected span {
-  color: #111;
-}
-
-
-/* =========================================================
-   QUICK TIME BUTTON
-========================================================= */
-
-.quick-time-buttons {
-  display: flex;
-
-  flex-wrap: wrap;
-
-  gap: 7px;
-
-  margin-top: 12px;
-}
-
-.quick-time-button {
-  height: 34px;
-
-  padding: 0 12px;
-
-  border: 1px solid var(--border-dark);
-  border-radius: 7px;
-
-  background: white;
-
-  color: #555;
 
   font-size: 10px;
-  font-weight: 700;
-}
-
-.quick-time-button:hover {
-  border-color: var(--yellow-dark);
-
-  background: var(--yellow-light);
-}
-
-.quick-time-button.active {
-  background: var(--yellow);
-
-  border-color: var(--yellow);
-
-  color: #111;
-}
-
-
-/* =========================================================
-   DURATION
-========================================================= */
-
-.duration-display {
-  display: flex;
-
-  align-items: center;
-  justify-content: space-between;
-
-  margin-top: 14px;
-
-  padding: 13px 15px;
-
-  border-radius: 9px;
-
-  background: #171717;
-
-  color: white;
-}
-
-.duration-display span {
-  color: #aaa;
-
-  font-size: 10px;
-}
-
-.duration-display strong {
-  font-size: 13px;
 }
 
 
@@ -1127,14 +906,13 @@ button:disabled {
   height: 40px;
 
   border: 1px solid var(--border-dark);
-
   border-radius: 50%;
 
   background: white;
 
-  font-size: 20px;
-
   color: #555;
+
+  font-size: 20px;
 }
 
 .people-counter button:hover {
@@ -1148,13 +926,13 @@ button:disabled {
 }
 
 .people-input {
-  width: 50px;
+  width: 55px;
+
+  outline: none;
 
   border: none;
 
   background: transparent;
-
-  outline: none;
 
   text-align: center;
 
@@ -1176,26 +954,26 @@ button:disabled {
 ========================================================= */
 
 .admin-summary {
+  padding: 18px;
+
+  margin-top: 18px;
+
   background: #171717;
 
   color: white;
 
   border-radius: 12px;
-
-  padding: 18px;
-
-  margin-top: 18px;
 }
 
 .admin-summary-title {
   margin-bottom: 14px;
 
+  color: #aaa;
+
   font-size: 11px;
   font-weight: 800;
 
   letter-spacing: .5px;
-
-  color: #aaa;
 }
 
 .admin-summary-grid {
@@ -1220,29 +998,29 @@ button:disabled {
 .admin-summary-item strong {
   display: block;
 
+  overflow: hidden;
+
+  color: white;
+
   font-size: 12px;
 
   white-space: nowrap;
-
-  overflow: hidden;
 
   text-overflow: ellipsis;
 }
 
 
 /* =========================================================
-   ADMIN BUTTON
+   MAIN BUTTON
 ========================================================= */
 
 .admin-main-button {
   width: 100%;
-
   height: 52px;
 
   margin-top: 16px;
 
   border: none;
-
   border-radius: 9px;
 
   background: var(--black);
@@ -1276,7 +1054,6 @@ button:disabled {
   padding: 0 15px;
 
   border: 1px solid var(--border-dark);
-
   border-radius: 8px;
 
   background: white;
@@ -1293,136 +1070,126 @@ button:disabled {
 
 
 /* =========================================================
-   RESERVATION TABLE
+   ADMIN RESERVATION LIST
 ========================================================= */
 
-.admin-table-wrapper {
-  width: 100%;
+#adminReservationList {
+  display: flex;
 
-  overflow-x: auto;
+  flex-direction: column;
+
+  gap: 8px;
+}
+
+.admin-reservation-item {
+  display: grid;
+
+  grid-template-columns:
+    170px
+    1fr
+    auto;
+
+  align-items: center;
+
+  gap: 18px;
+
+  padding: 14px 16px;
+
+  background: white;
 
   border: 1px solid var(--border);
 
-  border-radius: 12px;
+  border-radius: 10px;
 
-  background: white;
+  transition: .15s;
 }
 
-.admin-table {
-  width: 100%;
+.admin-reservation-item:hover {
+  border-color: #d2cfc8;
 
-  min-width: 900px;
-
-  border-collapse: collapse;
+  box-shadow:
+    0 3px 12px rgba(0, 0, 0, .03);
 }
 
-.admin-table th {
-  height: 44px;
+
+/* 예약 날짜 / 시간 */
+
+.admin-reservation-main {
+  display: flex;
+
+  flex-direction: column;
+
+  gap: 3px;
+}
+
+.admin-reservation-main strong {
+  color: #222;
+
+  font-size: 12px;
+  font-weight: 800;
+}
+
+.admin-reservation-main span {
+  color: #777;
+
+  font-size: 11px;
+}
+
+
+/* 예약자 정보 */
+
+.admin-reservation-info {
+  display: flex;
+
+  align-items: center;
+
+  gap: 12px;
+
+  min-width: 0;
+}
+
+.admin-reservation-info strong {
+  color: #222;
+
+  font-size: 12px;
+
+  white-space: nowrap;
+}
+
+.admin-reservation-info span {
+  color: #777;
+
+  font-size: 10px;
+
+  white-space: nowrap;
+}
+
+
+/* 삭제 버튼 */
+
+.admin-delete-button {
+  height: 32px;
 
   padding: 0 12px;
 
-  background: #faf9f7;
-
-  border-bottom: 1px solid var(--border);
-
-  text-align: left;
-
-  color: #888;
-
-  font-size: 10px;
-  font-weight: 800;
-}
-
-.admin-table td {
-  height: 56px;
-
-  padding: 8px 12px;
-
-  border-bottom: 1px solid #f0efec;
-
-  font-size: 11px;
-}
-
-.admin-table tr:last-child td {
-  border-bottom: none;
-}
-
-.admin-table tr:hover td {
-  background: #fcfcfb;
-}
-
-
-/* =========================================================
-   STATUS
-========================================================= */
-
-.status-badge {
-  display: inline-flex;
-
-  align-items: center;
-  justify-content: center;
-
-  min-width: 54px;
-  height: 25px;
-
-  padding: 0 8px;
-
-  border-radius: 20px;
-
-  font-size: 9px;
-  font-weight: 800;
-}
-
-.status-badge.confirmed {
-  background: #edf8ed;
-  color: #4e9c4e;
-}
-
-.status-badge.pending {
-  background: #fff5dc;
-  color: #ad7d00;
-}
-
-.status-badge.cancelled {
-  background: #fceeee;
-  color: #c54b4b;
-}
-
-
-/* =========================================================
-   FILTER
-========================================================= */
-
-.admin-filter {
-  display: flex;
-
-  flex-wrap: wrap;
-
-  gap: 8px;
-
-  margin-bottom: 16px;
-}
-
-.admin-filter select,
-.admin-filter input {
-  height: 38px;
-
-  padding: 0 11px;
-
-  border: 1px solid var(--border-dark);
+  border: 1px solid #efcccc;
 
   border-radius: 7px;
 
-  background: white;
+  background: #fff7f7;
 
-  font-size: 11px;
+  color: var(--red);
 
-  outline: none;
+  font-size: 10px;
+  font-weight: 700;
+
+  transition: .15s;
 }
 
-.admin-filter input:focus,
-.admin-filter select:focus {
-  border-color: var(--yellow-dark);
+.admin-delete-button:hover {
+  background: #ffeaea;
+
+  border-color: #e9aaaa;
 }
 
 
@@ -1431,13 +1198,40 @@ button:disabled {
 ========================================================= */
 
 .admin-empty {
-  padding: 55px 20px;
+  padding: 50px 20px;
 
   text-align: center;
 
   color: #aaa;
 
   font-size: 12px;
+}
+
+
+/* =========================================================
+   NOTICE
+========================================================= */
+
+.admin-notice {
+  padding: 12px 14px;
+
+  margin-bottom: 14px;
+
+  background: #fff9e8;
+
+  border: 1px solid #f2dfaa;
+
+  border-radius: 9px;
+
+  color: #7b6100;
+
+  font-size: 11px;
+
+  line-height: 1.5;
+}
+
+.admin-notice strong {
+  font-weight: 800;
 }
 
 
@@ -1468,18 +1262,17 @@ button:disabled {
 
 .admin-modal-card {
   width: 100%;
-
   max-width: 560px;
 
   max-height: calc(100vh - 40px);
 
   overflow-y: auto;
 
+  padding: 24px;
+
   background: white;
 
   border-radius: 16px;
-
-  padding: 24px;
 
   box-shadow:
     0 20px 60px rgba(0, 0, 0, .18);
@@ -1504,14 +1297,13 @@ button:disabled {
   height: 32px;
 
   border: none;
-
   border-radius: 50%;
 
   background: #f5f5f5;
 
-  font-size: 17px;
-
   color: #555;
+
+  font-size: 17px;
 }
 
 .admin-modal-close:hover {
@@ -1534,7 +1326,6 @@ button:disabled {
   height: 62px;
 
   display: flex;
-
   align-items: center;
   justify-content: center;
 
@@ -1562,33 +1353,6 @@ button:disabled {
 
 
 /* =========================================================
-   NOTICE
-========================================================= */
-
-.admin-notice {
-  padding: 12px 14px;
-
-  margin-bottom: 14px;
-
-  border-radius: 9px;
-
-  background: #fff9e8;
-
-  border: 1px solid #f2dfaa;
-
-  color: #7b6100;
-
-  font-size: 11px;
-
-  line-height: 1.5;
-}
-
-.admin-notice strong {
-  font-weight: 800;
-}
-
-
-/* =========================================================
    MOBILE
 ========================================================= */
 
@@ -1602,8 +1366,23 @@ button:disabled {
     padding: 30px 18px 60px;
   }
 
+  .admin-reservation-item {
+    grid-template-columns:
+      150px
+      1fr
+      auto;
+  }
+
+  .admin-reservation-info {
+    gap: 8px;
+  }
+
 }
 
+
+/* =========================================================
+   MOBILE 650
+========================================================= */
 
 @media (max-width: 650px) {
 
@@ -1641,11 +1420,6 @@ button:disabled {
     grid-template-columns: 1fr;
   }
 
-  .reservation-user-grid,
-  .user-info-row {
-    grid-template-columns: 1fr;
-  }
-
   .admin-option-grid {
     grid-template-columns: 1fr;
   }
@@ -1658,16 +1432,6 @@ button:disabled {
     grid-template-columns: 1fr;
   }
 
-  .weekday-selector {
-    gap: 4px;
-  }
-
-  .weekday-option {
-    height: 38px;
-
-    font-size: 11px;
-  }
-
   .admin-summary-grid {
     grid-template-columns: 1fr 1fr;
   }
@@ -1676,19 +1440,30 @@ button:disabled {
     flex-direction: column;
   }
 
-  .admin-filter {
-    display: grid;
+  .admin-reservation-item {
+    grid-template-columns: 1fr;
 
-    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+
+    padding: 15px;
   }
 
-  .admin-filter input,
-  .admin-filter select {
+  .admin-reservation-info {
+    flex-wrap: wrap;
+
+    gap: 7px 12px;
+  }
+
+  .admin-delete-button {
     width: 100%;
   }
 
 }
 
+
+/* =========================================================
+   MOBILE 400
+========================================================= */
 
 @media (max-width: 400px) {
 
@@ -1702,12 +1477,13 @@ button:disabled {
     padding: 15px;
   }
 
-  .weekday-option {
-    font-size: 10px;
+  .admin-calendar-days button,
+  .admin-calendar-empty {
+    height: 38px;
   }
 
   .admin-calendar-days button {
-    height: 38px;
+    font-size: 10px;
   }
 
 }

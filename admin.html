@@ -344,10 +344,65 @@
       </div>
 
       <div class="form-row">
-        <div class="form-field">
-          <label>날짜<em>*</em></label>
-          <input type="date" id="addDate" required>
-        </div>
+      <div class="form-group">
+  <label for="adminStartDate">
+    시작 날짜 <span>*</span>
+  </label>
+
+  <input
+    type="date"
+    id="adminStartDate"
+  >
+</div>
+
+
+<div
+  class="form-group"
+  id="adminRecurringDaysGroup"
+  style="display:none;"
+>
+
+  <label>
+    반복 요일 <span>*</span>
+  </label>
+
+  <div class="weekday-selector">
+
+    <button type="button" data-day="1">월</button>
+    <button type="button" data-day="2">화</button>
+    <button type="button" data-day="3">수</button>
+    <button type="button" data-day="4">목</button>
+    <button type="button" data-day="5">금</button>
+    <button type="button" data-day="6">토</button>
+    <button type="button" data-day="0">일</button>
+
+  </div>
+
+</div>
+
+
+<div
+  class="form-group"
+  id="adminRecurringMonthsGroup"
+  style="display:none;"
+>
+
+  <label for="adminRecurringMonths">
+    고정 기간 <span>*</span>
+  </label>
+
+  <select id="adminRecurringMonths">
+
+    <option value="1">1개월</option>
+    <option value="2">2개월</option>
+    <option value="3" selected>3개월</option>
+    <option value="4">4개월</option>
+    <option value="5">5개월</option>
+    <option value="6">6개월</option>
+    <option value="12">12개월</option>
+
+  </select>
+</div>
         <div class="form-field">
           <label>인원<em>*</em></label>
           <input type="number" id="addPeople" min="1" value="2" required>
@@ -375,13 +430,12 @@
           <input type="text" id="addDepartment" placeholder="부서명" required>
         </div>
       </div>
+
+      <div class="form-row">
         <div class="form-group">
           <label>센터(지역)<em>*</em></label>
           <input type="text" id="addRegion" placeholder="센터(지역)명" required>
         </div>
-      </div>
-    </div>
-      <div class="form-row">
         <div class="form-field full">
           <label>연락처<em>*</em></label>
           <input type="tel" id="addPhone" placeholder="010-0000-0000" required>
@@ -394,6 +448,30 @@
           <textarea id="addPurpose" rows="3" placeholder="사용 목적" required></textarea>
         </div>
       </div>
+
+      <div class="form-group">
+      <label>예약 유형 <span>*</span></label>
+
+        <div class="reservation-type-options">
+        <label class="reservation-type-option">
+          <input
+          type="radio"
+          name="adminReservationType"
+          value="single"
+          checked
+          >
+        <span>일회성</span>
+        </label>
+          <label class="reservation-type-option">
+      <input
+        type="radio"
+        name="adminReservationType"
+        value="recurring"
+      >
+      <span>고정</span>
+    </label>
+  </div>
+</div>
 
       <div class="form-actions">
         <button type="button" id="cancelAddBtn" class="filter-reset">취소</button>

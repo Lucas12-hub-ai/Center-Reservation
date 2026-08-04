@@ -89,9 +89,8 @@ const reservation = {
 
   people: 2,
 
-  department: "",
-  region: "",
   userName: "",
+  department: "",
   phone: "",
   purpose: "",
 
@@ -330,8 +329,24 @@ function renderRooms() {
     button.className =
       "room-option";
 
-    button.textContent =
-      room;
+    const isLecture =
+      room.startsWith("강의실");
+
+    const iconSvg = isLecture
+      ? `<svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+           <rect x="3" y="4" width="18" height="12" rx="1.5" stroke="currentColor" stroke-width="1.6"/>
+           <path d="M8 20h8M12 16v4" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/>
+           <path d="M7 9l3 2-3 2" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/>
+         </svg>`
+      : `<svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+           <circle cx="9" cy="8" r="3" stroke="currentColor" stroke-width="1.6"/>
+           <path d="M3.5 20c0-3 2.5-5.5 5.5-5.5s5.5 2.5 5.5 5.5" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/>
+           <circle cx="17" cy="9" r="2.4" stroke="currentColor" stroke-width="1.6"/>
+           <path d="M15 20c0-2.4 1.8-4.3 4.3-4.6" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/>
+         </svg>`;
+
+    button.innerHTML =
+      `<span class="option-icon small">${iconSvg}</span><span class="room-option-label">${room}</span>`;
 
 
     if (reservation.room === room) {
@@ -1837,21 +1852,16 @@ document.getElementById(
   "click",
   () => {
 
+    const name =
+      document.getElementById(
+        "userName"
+      ).value.trim();
+
     const department =
       document.getElementById(
         "department"
       ).value.trim();
 
-    const region =
-      document.getElementById(
-        "region"
-      ).value.trim();
-
-    const name =
-      document.getElementById(
-        "userName"
-      ).value.trim();
-    
     const phone =
       document.getElementById(
         "phone"
@@ -1861,6 +1871,18 @@ document.getElementById(
       document.getElementById(
         "purpose"
       ).value.trim();
+
+
+    if (!name) {
+
+      alert(
+        "예약자 이름을 입력해주세요."
+      );
+
+      return;
+
+    }
+
 
     if (!department) {
 
@@ -1872,23 +1894,7 @@ document.getElementById(
 
     }
 
-    if (!region) {
-      alert(
-        "센터(지역)를 입력해주세요."
-      );
-      return;
-    }
 
-    if (!name) {
-
-      alert(
-        "예약자 이름을 입력해주세요."
-      );
-
-      return;
-
-    }
-      
     if (!phone) {
 
       alert(
@@ -1910,16 +1916,13 @@ document.getElementById(
 
     }
 
-    
-    reservation.department =
-      department;
-
-    reservation.region =
-      region; 
 
     reservation.userName =
       name;
-      
+
+    reservation.department =
+      department;
+
     reservation.phone =
       phone;
 
@@ -1980,20 +1983,18 @@ function updateConfirmation() {
       ? `고정 사용 · ${reservation.recurringMonths}개월`
       : "일회성 사용";
 
+
+  document.getElementById(
+    "confirmName"
+  ).textContent =
+    reservation.userName;
+
+
   document.getElementById(
     "confirmDepartment"
   ).textContent =
     reservation.department;
 
-  document.getElementById(
-    "confirmRegion"
-  ).textContent =
-    reservation.region;
-  
-  document.getElementById(
-    "confirmName"
-  ).textContent =
-    reservation.userName;
 
   document.getElementById(
     "confirmPhone"
@@ -2193,9 +2194,6 @@ document.getElementById(
 
           department:
             reservation.department,
-
-          region: 
-            reservation.region,
 
           phone:
             reservation.phone,

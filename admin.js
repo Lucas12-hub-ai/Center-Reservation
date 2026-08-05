@@ -1,4039 +1,1002 @@
-// ==========================================================
-// 공간 예약 관리자 admin.js
-// 현재 admin.html 기준으로 작성된 전체 코드
-// ==========================================================
+// ==========================================
+// Supabase 연결 (예약 페이지와 동일한 프로젝트)
+// ==========================================
 
+const SUPABASE_URL = "https://ohnxhlbwzakwzhzhkhvt.supabase.co";
+const SUPABASE_PUBLISHABLE_KEY = "sb_publishable_v8DnBpF4GX4oABnGOfpRxA_QH6ruB5Q";
 
-// ==========================================================
-// 1. SUPABASE
-// ==========================================================
+// ==========================================
+// 센터 / 공간 목록 (필터 드롭다운용)
+// ==========================================
 
-const SUPABASE_URL =
-  "https://ohnxhlbwzakwzhzhkhvt.supabase.co";
-
-const SUPABASE_PUBLISHABLE_KEY =
-  "sb_publishable_v8DnBpF4GX4oABnGOfpRxA_QH6ruB5Q";
-
-const supabaseClient =
-  window.supabase.createClient(
-    SUPABASE_URL,
-    SUPABASE_PUBLISHABLE_KEY
-  );
-
-
-// ==========================================================
-// 2. 센터 / 공간
-// ==========================================================
-
-const centers = {
-
-  "큰 서교센터": {
-    capacity: 50,
-    open: "06:00",
-    close: "24:00"
-  },
-
-  "작은 서교센터": {
-    capacity: 55,
-    open: "06:00",
-    close: "24:00"
-  },
-
-  "명동센터": {
-    capacity: 100,
-    open: "06:00",
-    close: "24:00"
-  },
-
-  "합정역센터": {
-    capacity: 100,
-    open: "06:00",
-    close: "24:00"
-  }
-
-};
-
+const centers = ["큰 서교센터", "작은 서교센터", "명동센터", "합정역센터"];
 
 const roomsByCenter = {
-
-  "큰 서교센터": [
-    "강의실1",
-    "강의실2",
-    "상담실1",
-    "상담실2"
-  ],
-
-  "작은 서교센터": [
-    "강의실",
-    "상담실"
-  ],
-
-  "명동센터": [
-    "강의실",
-    "상담실1",
-    "상담실2"
-  ],
-
-  "합정역센터": [
-    "강의실",
-    "상담실"
-  ]
-
+  "큰 서교센터": ["강의실1", "강의실2", "상담실1", "상담실2"],
+  "작은 서교센터": ["강의실", "상담실"],
+  "명동센터": ["강의실", "상담실1", "상담실2"],
+  "합정역센터": ["강의실", "상담실"]
 };
 
+const allRooms = [...new Set(Object.values(roomsByCenter).flat())];
 
-// ==========================================================
-// 3. 상태
-// ==========================================================
+// ==========================================
+// 상태
+// ==========================================
 
-let reservations = [];
-
-let filteredReservations = [];
-
+let allReservations = [];   // Supabase에서 불러온 전체 예약
+let filteredReservations = []; // 필터 적용된 결과
 let currentPage = 1;
-
 let pageSize = 10;
-
-let currentView = "dashboard";
-
-let selectedAdminDates = [];
-
-let selectedRecurringDays = [];
-
-
-// ==========================================================
-// 4. 유틸리티
-// ==========================================================
-
-function escapeHTML(value) {
-
-  return String(value ?? "")
-    .replace(/&/g, "&amp;")
-    .replace(/</g, "&lt;")
-    .replace(/>/g, "&gt;")
-    .replace(/"/g, "&quot;")
-    .replace(/'/g, "&#039;");
-
-}
-
-
-function timeToMinutes(time) {
-
-  if (!time) return 0;
-
-  if (time === "24:00") {
-    return 1440;
-  }
-
-  const parts = time.split(":");
-
-  return (
-    Number(parts[0]) * 60 +
-    Number(parts[1])
-  );
-
-}
-
-
-function minutesToTime(minutes) {
-
-  if (minutes >= 1440) {
-    return "24:00";
-  }
-
-  const hour =
-    Math.floor(minutes / 60);
-
-  const minute =
-    minutes % 60;
-
-  return (
-    String(hour).padStart(2, "0") +
-    ":" +
-    String(minute).padStart(2, "0")
-  );
-
-}
-
-
-function dateToString(date) {
-
-  const year =
-    date.getFullYear();
-
-  const month =
-    String(date.getMonth() + 1)
-      .padStart(2, "0");
-
-  const day =
-    String(date.getDate())
-      .padStart(2, "0");
-
-  return `${year}-${month}-${day}`;
-
-}
-
-
-function formatDate(dateString) {
-
-  if (!dateString) {
-    return "";
-  }
-
-  const parts =
-    dateString.split("-");
-
-  if (parts.length !== 3) {
-    return dateString;
-  }
-
-  return (
-    `${parts[0]}년 ` +
-    `${Number(parts[1])}월 ` +
-    `${Number(parts[2])}일`
-  );
-
-}
-
-
-function formatDateShort(dateString) {
-
-  if (!dateString) return "";
-
-  const parts =
-    dateString.split("-");
-
-  return `${Number(parts[1])}/${Number(parts[2])}`;
-
-}
-
-
-function getDayName(dateString) {
-
-  const date =
-    new Date(`${dateString}T00:00:00`);
-
-  const names = [
-    "일",
-    "월",
-    "화",
-    "수",
-    "목",
-    "금",
-    "토"
-  ];
-
-  return names[date.getDay()];
-
-}
-
-
-function getTodayString() {
-
-  return dateToString(
-    new Date()
-  );
-
-}
-
-
-function getStartOfWeek(date) {
-
-  const result =
-    new Date(date);
-
-  const day =
-    result.getDay();
-
-  result.setDate(
-    result.getDate() - day
-  );
-
-  result.setHours(
-    0,
-    0,
-    0,
-    0
-  );
-
-  return result;
-
-}
-
-
-function getEndOfWeek(date) {
-
-  const result =
-    getStartOfWeek(date);
-
-  result.setDate(
-    result.getDate() + 6
-  );
-
-  return result;
-
-}
-
-
-function formatDateTime(value) {
-
-  if (!value) {
-    return "";
-  }
-
-  const date =
-    new Date(value);
-
-  if (
-    Number.isNaN(
-      date.getTime()
-    )
-  ) {
-    return value;
-  }
-
-  return date.toLocaleString(
-    "ko-KR",
-    {
-      year: "numeric",
-      month: "2-digit",
-      day: "2-digit",
-      hour: "2-digit",
-      minute: "2-digit"
-    }
-  );
-
-}
-
-
-// ==========================================================
-// 5. DOM
-// ==========================================================
-
-const $ = id =>
-  document.getElementById(id);
-
-
-// ==========================================================
-// 6. 센터 옵션 초기화
-// ==========================================================
-
-function populateCenterSelects() {
-
-  const selects = [
-
-    $("filterCenter"),
-    $("weeklyFilterCenter"),
-    $("addCenter")
-
-  ];
-
-  selects.forEach(select => {
-
-    if (!select) return;
-
-    const firstOption =
-      select.options[0];
-
-    select.innerHTML = "";
-
-    if (firstOption) {
-
-      const option =
-        document.createElement("option");
-
-      option.value =
-        firstOption.value;
-
-      option.textContent =
-        firstOption.textContent;
-
-      select.appendChild(option);
-
+let selectedCenterCard = ""; // 센터별 현황 화면에서 선택된 센터
+
+// ==========================================
+// 데이터 불러오기
+// ==========================================
+
+async function fetchReservations() {
+  try {
+    const response = await fetch(
+      `${SUPABASE_URL}/rest/v1/Reservations?select=*&order=date.desc,start_time.desc`,
+      {
+        headers: {
+          "apikey": SUPABASE_PUBLISHABLE_KEY,
+          "Authorization": `Bearer ${SUPABASE_PUBLISHABLE_KEY}`
+        }
+      }
+    );
+
+    if (!response.ok) {
+      console.error("예약 목록 조회 실패:", await response.text());
+      allReservations = [];
+      return;
     }
 
-    Object.keys(centers)
-      .forEach(centerName => {
+    allReservations = await response.json();
 
-        const option =
-          document.createElement(
-            "option"
-          );
+  } catch (error) {
+    console.error("예약 목록 조회 오류:", error);
+    allReservations = [];
+  }
+}
 
-        option.value =
-          centerName;
+// ==========================================
+// 날짜 유틸
+// ==========================================
 
-        option.textContent =
-          centerName;
+function toDateString(d) {
+  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
+}
 
-        select.appendChild(
-          option
-        );
+function getWeekRange(date) {
+  const day = date.getDay();
+  const start = new Date(date);
+  start.setDate(date.getDate() - day);
+  const end = new Date(start);
+  end.setDate(start.getDate() + 6);
+  return { start, end };
+}
 
-      });
+function formatDateTime(isoString) {
+  if (!isoString) return "-";
+  const d = new Date(isoString);
+  if (isNaN(d)) return "-";
+  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")} ${String(d.getHours()).padStart(2, "0")}:${String(d.getMinutes()).padStart(2, "0")}`;
+}
 
+function formatDateLabel(dateString) {
+  const days = ["일", "월", "화", "수", "목", "금", "토"];
+  const d = new Date(dateString);
+  return `${dateString} (${days[d.getDay()]})`;
+}
+
+// ==========================================
+// 요약 카드
+// ==========================================
+
+function renderSummary() {
+  const today = new Date();
+  const todayStr = toDateString(today);
+
+  const { start, end } = getWeekRange(today);
+  const startStr = toDateString(start);
+  const endStr = toDateString(end);
+
+  const monthPrefix = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, "0")}`;
+
+  const todayCount = allReservations.filter(r => r.date === todayStr).length;
+  const weekCount = allReservations.filter(r => r.date >= startStr && r.date <= endStr).length;
+  const monthCount = allReservations.filter(r => (r.date || "").startsWith(monthPrefix)).length;
+
+  document.getElementById("statToday").textContent = `${todayCount}건`;
+  document.getElementById("statTodayDate").textContent = formatDateLabel(todayStr);
+
+  document.getElementById("statWeek").textContent = `${weekCount}건`;
+  document.getElementById("statWeekRange").textContent = `${startStr} ~ ${endStr}`;
+
+  document.getElementById("statMonth").textContent = `${monthCount}건`;
+  document.getElementById("statMonthLabel").textContent = monthPrefix;
+
+  document.getElementById("statTotal").textContent = `${allReservations.length}건`;
+}
+
+// ==========================================
+// 필터 드롭다운 초기화
+// ==========================================
+
+function initFilterOptions() {
+  const centerSelect = document.getElementById("filterCenter");
+  centers.forEach(c => {
+    const option = document.createElement("option");
+    option.value = c;
+    option.textContent = c;
+    centerSelect.appendChild(option);
   });
 
+  updateRoomFilterOptions();
+
+  // 센터를 바꾸면 그 센터에 맞는 공간 목록으로 갱신
+  centerSelect.addEventListener("change", () => {
+    updateRoomFilterOptions();
+  });
 }
 
+// 필터 - 선택된 센터에 맞는 공간 목록으로 "공간" 드롭다운을 다시 그림
+function updateRoomFilterOptions() {
+  const center = document.getElementById("filterCenter").value;
+  const roomSelect = document.getElementById("filterRoom");
+  const currentValue = roomSelect.value;
 
-// ==========================================================
-// 7. 공간 옵션 초기화
-// ==========================================================
+  roomSelect.innerHTML = `<option value="">전체 공간</option>`;
 
-function populateRoomSelect(
-  select,
-  center,
-  includeAll = false
-) {
+  const rooms = center ? (roomsByCenter[center] || []) : allRooms;
 
-  if (!select) return;
+  rooms.forEach(r => {
+    const option = document.createElement("option");
+    option.value = r;
+    option.textContent = r;
+    roomSelect.appendChild(option);
+  });
 
-  select.innerHTML = "";
+  // 이전에 선택돼있던 공간이 새 목록에도 있으면 유지
+  if (rooms.includes(currentValue)) {
+    roomSelect.value = currentValue;
+  }
+}
 
-  const firstOption =
-    document.createElement("option");
+// ==========================================
+// 필터 적용
+// ==========================================
 
-  firstOption.value = "";
+function applyFilters() {
+  const date = document.getElementById("filterDate").value;
+  const center = document.getElementById("filterCenter").value;
+  const room = document.getElementById("filterRoom").value;
+  const name = document.getElementById("filterName").value.trim();
+  const purpose = document.getElementById("filterPurpose").value.trim();
+  const type = document.getElementById("filterType").value;
 
-  firstOption.textContent =
-    includeAll
-      ? "전체 공간"
-      : "센터를 먼저 선택해주세요";
+  filteredReservations = allReservations.filter(r => {
+    if (date && r.date !== date) return false;
+    if (center && r.center !== center) return false;
+    if (room && r.room !== room) return false;
+    if (name && !(r.user_name || "").includes(name)) return false;
+    if (purpose && !(r.purpose || "").includes(purpose)) return false;
+    if (type === "recurring" && !r.is_recurring) return false;
+    if (type === "single" && r.is_recurring) return false;
+    return true;
+  });
 
-  select.appendChild(
-    firstOption
-  );
+  currentPage = 1;
+  renderTable();
+}
 
-  if (!center) {
+function resetFilters() {
+  document.getElementById("filterDate").value = "";
+  document.getElementById("filterCenter").value = "";
+  document.getElementById("filterRoom").value = "";
+  document.getElementById("filterName").value = "";
+  document.getElementById("filterPurpose").value = "";
+  document.getElementById("filterType").value = "";
+
+  filteredReservations = [...allReservations];
+  currentPage = 1;
+  renderTable();
+}
+
+// ==========================================
+// 예약 목록 테이블 (예약 관리 화면)
+// ==========================================
+
+function renderTable() {
+  const tbody = document.getElementById("tableBody");
+  tbody.innerHTML = "";
+
+  document.getElementById("listTitle").textContent = `예약 목록 (총 ${filteredReservations.length}건)`;
+
+  if (filteredReservations.length === 0) {
+    tbody.innerHTML = `<tr class="empty-row"><td colspan="13">조건에 맞는 예약이 없습니다.</td></tr>`;
+    renderPagination();
     return;
   }
 
-  const rooms =
-    roomsByCenter[center] || [];
+  const totalPages = Math.max(1, Math.ceil(filteredReservations.length / pageSize));
+  if (currentPage > totalPages) currentPage = totalPages;
 
-  rooms.forEach(room => {
+  const start = (currentPage - 1) * pageSize;
+  const pageItems = filteredReservations.slice(start, start + pageSize);
 
-    const option =
-      document.createElement(
-        "option"
-      );
-
-    option.value =
-      room;
-
-    option.textContent =
-      room;
-
-    select.appendChild(
-      option
-    );
-
+  pageItems.forEach((r, index) => {
+    const tr = document.createElement("tr");
+    const typeLabel = r.is_recurring
+      ? `<span class="type-badge recurring">고정 ${r.recurring_months || ""}개월</span>`
+      : `<span class="type-badge single">일회성</span>`;
+    tr.innerHTML = `
+      <td>${filteredReservations.length - (start + index)}</td>
+      <td>${formatDateLabel(r.date)}</td>
+      <td>${r.start_time || ""} ~ ${r.end_time || ""}</td>
+      <td>${r.center || ""}</td>
+      <td>${r.room || ""}</td>
+      <td>${typeLabel}</td>
+      <td>${r.people || ""}</td>
+      <td>${r.user_name || ""}</td>
+      <td>${r.department || ""}</td>
+      <td>${r.phone || ""}</td>
+      <td>${r.purpose || ""}</td>
+      <td>${formatDateTime(r.created_at)}</td>
+      <td>
+        <button class="action-btn detail" data-id="${r.id}">상세</button>
+        <button class="action-btn delete" data-id="${r.id}">삭제</button>
+      </td>
+    `;
+    tbody.appendChild(tr);
   });
 
-}
-
-
-// ==========================================================
-// 8. 필터 센터 변경
-// ==========================================================
-
-if ($("filterCenter")) {
-
-  $("filterCenter")
-    .addEventListener(
-      "change",
-      () => {
-
-        populateRoomSelect(
-          $("filterRoom"),
-          $("filterCenter").value,
-          true
-        );
-
-      }
-    );
-
-}
-
-
-// ==========================================================
-// 9. 주간 센터 변경
-// ==========================================================
-
-if ($("weeklyFilterCenter")) {
-
-  $("weeklyFilterCenter")
-    .addEventListener(
-      "change",
-      () => {
-
-        populateRoomSelect(
-          $("weeklyFilterRoom"),
-          $("weeklyFilterCenter").value,
-          true
-        );
-
-        renderWeeklyCalendar();
-
-      }
-    );
-
-}
-
-
-if ($("weeklyFilterRoom")) {
-
-  $("weeklyFilterRoom")
-    .addEventListener(
-      "change",
-      renderWeeklyCalendar
-    );
-
-}
-
-
-// ==========================================================
-// 10. 예약 추가 센터 변경
-// ==========================================================
-
-if ($("addCenter")) {
-
-  $("addCenter")
-    .addEventListener(
-      "change",
-      () => {
-
-        populateRoomSelect(
-          $("addRoom"),
-          $("addCenter").value,
-          false
-        );
-
-        updateAddReservationSummary();
-
-      }
-    );
-
-}
-
-
-// ==========================================================
-// 11. 시간 옵션
-// ==========================================================
-
-function populateAddTimeOptions() {
-
-  const startSelect =
-    $("addStartTime");
-
-  const endSelect =
-    $("addEndTime");
-
-  if (!startSelect || !endSelect) {
-    return;
-  }
-
-  startSelect.innerHTML =
-    `<option value="">시작시간</option>`;
-
-  endSelect.innerHTML =
-    `<option value="">종료시간</option>`;
-
-  let open = 360;
-
-  let close = 1440;
-
-  const center =
-    $("addCenter")
-      ? $("addCenter").value
-      : "";
-
-  if (
-    center &&
-    centers[center]
-  ) {
-
-    open =
-      timeToMinutes(
-        centers[center].open
-      );
-
-    close =
-      timeToMinutes(
-        centers[center].close
-      );
-
-  }
-
-  for (
-    let minute = open;
-    minute <= close;
-    minute += 30
-  ) {
-
-    const option =
-      document.createElement(
-        "option"
-      );
-
-    option.value =
-      minutesToTime(minute);
-
-    option.textContent =
-      minutesToTime(minute);
-
-    startSelect.appendChild(
-      option
-    );
-
-  }
-
-  for (
-    let minute = open + 30;
-    minute <= close;
-    minute += 30
-  ) {
-
-    const option =
-      document.createElement(
-        "option"
-      );
-
-    option.value =
-      minutesToTime(minute);
-
-    option.textContent =
-      minutesToTime(minute);
-
-    endSelect.appendChild(
-      option
-    );
-
-  }
-
-}
-
-
-populateAddTimeOptions();
-
-
-// ==========================================================
-// 12. 예약 추가 모달
-// ==========================================================
-
-function openAddModal() {
-
-  const modal =
-    $("addModal");
-
-  if (!modal) return;
-
-  resetAddForm();
-
-  modal.classList.add(
-    "active"
-  );
-
-}
-
-
-function closeAddModal() {
-
-  const modal =
-    $("addModal");
-
-  if (!modal) return;
-
-  modal.classList.remove(
-    "active"
-  );
-
-}
-
-
-if ($("addReservationBtn")) {
-
-  $("addReservationBtn")
-    .addEventListener(
-      "click",
-      openAddModal
-    );
-
-}
-
-
-if ($("closeAddModal")) {
-
-  $("closeAddModal")
-    .addEventListener(
-      "click",
-      closeAddModal
-    );
-
-}
-
-
-if ($("cancelAddBtn")) {
-
-  $("cancelAddBtn")
-    .addEventListener(
-      "click",
-      closeAddModal
-    );
-
-}
-
-
-// 모달 바깥 클릭
-
-if ($("addModal")) {
-
-  $("addModal")
-    .addEventListener(
-      "click",
-      event => {
-
-        if (
-          event.target ===
-          $("addModal")
-        ) {
-
-          closeAddModal();
-
-        }
-
-      }
-    );
-
-}
-
-
-// ==========================================================
-// 13. 예약 유형
-// ==========================================================
-
-document
-  .querySelectorAll(
-    'input[name="adminReservationType"]'
-  )
-  .forEach(input => {
-
-    input.addEventListener(
-      "change",
-      updateReservationTypeUI
-    );
-
+  tbody.querySelectorAll(".action-btn.detail").forEach(btn => {
+    btn.addEventListener("click", () => openDetail(btn.dataset.id));
   });
 
+  tbody.querySelectorAll(".action-btn.delete").forEach(btn => {
+    btn.addEventListener("click", () => deleteReservation(btn.dataset.id));
+  });
 
-function getReservationType() {
-
-  const selected =
-    document.querySelector(
-      'input[name="adminReservationType"]:checked'
-    );
-
-  return selected
-    ? selected.value
-    : "single";
-
+  renderPagination();
 }
 
+function renderPagination() {
+  const pagination = document.getElementById("pagination");
+  pagination.innerHTML = "";
 
-function updateReservationTypeUI() {
+  const totalPages = Math.max(1, Math.ceil(filteredReservations.length / pageSize));
 
-  const type =
-    getReservationType();
-
-  const recurringOptions =
-    $("recurringOptions");
-
-  const singleDateGroup =
-    $("singleDateGroup");
-
-  if (type === "recurring") {
-
-    if (recurringOptions) {
-
-      recurringOptions.style.display =
-        "block";
-
-    }
-
-    if (singleDateGroup) {
-
-      singleDateGroup.style.display =
-        "none";
-
-    }
-
-  }
-
-  else {
-
-    if (recurringOptions) {
-
-      recurringOptions.style.display =
-        "none";
-
-    }
-
-    if (singleDateGroup) {
-
-      singleDateGroup.style.display =
-        "block";
-
-    }
-
-  }
-
-  updateAddReservationSummary();
-
-}
-
-
-// ==========================================================
-// 14. 일회성 날짜 선택
-// ==========================================================
-
-if ($("addDatePicker")) {
-
-  $("addDatePicker")
-    .addEventListener(
-      "change",
-      () => {
-
-        const date =
-          $("addDatePicker").value;
-
-        if (!date) return;
-
-        if (
-          !selectedAdminDates.includes(
-            date
-          )
-        ) {
-
-          selectedAdminDates.push(
-            date
-          );
-
-          selectedAdminDates.sort();
-
-        }
-
-        $("addDatePicker").value =
-          "";
-
-        renderSelectedDates();
-
-        updateAddReservationSummary();
-
-      }
-    );
-
-}
-
-
-function renderSelectedDates() {
-
-  const box =
-    $("selectedDates");
-
-  if (!box) return;
-
-  if (
-    selectedAdminDates.length === 0
-  ) {
-
-    box.innerHTML =
-      `<span class="selected-date-empty">
-        선택된 날짜가 없습니다.
-      </span>`;
-
-    return;
-
-  }
-
-  box.innerHTML =
-    selectedAdminDates
-      .map(date => `
-
-        <button
-          type="button"
-          class="selected-date-chip"
-          data-date="${date}"
-        >
-          ${escapeHTML(
-            formatDateShort(date)
-          )}
-          (${getDayName(date)})
-          <span>×</span>
-        </button>
-
-      `)
-      .join("");
-
-  box
-    .querySelectorAll(
-      ".selected-date-chip"
-    )
-    .forEach(button => {
-
-      button.addEventListener(
-        "click",
-        () => {
-
-          selectedAdminDates =
-            selectedAdminDates.filter(
-              date =>
-                date !==
-                button.dataset.date
-            );
-
-          renderSelectedDates();
-
-          updateAddReservationSummary();
-
-        }
-      );
-
+  const makeBtn = (label, page, disabled, active) => {
+    const btn = document.createElement("button");
+    btn.textContent = label;
+    if (disabled) btn.disabled = true;
+    if (active) btn.classList.add("active");
+    btn.addEventListener("click", () => {
+      currentPage = page;
+      renderTable();
     });
+    return btn;
+  };
 
+  pagination.appendChild(makeBtn("«", 1, currentPage === 1, false));
+  pagination.appendChild(makeBtn("‹", Math.max(1, currentPage - 1), currentPage === 1, false));
+
+  for (let p = 1; p <= totalPages; p++) {
+    pagination.appendChild(makeBtn(String(p), p, false, p === currentPage));
+  }
+
+  pagination.appendChild(makeBtn("›", Math.min(totalPages, currentPage + 1), currentPage === totalPages, false));
+  pagination.appendChild(makeBtn("»", totalPages, currentPage === totalPages, false));
 }
 
-
-if ($("clearSelectedDates")) {
-
-  $("clearSelectedDates")
-    .addEventListener(
-      "click",
-      () => {
-
-        selectedAdminDates = [];
-
-        renderSelectedDates();
-
-        updateAddReservationSummary();
-
-      }
-    );
-
-}
-
-
-// ==========================================================
-// 15. 고정 요일 선택
-// ==========================================================
-
-if ($("adminRecurringDays")) {
-
-  $("adminRecurringDays")
-    .querySelectorAll(
-      "button[data-day]"
-    )
-    .forEach(button => {
-
-      button.addEventListener(
-        "click",
-        () => {
-
-          const day =
-            Number(
-              button.dataset.day
-            );
-
-          if (
-            selectedRecurringDays
-              .includes(day)
-          ) {
-
-            selectedRecurringDays =
-              selectedRecurringDays.filter(
-                value =>
-                  value !== day
-              );
-
-            button.classList.remove(
-              "active",
-              "selected"
-            );
-
-          }
-
-          else {
-
-            selectedRecurringDays.push(
-              day
-            );
-
-            selectedRecurringDays.sort();
-
-            button.classList.add(
-              "active",
-              "selected"
-            );
-
-          }
-
-          updateAddReservationSummary();
-
-        }
-      );
-
-    });
-
-}
-
-
-// ==========================================================
-// 16. 반복 날짜 생성
-// ==========================================================
-
-function generateRecurringDates(
-  startDateString,
-  selectedDays,
-  months
-) {
-
-  if (
-    !startDateString ||
-    !selectedDays.length
-  ) {
-
-    return [];
-
-  }
-
-  const start =
-    new Date(
-      `${startDateString}T00:00:00`
-    );
-
-  const end =
-    new Date(start);
-
-  end.setMonth(
-    end.getMonth() + Number(months)
-  );
-
-  const result = [];
-
-  const current =
-    new Date(start);
-
-  while (
-    current < end
-  ) {
-
-    if (
-      selectedDays.includes(
-        current.getDay()
-      )
-    ) {
-
-      result.push(
-        dateToString(current)
-      );
-
-    }
-
-    current.setDate(
-      current.getDate() + 1
-    );
-
-  }
-
-  return result;
-
-}
-
-
-// ==========================================================
-// 17. 예약 요약
-// ==========================================================
-
-function updateAddReservationSummary() {
-
-  const summary =
-    $("adminReservationSummaryText");
-
-  if (!summary) return;
-
-  const center =
-    $("addCenter")
-      ? $("addCenter").value
-      : "";
-
-  const room =
-    $("addRoom")
-      ? $("addRoom").value
-      : "";
-
-  const type =
-    getReservationType();
-
-  const startTime =
-    $("addStartTime")
-      ? $("addStartTime").value
-      : "";
-
-  const endTime =
-    $("addEndTime")
-      ? $("addEndTime").value
-      : "";
-
-  if (!center || !room) {
-
-    summary.textContent =
-      "센터와 공간을 선택해주세요.";
-
-    return;
-
-  }
-
-  let dateText = "";
-
-  if (type === "single") {
-
-    if (
-      selectedAdminDates.length
-    ) {
-
-      dateText =
-        selectedAdminDates
-          .map(
-            date =>
-              `${formatDateShort(date)}(${getDayName(date)})`
-          )
-          .join(", ");
-
-    }
-
-    else {
-
-      dateText =
-        "날짜 미선택";
-
-    }
-
-  }
-
-  else {
-
-    const startDate =
-      $("adminStartDate")
-        ? $("adminStartDate").value
-        : "";
-
-    const months =
-      $("adminRecurringMonths")
-        ? $("adminRecurringMonths").value
-        : "";
-
-    const dayNames = [
-      "일",
-      "월",
-      "화",
-      "수",
-      "목",
-      "금",
-      "토"
-    ];
-
-    const days =
-      selectedRecurringDays
-        .map(day => dayNames[day])
-        .join(", ");
-
-    dateText =
-      startDate
-        ? `${formatDateShort(startDate)}부터 ${months}개월 / ${days || "요일 미선택"}`
-        : `시작 날짜 미선택 / ${months}개월 / ${days || "요일 미선택"}`;
-
-  }
-
-  summary.innerHTML = `
-    <strong>${escapeHTML(center)}</strong>
-    /
-    ${escapeHTML(room)}
-    <br>
-    ${escapeHTML(dateText)}
-    <br>
-    ${startTime || "--:--"}
-    ~
-    ${endTime || "--:--"}
+// ==========================================
+// 상세보기 모달
+// ==========================================
+
+function openDetail(id) {
+  const r = allReservations.find(item => String(item.id) === String(id));
+  if (!r) return;
+
+  const modalBody = document.getElementById("modalBody");
+  modalBody.innerHTML = `
+    <div class="modal-row"><span>센터</span><strong>${r.center || ""}</strong></div>
+    <div class="modal-row"><span>공간</span><strong>${r.room || ""}</strong></div>
+    <div class="modal-row"><span>날짜</span><strong>${formatDateLabel(r.date)}</strong></div>
+    <div class="modal-row"><span>시간</span><strong>${r.start_time} ~ ${r.end_time}</strong></div>
+    <div class="modal-row"><span>예약유형</span><strong>${r.is_recurring ? `고정 사용 · ${r.recurring_months}개월` : "일회성 사용"}</strong></div>
+    <div class="modal-row"><span>인원</span><strong>${r.people}명</strong></div>
+    <div class="modal-row"><span>예약자</span><strong>${r.user_name || ""}</strong></div>
+    <div class="modal-row"><span>부서</span><strong>${r.department || ""}</strong></div>
+    <div class="modal-row"><span>연락처</span><strong>${r.phone || ""}</strong></div>
+    <div class="modal-row"><span>목적</span><strong>${r.purpose || ""}</strong></div>
+    <div class="modal-row"><span>신청일시</span><strong>${formatDateTime(r.created_at)}</strong></div>
   `;
 
+  const recurringActions = document.getElementById("modalRecurringActions");
+
+  if (r.is_recurring && r.recurring_group_id) {
+    const seriesCount = allReservations.filter(item => item.recurring_group_id === r.recurring_group_id).length;
+
+    document.getElementById("modalRecurringInfo").textContent =
+      `이 예약은 고정(반복) 예약의 일부예요. 같은 시리즈로 총 ${seriesCount}건이 등록되어 있어요.`;
+
+    recurringActions.style.display = "block";
+
+    document.getElementById("deleteThisOnlyBtn").onclick = () => {
+      document.getElementById("detailModal").classList.remove("show");
+      deleteReservation(r.id);
+    };
+
+    document.getElementById("deleteSeriesBtn").onclick = () => {
+      document.getElementById("detailModal").classList.remove("show");
+      deleteRecurringSeries(r.recurring_group_id, seriesCount);
+    };
+
+  } else {
+    recurringActions.style.display = "none";
+  }
+
+  document.getElementById("detailModal").classList.add("show");
 }
 
-
-// ==========================================================
-// 18. 입력값 변경 → 요약 업데이트
-// ==========================================================
-
-[
-  "addRoom",
-  "addStartTime",
-  "addEndTime",
-  "adminStartDate",
-  "adminRecurringMonths",
-  "addPeople",
-  "addUserName",
-  "addDepartment",
-  "addRegion",
-  "addPhone",
-  "addPurpose"
-]
-.forEach(id => {
-
-  const element =
-    $(id);
-
-  if (!element) return;
-
-  element.addEventListener(
-    "input",
-    updateAddReservationSummary
-  );
-
-  element.addEventListener(
-    "change",
-    updateAddReservationSummary
-  );
-
+document.getElementById("closeModal").addEventListener("click", () => {
+  document.getElementById("detailModal").classList.remove("show");
 });
 
+document.getElementById("detailModal").addEventListener("click", (e) => {
+  if (e.target.id === "detailModal") {
+    document.getElementById("detailModal").classList.remove("show");
+  }
+});
 
-// ==========================================================
-// 19. 예약 충돌 검사
-// ==========================================================
+// ==========================================
+// 예약 직접 추가
+// ==========================================
 
-function checkConflict(
-  date,
-  center,
-  room,
-  startTime,
-  endTime
-) {
+const addModal = document.getElementById("addModal");
+const addForm = document.getElementById("addForm");
+const addCenterSelect = document.getElementById("addCenter");
+const addRoomSelect = document.getElementById("addRoom");
 
-  const start =
-    timeToMinutes(startTime);
+// 센터 select 옵션 채우기 (최초 1회)
+centers.forEach(c => {
+  const option = document.createElement("option");
+  option.value = c;
+  option.textContent = c;
+  addCenterSelect.appendChild(option);
+});
 
-  const end =
-    timeToMinutes(endTime);
-
-  return reservations.some(
-    item => {
-
-      if (
-        item.date !== date
-      ) {
-        return false;
-      }
-
-      if (
-        item.center !== center
-      ) {
-        return false;
-      }
-
-      if (
-        item.room !== room
-      ) {
-        return false;
-      }
-
-      const bookedStart =
-        timeToMinutes(
-          item.start_time
-        );
-
-      const bookedEnd =
-        timeToMinutes(
-          item.end_time
-        );
-
-      return (
-        start < bookedEnd &&
-        end > bookedStart
-      );
-
-    }
-  );
-
-}
-
-
-// ==========================================================
-// 20. 예약 추가 Form
-// ==========================================================
-
-if ($("addForm")) {
-
-  $("addForm")
-    .addEventListener(
-      "submit",
-      async event => {
-
-        event.preventDefault();
-
-        await submitAdminReservation();
-
-      }
-    );
-
-}
-
-
-// ==========================================================
-// 21. 관리자 직접 예약 저장
-// ==========================================================
-
-async function submitAdminReservation() {
-
-  const center =
-    $("addCenter").value;
-
-  const room =
-    $("addRoom").value;
-
-  const people =
-    Number(
-      $("addPeople").value
-    );
-
-  const startTime =
-    $("addStartTime").value;
-
-  const endTime =
-    $("addEndTime").value;
-
-  const userName =
-    $("addUserName").value.trim();
-
-  const department =
-    $("addDepartment").value.trim();
-
-  const region =
-    $("addRegion").value.trim();
-
-  const phone =
-    $("addPhone").value.trim();
-
-  const purpose =
-    $("addPurpose").value.trim();
-
-  const type =
-    getReservationType();
-
-
-  // --------------------------------------------------------
-  // 기본 검사
-  // --------------------------------------------------------
+// 센터를 고르면 그 센터의 공간만 표시
+addCenterSelect.addEventListener("change", () => {
+  const center = addCenterSelect.value;
+  addRoomSelect.innerHTML = "";
 
   if (!center) {
-
-    alert("센터를 선택해주세요.");
-
+    addRoomSelect.innerHTML = `<option value="">센터를 먼저 선택해주세요</option>`;
     return;
-
   }
 
-
-  if (!room) {
-
-    alert("공간을 선택해주세요.");
-
-    return;
-
-  }
-
-
-  if (!startTime || !endTime) {
-
-    alert(
-      "시작시간과 종료시간을 선택해주세요."
-    );
-
-    return;
-
-  }
-
-
-  if (
-    timeToMinutes(endTime) <=
-    timeToMinutes(startTime)
-  ) {
-
-    alert(
-      "종료시간은 시작시간보다 늦어야 합니다."
-    );
-
-    return;
-
-  }
-
-
-  const centerInfo =
-    centers[center];
-
-
-  if (
-    centerInfo &&
-    people > centerInfo.capacity
-  ) {
-
-    alert(
-      `${center}은 최대 ${centerInfo.capacity}명까지 이용할 수 있습니다.`
-    );
-
-    return;
-
-  }
-
-
-  if (!people || people < 1) {
-
-    alert("인원을 입력해주세요.");
-
-    return;
-
-  }
-
-
-  if (!userName) {
-
-    alert("예약자를 입력해주세요.");
-
-    return;
-
-  }
-
-
-  if (!department) {
-
-    alert("부서를 입력해주세요.");
-
-    return;
-
-  }
-
-
-  if (!region) {
-
-    alert("센터(지역)를 입력해주세요.");
-
-    return;
-
-  }
-
-
-  if (!phone) {
-
-    alert("연락처를 입력해주세요.");
-
-    return;
-
-  }
-
-
-  if (!purpose) {
-
-    alert("사용 목적을 입력해주세요.");
-
-    return;
-
-  }
-
-
-  // --------------------------------------------------------
-  // 날짜 생성
-  // --------------------------------------------------------
-
-  let targetDates = [];
-
-  let isRecurring =
-    type === "recurring";
-
-  let recurringMonths = null;
-
-
-  if (!isRecurring) {
-
-    if (
-      selectedAdminDates.length === 0
-    ) {
-
-      alert(
-        "예약 날짜를 하나 이상 선택해주세요."
-      );
-
-      return;
-
-    }
-
-    targetDates =
-      [...selectedAdminDates];
-
-  }
-
-  else {
-
-    const startDate =
-      $("adminStartDate").value;
-
-    recurringMonths =
-      Number(
-        $("adminRecurringMonths").value
-      );
-
-
-    if (!startDate) {
-
-      alert(
-        "고정 예약 시작 날짜를 선택해주세요."
-      );
-
-      return;
-
-    }
-
-
-    if (
-      selectedRecurringDays.length === 0
-    ) {
-
-      alert(
-        "반복 요일을 하나 이상 선택해주세요."
-      );
-
-      return;
-
-    }
-
-
-    targetDates =
-      generateRecurringDates(
-        startDate,
-        selectedRecurringDays,
-        recurringMonths
-      );
-
-
-    if (
-      targetDates.length === 0
-    ) {
-
-      alert(
-        "생성할 예약 날짜가 없습니다."
-      );
-
-      return;
-
-    }
-
-  }
-
-
-  // --------------------------------------------------------
-  // 중복 제거
-  // --------------------------------------------------------
-
-  targetDates =
-    [...new Set(targetDates)]
-      .sort();
-
-
-  // --------------------------------------------------------
-  // 충돌 검사
-  // --------------------------------------------------------
-
-  const conflicts =
-    targetDates.filter(
-      date =>
-        checkConflict(
-          date,
-          center,
-          room,
-          startTime,
-          endTime
-        )
-    );
-
-
-  if (
-    conflicts.length > 0
-  ) {
-
-    alert(
-      "이미 예약된 날짜가 있습니다.\n\n" +
-      conflicts
-        .map(
-          date =>
-            `· ${formatDate(date)} (${getDayName(date)})`
-        )
-        .join("\n")
-    );
-
-    return;
-
-  }
-
-
-  // --------------------------------------------------------
-  // 저장 버튼 잠금
-  // --------------------------------------------------------
-
-  const submitButton =
-    $("submitAddBtn");
-
-  if (submitButton) {
-
-    submitButton.disabled =
-      true;
-
-    submitButton.textContent =
-      "저장 중...";
-
-  }
-
+  addRoomSelect.innerHTML = `<option value="">선택해주세요</option>`;
+  (roomsByCenter[center] || []).forEach(room => {
+    const option = document.createElement("option");
+    option.value = room;
+    option.textContent = room;
+    addRoomSelect.appendChild(option);
+  });
+});
+
+function openAddModal() {
+  addForm.reset();
+  addRoomSelect.innerHTML = `<option value="">센터를 먼저 선택해주세요</option>`;
+  addModal.classList.add("show");
+}
+
+function closeAddModal() {
+  addModal.classList.remove("show");
+}
+
+document.getElementById("addReservationBtn").addEventListener("click", openAddModal);
+document.getElementById("closeAddModal").addEventListener("click", closeAddModal);
+document.getElementById("cancelAddBtn").addEventListener("click", closeAddModal);
+
+addModal.addEventListener("click", (e) => {
+  if (e.target.id === "addModal") closeAddModal();
+});
+
+addForm.addEventListener("submit", async (e) => {
+  e.preventDefault();
+
+  const center = addCenterSelect.value;
+  const room = addRoomSelect.value;
+  const date = document.getElementById("addDate").value;
+  const startTime = document.getElementById("addStartTime").value;
+  const endTime = document.getElementById("addEndTime").value;
+  const people = Number(document.getElementById("addPeople").value);
+  const userName = document.getElementById("addUserName").value.trim();
+  const department = document.getElementById("addDepartment").value.trim();
+  const phone = document.getElementById("addPhone").value.trim();
+  const purpose = document.getElementById("addPurpose").value.trim();
+
+  if (!center || !room) { alert("센터와 공간을 선택해주세요."); return; }
+  if (!date) { alert("날짜를 선택해주세요."); return; }
+  if (!startTime || !endTime) { alert("시작시간과 종료시간을 입력해주세요."); return; }
+  if (startTime >= endTime) { alert("종료시간은 시작시간보다 늦어야 해요."); return; }
+  if (!people || people < 1) { alert("인원을 확인해주세요."); return; }
+  if (!userName || !department || !phone || !purpose) { alert("예약자 정보를 모두 입력해주세요."); return; }
+
+  const submitBtn = document.getElementById("submitAddBtn");
+  submitBtn.disabled = true;
+  submitBtn.textContent = "추가 중...";
 
   try {
-
-    let recurringGroupId =
-      null;
-
-
-    if (isRecurring) {
-
-      recurringGroupId =
-        crypto.randomUUID();
-
-    }
-
-
-    const rows =
-      targetDates.map(
-        date => ({
-
-          center:
-            center,
-
-          room:
-            room,
-
-          date:
-            date,
-
-          start_time:
-            startTime,
-
-          end_time:
-            endTime,
-
-          people:
-            people,
-
-          user_name:
-            userName,
-
-          department:
-            department,
-
-          region:
-            region,
-
-          phone:
-            phone,
-
-          purpose:
-            purpose,
-
-          is_recurring:
-            isRecurring,
-
-          recurring_months:
-            isRecurring
-              ? recurringMonths
-              : null,
-
-          recurring_group_id:
-            recurringGroupId
-
+    const response = await fetch(
+      `${SUPABASE_URL}/rest/v1/Reservations`,
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "apikey": SUPABASE_PUBLISHABLE_KEY,
+          "Authorization": `Bearer ${SUPABASE_PUBLISHABLE_KEY}`,
+          "Prefer": "return=representation"
+        },
+        body: JSON.stringify({
+          center, room, date,
+          start_time: startTime,
+          end_time: endTime,
+          people,
+          user_name: userName,
+          department,
+          phone,
+          purpose
         })
-      );
-
-
-    const {
-      error
-    } =
-      await supabaseClient
-        .from("Reservations")
-        .insert(rows);
-
-
-    if (error) {
-
-      console.error(
-        "예약 저장 오류:",
-        error
-      );
-
-      alert(
-        "예약 저장에 실패했습니다.\n\n" +
-        error.message
-      );
-
-      return;
-
-    }
-
-
-    alert(
-      `예약이 추가되었습니다.\n\n` +
-      `총 ${targetDates.length}건`
+      }
     );
 
+    const result = await response.json();
+
+    if (!response.ok) {
+      console.error("예약 추가 실패:", result);
+      alert("예약 추가에 실패했습니다.\n\n" + JSON.stringify(result, null, 2));
+      return;
+    }
 
     closeAddModal();
 
-    resetAddForm();
+    await fetchReservations();
+    applyFilters();
+    renderSummary();
+    renderTodayView();
+    renderCenterView();
+    renderWeeklyAdminView();
+    renderStatsView();
 
-    await loadAllReservations();
-
+  } catch (error) {
+    console.error("예약 추가 오류:", error);
+    alert("예약 추가 중 문제가 발생했습니다.");
+  } finally {
+    submitBtn.disabled = false;
+    submitBtn.textContent = "추가하기";
   }
-
-  catch (error) {
-
-    console.error(
-      error
-    );
-
-    alert(
-      "예약 처리 중 오류가 발생했습니다.\n\n" +
-      error.message
-    );
-
-  }
-
-  finally {
-
-    if (submitButton) {
-
-      submitButton.disabled =
-        false;
-
-      submitButton.textContent =
-        "추가하기";
-
-    }
-
-  }
-
-}
-
-
-// ==========================================================
-// 22. 예약 추가 Form 초기화
-// ==========================================================
-
-function resetAddForm() {
-
-  if ($("addForm")) {
-
-    $("addForm").reset();
-
-  }
-
-
-  selectedAdminDates = [];
-
-  selectedRecurringDays = [];
-
-
-  if ($("selectedDates")) {
-
-    $("selectedDates").innerHTML =
-      `<span class="selected-date-empty">
-        선택된 날짜가 없습니다.
-      </span>`;
-
-  }
-
-
-  if ($("adminRecurringDays")) {
-
-    $("adminRecurringDays")
-      .querySelectorAll(
-        "button[data-day]"
-      )
-      .forEach(button => {
-
-        button.classList.remove(
-          "active",
-          "selected"
-        );
-
-      });
-
-  }
-
-
-  if ($("recurringOptions")) {
-
-    $("recurringOptions").style.display =
-      "none";
-
-  }
-
-
-  if ($("singleDateGroup")) {
-
-    $("singleDateGroup").style.display =
-      "block";
-
-  }
-
-
-  const singleRadio =
-    document.querySelector(
-      'input[name="adminReservationType"][value="single"]'
-    );
-
-  if (singleRadio) {
-
-    singleRadio.checked =
-      true;
-
-  }
-
-
-  populateRoomSelect(
-    $("addRoom"),
-    "",
-    false
-  );
-
-  populateAddTimeOptions();
-
-  updateAddReservationSummary();
-
-}
-
-
-// ==========================================================
-// 23. 전체 예약 불러오기
-// ==========================================================
-
-async function loadAllReservations() {
-
-  const {
-    data,
-    error
-  } =
-    await supabaseClient
-      .from("Reservations")
-      .select("*")
-      .order(
-        "date",
-        {
-          ascending: true
-        }
-      )
-      .order(
-        "start_time",
-        {
-          ascending: true
-        }
-      );
-
-
-  if (error) {
-
-    console.error(
-      "예약 데이터 조회 오류:",
-      error
-    );
-
-    alert(
-      "예약 데이터를 불러오지 못했습니다.\n\n" +
-      error.message
-    );
-
-    return;
-
-  }
-
-
-  reservations =
-    data || [];
-
-
-  applyFilters();
-
-  updateDashboardStats();
-
-  renderTodayReservations();
-
-  renderCenterCards();
-
-  renderCenterReservationList();
-
-  renderWeeklyCalendar();
-
-  renderStats();
-
-}
-
-
-// ==========================================================
-// 24. 필터 적용
-// ==========================================================
-
-function applyFilters() {
-
-  const date =
-    $("filterDate")
-      ? $("filterDate").value
-      : "";
-
-  const center =
-    $("filterCenter")
-      ? $("filterCenter").value
-      : "";
-
-  const room =
-    $("filterRoom")
-      ? $("filterRoom").value
-      : "";
-
-  const name =
-    $("filterName")
-      ? $("filterName").value
-        .trim()
-        .toLowerCase()
-      : "";
-
-  const purpose =
-    $("filterPurpose")
-      ? $("filterPurpose").value
-        .trim()
-        .toLowerCase()
-      : "";
-
-
-  filteredReservations =
-    reservations.filter(item => {
-
-      if (
-        date &&
-        item.date !== date
-      ) {
-
-        return false;
-
-      }
-
-
-      if (
-        center &&
-        item.center !== center
-      ) {
-
-        return false;
-
-      }
-
-
-      if (
-        room &&
-        item.room !== room
-      ) {
-
-        return false;
-
-      }
-
-
-      if (
-        name &&
-        !String(
-          item.user_name || ""
-        )
-        .toLowerCase()
-        .includes(name)
-      ) {
-
-        return false;
-
-      }
-
-
-      if (
-        purpose &&
-        !String(
-          item.purpose || ""
-        )
-        .toLowerCase()
-        .includes(purpose)
-      ) {
-
-        return false;
-
-      }
-
-
-      return true;
-
-    });
-
-
-  currentPage = 1;
-
-  renderReservationTable();
-
-}
-
-
-// ==========================================================
-// 25. 검색
-// ==========================================================
-
-if ($("searchBtn")) {
-
-  $("searchBtn")
-    .addEventListener(
-      "click",
-      applyFilters
-    );
-
-}
-
-
-// ==========================================================
-// 26. 초기화
-// ==========================================================
-
-if ($("resetBtn")) {
-
-  $("resetBtn")
-    .addEventListener(
-      "click",
-      () => {
-
-        if ($("filterDate"))
-          $("filterDate").value = "";
-
-        if ($("filterCenter"))
-          $("filterCenter").value = "";
-
-        if ($("filterRoom"))
-          populateRoomSelect(
-            $("filterRoom"),
-            "",
-            true
-          );
-
-        if ($("filterName"))
-          $("filterName").value = "";
-
-        if ($("filterPurpose"))
-          $("filterPurpose").value = "";
-
-        applyFilters();
-
-      }
-    );
-
-}
-
-
-// ==========================================================
-// 27. 새로고침
-// ==========================================================
-
-if ($("refreshBtn")) {
-
-  $("refreshBtn")
-    .addEventListener(
-      "click",
-      loadAllReservations
-    );
-
-}
-
-
-// ==========================================================
-// 28. 페이지 크기
-// ==========================================================
-
-if ($("pageSizeSelect")) {
-
-  $("pageSizeSelect")
-    .addEventListener(
-      "change",
-      () => {
-
-        pageSize =
-          Number(
-            $("pageSizeSelect").value
-          ) || 10;
-
-        currentPage = 1;
-
-        renderReservationTable();
-
-      }
-    );
-
-}
-
-
-// ==========================================================
-// 29. 예약 목록 테이블
-// ==========================================================
-
-function renderReservationTable() {
-
-  const tbody =
-    $("tableBody");
-
-  if (!tbody) return;
-
-
-  const total =
-    filteredReservations.length;
-
-
-  if ($("listTitle")) {
-
-    $("listTitle").textContent =
-      `예약 목록 (총 ${total}건)`;
-
-  }
-
-
-  if (total === 0) {
-
-    tbody.innerHTML = `
-      <tr>
-        <td
-          colspan="12"
-          style="text-align:center;padding:40px;"
-        >
-          예약이 없습니다.
-        </td>
-      </tr>
-    `;
-
-    renderPagination(0);
-
-    return;
-
-  }
-
-
-  const start =
-    (currentPage - 1) *
-    pageSize;
-
-  const end =
-    start + pageSize;
-
-
-  const pageItems =
-    filteredReservations.slice(
-      start,
-      end
-    );
-
-
-  tbody.innerHTML =
-    pageItems
-      .map(
-        (item, index) => `
-
-          <tr>
-
-            <td>
-              ${start + index + 1}
-            </td>
-
-            <td>
-              ${escapeHTML(
-                item.date
-              )}
-              <br>
-              <small>
-                ${getDayName(item.date)}
-              </small>
-            </td>
-
-            <td>
-              ${escapeHTML(
-                item.start_time
-              )}
-              ~
-              ${escapeHTML(
-                item.end_time
-              )}
-            </td>
-
-            <td>
-              ${escapeHTML(
-                item.center
-              )}
-            </td>
-
-            <td>
-              ${escapeHTML(
-                item.room
-              )}
-            </td>
-
-            <td>
-              ${escapeHTML(
-                item.people
-              )}명
-            </td>
-
-            <td>
-              ${escapeHTML(
-                item.user_name
-              )}
-            </td>
-
-            <td>
-              ${escapeHTML(
-                item.department
-              )}
-            </td>
-
-            <td>
-              ${escapeHTML(
-                item.phone
-              )}
-            </td>
-
-            <td>
-              ${escapeHTML(
-                item.purpose
-              )}
-            </td>
-
-            <td>
-              ${formatDateTime(
-                item.created_at
-              )}
-            </td>
-
-            <td>
-
-              <button
-                type="button"
-                class="table-action-btn"
-                data-action="detail"
-                data-id="${item.id}"
-              >
-                상세
-              </button>
-
-              <button
-                type="button"
-                class="table-action-btn danger"
-                data-action="delete"
-                data-id="${item.id}"
-              >
-                삭제
-              </button>
-
-            </td>
-
-          </tr>
-
-        `
-      )
-      .join("");
-
-
-  tbody
-    .querySelectorAll(
-      "[data-action='detail']"
-    )
-    .forEach(button => {
-
-      button.addEventListener(
-        "click",
-        () =>
-          openDetailModal(
-            button.dataset.id
-          )
-      );
-
-    });
-
-
-  tbody
-    .querySelectorAll(
-      "[data-action='delete']"
-    )
-    .forEach(button => {
-
-      button.addEventListener(
-        "click",
-        () =>
-          deleteReservation(
-            button.dataset.id
-          )
-      );
-
-    });
-
-
-  renderPagination(total);
-
-}
-
-
-// ==========================================================
-// 30. 페이지네이션
-// ==========================================================
-
-function renderPagination(total) {
-
-  const pagination =
-    $("pagination");
-
-  if (!pagination) return;
-
-  const totalPages =
-    Math.ceil(
-      total / pageSize
-    );
-
-
-  if (
-    totalPages <= 1
-  ) {
-
-    pagination.innerHTML = "";
-
-    return;
-
-  }
-
-
-  let html = "";
-
-
-  html += `
-    <button
-      type="button"
-      data-page="prev"
-      ${currentPage === 1 ? "disabled" : ""}
-    >
-      ‹
-    </button>
-  `;
-
-
-  for (
-    let page = 1;
-    page <= totalPages;
-    page++
-  ) {
-
-    if (
-      page <= 3 ||
-      page > totalPages - 2 ||
-      Math.abs(page - currentPage) <= 1
-    ) {
-
-      html += `
-        <button
-          type="button"
-          data-page="${page}"
-          class="${page === currentPage ? "active" : ""}"
-        >
-          ${page}
-        </button>
-      `;
-
-    }
-
-  }
-
-
-  html += `
-    <button
-      type="button"
-      data-page="next"
-      ${currentPage === totalPages ? "disabled" : ""}
-    >
-      ›
-    </button>
-  `;
-
-
-  pagination.innerHTML =
-    html;
-
-
-  pagination
-    .querySelectorAll(
-      "button[data-page]"
-    )
-    .forEach(button => {
-
-      button.addEventListener(
-        "click",
-        () => {
-
-          const value =
-            button.dataset.page;
-
-          if (value === "prev") {
-
-            if (
-              currentPage > 1
-            ) {
-
-              currentPage--;
-
-            }
-
-          }
-
-          else if (
-            value === "next"
-          ) {
-
-            if (
-              currentPage < totalPages
-            ) {
-
-              currentPage++;
-
-            }
-
-          }
-
-          else {
-
-            currentPage =
-              Number(value);
-
-          }
-
-          renderReservationTable();
-
-        }
-      );
-
-    });
-
-}
-
-
-// ==========================================================
-// 31. 상세 모달
-// ==========================================================
-
-function openDetailModal(id) {
-
-  const item =
-    reservations.find(
-      reservation =>
-        String(
-          reservation.id
-        ) ===
-        String(id)
-    );
-
-  if (!item) return;
-
-
-  const body =
-    $("modalBody");
-
-  if (!body) return;
-
-
-  body.innerHTML = `
-
-    <div class="detail-grid">
-
-      <div>
-        <strong>날짜</strong>
-        <span>
-          ${escapeHTML(
-            formatDate(item.date)
-          )}
-        </span>
-      </div>
-
-      <div>
-        <strong>시간</strong>
-        <span>
-          ${escapeHTML(item.start_time)}
-          ~
-          ${escapeHTML(item.end_time)}
-        </span>
-      </div>
-
-      <div>
-        <strong>센터</strong>
-        <span>
-          ${escapeHTML(item.center)}
-        </span>
-      </div>
-
-      <div>
-        <strong>공간</strong>
-        <span>
-          ${escapeHTML(item.room)}
-        </span>
-      </div>
-
-      <div>
-        <strong>인원</strong>
-        <span>
-          ${escapeHTML(item.people)}명
-        </span>
-      </div>
-
-      <div>
-        <strong>예약 유형</strong>
-        <span>
-          ${
-            item.is_recurring
-              ? `고정 (${item.recurring_months || "-"}개월)`
-              : "일회성"
-          }
-        </span>
-      </div>
-
-      <div>
-        <strong>예약자</strong>
-        <span>
-          ${escapeHTML(item.user_name)}
-        </span>
-      </div>
-
-      <div>
-        <strong>부서</strong>
-        <span>
-          ${escapeHTML(item.department)}
-        </span>
-      </div>
-
-      <div>
-        <strong>센터(지역)</strong>
-        <span>
-          ${escapeHTML(item.region)}
-        </span>
-      </div>
-
-      <div>
-        <strong>연락처</strong>
-        <span>
-          ${escapeHTML(item.phone)}
-        </span>
-      </div>
-
-      <div class="detail-full">
-        <strong>목적</strong>
-        <span>
-          ${escapeHTML(item.purpose)}
-        </span>
-      </div>
-
-    </div>
-
-  `;
-
-
-  const modal =
-    $("detailModal");
-
-  if (modal) {
-
-    modal.classList.add(
-      "active"
-    );
-
-  }
-
-}
-
-
-if ($("closeModal")) {
-
-  $("closeModal")
-    .addEventListener(
-      "click",
-      () => {
-
-        $("detailModal")
-          .classList.remove(
-            "active"
-          );
-
-      }
-    );
-
-}
-
-
-if ($("detailModal")) {
-
-  $("detailModal")
-    .addEventListener(
-      "click",
-      event => {
-
-        if (
-          event.target ===
-          $("detailModal")
-        ) {
-
-          $("detailModal")
-            .classList.remove(
-              "active"
-            );
-
-        }
-
-      }
-    );
-
-}
-
-
-// ==========================================================
-// 32. 예약 삭제
-// ==========================================================
+});
+
+// ==========================================
+// 삭제
+// ==========================================
 
 async function deleteReservation(id) {
-
-  const item =
-    reservations.find(
-      reservation =>
-        String(
-          reservation.id
-        ) ===
-        String(id)
-    );
-
-  if (!item) return;
-
-
-  const confirmed =
-    confirm(
-      `${formatDate(item.date)} ${item.start_time} 예약을 삭제할까요?`
-    );
-
-
-  if (!confirmed) {
-    return;
-  }
-
-
-  const {
-    error
-  } =
-    await supabaseClient
-      .from("Reservations")
-      .delete()
-      .eq(
-        "id",
-        id
-      );
-
-
-  if (error) {
-
-    console.error(
-      error
-    );
-
-    alert(
-      "예약 삭제에 실패했습니다.\n\n" +
-      error.message
-    );
-
-    return;
-
-  }
-
-
-  alert(
-    "예약이 삭제되었습니다."
-  );
-
-
-  await loadAllReservations();
-
-}
-
-
-// ==========================================================
-// 33. 오늘 예약
-// ==========================================================
-
-function renderTodayReservations() {
-
-  const tbody =
-    $("todayTableBody");
-
-  if (!tbody) return;
-
-
-  const today =
-    getTodayString();
-
-
-  const todayItems =
-    reservations
-      .filter(
-        item =>
-          item.date === today
-      )
-      .sort(
-        (a, b) =>
-          String(a.start_time)
-            .localeCompare(
-              String(b.start_time)
-            )
-      );
-
-
-  if ($("todayDateLabel")) {
-
-    $("todayDateLabel").textContent =
-      formatDate(today);
-
-  }
-
-
-  if (!todayItems.length) {
-
-    tbody.innerHTML = `
-      <tr>
-        <td
-          colspan="10"
-          style="text-align:center;padding:40px;"
-        >
-          오늘 예약이 없습니다.
-        </td>
-      </tr>
-    `;
-
-    return;
-
-  }
-
-
-  tbody.innerHTML =
-    todayItems
-      .map(
-        (item, index) => `
-
-          <tr>
-
-            <td>
-              ${index + 1}
-            </td>
-
-            <td>
-              ${escapeHTML(item.start_time)}
-              ~
-              ${escapeHTML(item.end_time)}
-            </td>
-
-            <td>
-              ${escapeHTML(item.center)}
-            </td>
-
-            <td>
-              ${escapeHTML(item.room)}
-            </td>
-
-            <td>
-              ${escapeHTML(item.people)}명
-            </td>
-
-            <td>
-              ${escapeHTML(item.user_name)}
-            </td>
-
-            <td>
-              ${escapeHTML(item.department)}
-            </td>
-
-            <td>
-              ${escapeHTML(item.phone)}
-            </td>
-
-            <td>
-              ${escapeHTML(item.purpose)}
-            </td>
-
-            <td>
-              <button
-                type="button"
-                class="table-action-btn danger"
-                data-today-delete="${item.id}"
-              >
-                삭제
-              </button>
-            </td>
-
-          </tr>
-
-        `
-      )
-      .join("");
-
-
-  tbody
-    .querySelectorAll(
-      "[data-today-delete]"
-    )
-    .forEach(button => {
-
-      button.addEventListener(
-        "click",
-        () =>
-          deleteReservation(
-            button.dataset.todayDelete
-          )
-      );
-
-    });
-
-}
-
-
-// ==========================================================
-// 34. 센터별 카드
-// ==========================================================
-
-function renderCenterCards() {
-
-  const container =
-    $("centerCards");
-
-  if (!container) return;
-
-
-  container.innerHTML =
-    Object.keys(centers)
-      .map(center => {
-
-        const count =
-          reservations.filter(
-            item =>
-              item.center === center
-          ).length;
-
-        return `
-
-          <button
-            type="button"
-            class="center-summary-card"
-            data-center-card="${escapeHTML(center)}"
-          >
-
-            <strong>
-              ${escapeHTML(center)}
-            </strong>
-
-            <span>
-              ${count}건
-            </span>
-
-          </button>
-
-        `;
-
-      })
-      .join("");
-
-
-  container
-    .querySelectorAll(
-      "[data-center-card]"
-    )
-    .forEach(button => {
-
-      button.addEventListener(
-        "click",
-        () => {
-
-          renderCenterReservationList(
-            button.dataset.centerCard
-          );
-
-        }
-      );
-
-    });
-
-}
-
-
-// ==========================================================
-// 35. 센터별 예약 목록
-// ==========================================================
-
-function renderCenterReservationList(
-  selectedCenter = ""
-) {
-
-  const tbody =
-    $("centerTableBody");
-
-  if (!tbody) return;
-
-
-  const list =
-    reservations
-      .filter(
-        item =>
-          !selectedCenter ||
-          item.center === selectedCenter
-      )
-      .sort(
-        (a, b) =>
-          `${a.date} ${a.start_time}`
-            .localeCompare(
-              `${b.date} ${b.start_time}`
-            )
-      );
-
-
-  if ($("centerListTitle")) {
-
-    $("centerListTitle").textContent =
-      selectedCenter
-        ? `${selectedCenter} 예약`
-        : "전체 센터";
-
-  }
-
-
-  if (!list.length) {
-
-    tbody.innerHTML = `
-      <tr>
-        <td
-          colspan="9"
-          style="text-align:center;padding:40px;"
-        >
-          예약이 없습니다.
-        </td>
-      </tr>
-    `;
-
-    return;
-
-  }
-
-
-  tbody.innerHTML =
-    list
-      .map(
-        (item, index) => `
-
-          <tr>
-
-            <td>${index + 1}</td>
-
-            <td>
-              ${escapeHTML(item.date)}
-              (${getDayName(item.date)})
-            </td>
-
-            <td>
-              ${escapeHTML(item.start_time)}
-              ~
-              ${escapeHTML(item.end_time)}
-            </td>
-
-            <td>
-              ${escapeHTML(item.center)}
-            </td>
-
-            <td>
-              ${escapeHTML(item.room)}
-            </td>
-
-            <td>
-              ${escapeHTML(item.people)}명
-            </td>
-
-            <td>
-              ${escapeHTML(item.user_name)}
-            </td>
-
-            <td>
-              ${escapeHTML(item.phone)}
-            </td>
-
-            <td>
-              ${escapeHTML(item.purpose)}
-            </td>
-
-          </tr>
-
-        `
-      )
-      .join("");
-
-}
-
-
-// ==========================================================
-// 36. 주간 달력
-// ==========================================================
-
-let weeklyBaseDate =
-  new Date();
-
-
-function renderWeeklyCalendar() {
-
-  const container =
-    $("weeklyAdminCalendar");
-
-  if (!container) return;
-
-
-  const start =
-    getStartOfWeek(
-      weeklyBaseDate
-    );
-
-  const end =
-    getEndOfWeek(
-      weeklyBaseDate
-    );
-
-
-  if ($("weeklyAdminRange")) {
-
-    $("weeklyAdminRange").textContent =
-      `${dateToString(start)} ~ ${dateToString(end)}`;
-
-  }
-
-
-  const center =
-    $("weeklyFilterCenter")
-      ? $("weeklyFilterCenter").value
-      : "";
-
-  const room =
-    $("weeklyFilterRoom")
-      ? $("weeklyFilterRoom").value
-      : "";
-
-
-  let html = `
-
-    <div class="weekly-grid">
-
-  `;
-
-
-  for (
-    let i = 0;
-    i < 7;
-    i++
-  ) {
-
-    const date =
-      new Date(start);
-
-    date.setDate(
-      date.getDate() + i
-    );
-
-    const dateString =
-      dateToString(date);
-
-
-    const items =
-      reservations
-        .filter(item => {
-
-          if (
-            item.date !==
-            dateString
-          ) {
-
-            return false;
-
-          }
-
-
-          if (
-            center &&
-            item.center !== center
-          ) {
-
-            return false;
-
-          }
-
-
-          if (
-            room &&
-            item.room !== room
-          ) {
-
-            return false;
-
-          }
-
-
-          return true;
-
-        })
-        .sort(
-          (a, b) =>
-            a.start_time
-              .localeCompare(
-                b.start_time
-              )
-        );
-
-
-    html += `
-
-      <div class="weekly-day">
-
-        <div class="weekly-day-header">
-
-          <strong>
-            ${getDayName(dateString)}
-          </strong>
-
-          <span>
-            ${formatDateShort(dateString)}
-          </span>
-
-        </div>
-
-        <div class="weekly-day-body">
-
-          ${
-            items.length
-              ? items
-                  .map(
-                    item => `
-
-                      <div class="weekly-reservation">
-
-                        <strong>
-                          ${escapeHTML(item.start_time)}
-                          ~
-                          ${escapeHTML(item.end_time)}
-                        </strong>
-
-                        <span>
-                          ${escapeHTML(item.center)}
-                        </span>
-
-                        <span>
-                          ${escapeHTML(item.room)}
-                        </span>
-
-                        <small>
-                          ${escapeHTML(item.user_name)}
-                        </small>
-
-                      </div>
-
-                    `
-                  )
-                  .join("")
-              : `
-                <div class="weekly-empty">
-                  예약 없음
-                </div>
-              `
-          }
-
-        </div>
-
-      </div>
-
-    `;
-
-  }
-
-
-  html += `
-    </div>
-  `;
-
-
-  container.innerHTML =
-    html;
-
-}
-
-
-if ($("weeklyPrev")) {
-
-  $("weeklyPrev")
-    .addEventListener(
-      "click",
-      () => {
-
-        weeklyBaseDate.setDate(
-          weeklyBaseDate.getDate() - 7
-        );
-
-        renderWeeklyCalendar();
-
-      }
-    );
-
-}
-
-
-if ($("weeklyNext")) {
-
-  $("weeklyNext")
-    .addEventListener(
-      "click",
-      () => {
-
-        weeklyBaseDate.setDate(
-          weeklyBaseDate.getDate() + 7
-        );
-
-        renderWeeklyCalendar();
-
-      }
-    );
-
-}
-
-
-if ($("weeklyThisWeek")) {
-
-  $("weeklyThisWeek")
-    .addEventListener(
-      "click",
-      () => {
-
-        weeklyBaseDate =
-          new Date();
-
-        renderWeeklyCalendar();
-
-      }
-    );
-
-}
-
-
-// ==========================================================
-// 37. 대시보드 통계
-// ==========================================================
-
-function updateDashboardStats() {
-
-  const today =
-    getTodayString();
-
-
-  const todayCount =
-    reservations.filter(
-      item =>
-        item.date === today
-    ).length;
-
-
-  const weekStart =
-    getStartOfWeek(
-      new Date()
-    );
-
-  const weekEnd =
-    getEndOfWeek(
-      new Date()
-    );
-
-
-  const weekStartString =
-    dateToString(weekStart);
-
-  const weekEndString =
-    dateToString(weekEnd);
-
-
-  const weekCount =
-    reservations.filter(
-      item =>
-        item.date >=
-          weekStartString &&
-        item.date <=
-          weekEndString
-    ).length;
-
-
-  const now =
-    new Date();
-
-  const year =
-    now.getFullYear();
-
-  const month =
-    String(
-      now.getMonth() + 1
-    ).padStart(
-      2,
-      "0"
-    );
-
-
-  const monthPrefix =
-    `${year}-${month}`;
-
-
-  const monthCount =
-    reservations.filter(
-      item =>
-        String(
-          item.date
-        ).startsWith(
-          monthPrefix
-        )
-    ).length;
-
-
-  if ($("statToday")) {
-
-    $("statToday").textContent =
-      `${todayCount}건`;
-
-  }
-
-
-  if ($("statTodayDate")) {
-
-    $("statTodayDate").textContent =
-      formatDate(today);
-
-  }
-
-
-  if ($("statWeek")) {
-
-    $("statWeek").textContent =
-      `${weekCount}건`;
-
-  }
-
-
-  if ($("statWeekRange")) {
-
-    $("statWeekRange").textContent =
-      `${formatDateShort(
-        weekStartString
-      )} ~ ${formatDateShort(
-        weekEndString
-      )}`;
-
-  }
-
-
-  if ($("statMonth")) {
-
-    $("statMonth").textContent =
-      `${monthCount}건`;
-
-  }
-
-
-  if ($("statMonthLabel")) {
-
-    $("statMonthLabel").textContent =
-      `${year}년 ${Number(month)}월`;
-
-  }
-
-
-  if ($("statTotal")) {
-
-    $("statTotal").textContent =
-      `${reservations.length}건`;
-
-  }
-
-}
-
-
-// ==========================================================
-// 38. 통계
-// ==========================================================
-
-function renderStats() {
-
-  const statsCards =
-    $("statsCards");
-
-  if (!statsCards) return;
-
-
-  const total =
-    reservations.length;
-
-
-  const recurringCount =
-    reservations.filter(
-      item =>
-        item.is_recurring
-    ).length;
-
-
-  const singleCount =
-    total -
-    recurringCount;
-
-
-  const peopleTotal =
-    reservations.reduce(
-      (
-        sum,
-        item
-      ) =>
-        sum +
-        Number(
-          item.people || 0
-        ),
-      0
-    );
-
-
-  statsCards.innerHTML = `
-
-    <div class="summary-card">
-
-      <div class="summary-icon blue">
-        📅
-      </div>
-
-      <div>
-
-        <span>전체 예약</span>
-
-        <strong>
-          ${total}건
-        </strong>
-
-      </div>
-
-    </div>
-
-
-    <div class="summary-card">
-
-      <div class="summary-icon green">
-        🔁
-      </div>
-
-      <div>
-
-        <span>고정 예약</span>
-
-        <strong>
-          ${recurringCount}건
-        </strong>
-
-      </div>
-
-    </div>
-
-
-    <div class="summary-card">
-
-      <div class="summary-icon purple">
-        1
-      </div>
-
-      <div>
-
-        <span>일회성 예약</span>
-
-        <strong>
-          ${singleCount}건
-        </strong>
-
-      </div>
-
-    </div>
-
-
-    <div class="summary-card">
-
-      <div class="summary-icon orange">
-        👥
-      </div>
-
-      <div>
-
-        <span>총 이용 인원</span>
-
-        <strong>
-          ${peopleTotal}명
-        </strong>
-
-      </div>
-
-    </div>
-
-  `;
-
-
-  renderCenterChart();
-
-  renderRoomTypeChart();
-
-}
-
-
-// ==========================================================
-// 39. 센터별 차트
-// ==========================================================
-
-function renderCenterChart() {
-
-  const container =
-    $("centerBarChart");
-
-  if (!container) return;
-
-
-  const total =
-    reservations.length;
-
-
-  container.innerHTML =
-    Object.keys(centers)
-      .map(center => {
-
-        const count =
-          reservations.filter(
-            item =>
-              item.center === center
-          ).length;
-
-
-        const percent =
-          total
-            ? Math.round(
-                count /
-                total *
-                100
-              )
-            : 0;
-
-
-        return `
-
-          <div class="bar-row">
-
-            <div class="bar-label">
-              ${escapeHTML(center)}
-            </div>
-
-            <div class="bar-track">
-
-              <div
-                class="bar-fill"
-                style="width:${percent}%"
-              ></div>
-
-            </div>
-
-            <strong>
-              ${count}건
-            </strong>
-
-          </div>
-
-        `;
-
-      })
-      .join("");
-
-}
-
-
-// ==========================================================
-// 40. 공간 유형 차트
-// ==========================================================
-
-function renderRoomTypeChart() {
-
-  const container =
-    $("roomTypeBarChart");
-
-  if (!container) return;
-
-
-  const total =
-    reservations.length;
-
-
-  const lecture =
-    reservations.filter(
-      item =>
-        String(
-          item.room || ""
-        ).includes("강의실")
-    ).length;
-
-
-  const counseling =
-    reservations.filter(
-      item =>
-        String(
-          item.room || ""
-        ).includes("상담실")
-    ).length;
-
-
-  const other =
-    total -
-    lecture -
-    counseling;
-
-
-  const data = [
-
-    {
-      name: "강의실",
-      count: lecture
-    },
-
-    {
-      name: "상담실",
-      count: counseling
-    },
-
-    {
-      name: "기타",
-      count: other
-    }
-
-  ];
-
-
-  container.innerHTML =
-    data
-      .map(item => {
-
-        const percent =
-          total
-            ? Math.round(
-                item.count /
-                total *
-                100
-              )
-            : 0;
-
-
-        return `
-
-          <div class="bar-row">
-
-            <div class="bar-label">
-              ${item.name}
-            </div>
-
-            <div class="bar-track">
-
-              <div
-                class="bar-fill"
-                style="width:${percent}%"
-              ></div>
-
-            </div>
-
-            <strong>
-              ${item.count}건
-            </strong>
-
-          </div>
-
-        `;
-
-      })
-      .join("");
-
-}
-
-
-// ==========================================================
-// 41. 네비게이션
-// ==========================================================
-
-document
-  .querySelectorAll(
-    ".nav-item"
-  )
-  .forEach(button => {
-
-    button.addEventListener(
-      "click",
-      () => {
-
-        const view =
-          button.dataset.view;
-
-        switchView(view);
-
-      }
-    );
-
-  });
-
-
-function switchView(view) {
-
-  currentView =
-    view;
-
-
-  document
-    .querySelectorAll(
-      ".nav-item"
-    )
-    .forEach(button => {
-
-      button.classList.toggle(
-        "active",
-        button.dataset.view === view
-      );
-
-    });
-
-
-  document
-    .querySelectorAll(
-      ".admin-view"
-    )
-    .forEach(section => {
-
-      section.classList.toggle(
-        "active",
-        section.id ===
-          `view-${view}`
-      );
-
-    });
-
-
-  if (view === "dashboard") {
-
-    applyFilters();
-
-  }
-
-
-  if (view === "today") {
-
-    renderTodayReservations();
-
-  }
-
-
-  if (view === "byCenter") {
-
-    renderCenterCards();
-
-    renderCenterReservationList();
-
-  }
-
-
-  if (view === "weekly") {
-
-    renderWeeklyCalendar();
-
-  }
-
-
-  if (view === "stats") {
-
-    renderStats();
-
-  }
-
-}
-
-
-// ==========================================================
-// 42. 엑셀 다운로드
-// ==========================================================
-
-if ($("exportBtn")) {
-
-  $("exportBtn")
-    .addEventListener(
-      "click",
-      exportReservations
-    );
-
-}
-
-
-function exportReservations() {
-
-  const data =
-    filteredReservations.length
-      ? filteredReservations
-      : reservations;
-
-
-  if (!data.length) {
-
-    alert(
-      "다운로드할 예약 데이터가 없습니다."
-    );
-
-    return;
-
-  }
-
-
-  const headers = [
-
-    "번호",
-    "날짜",
-    "요일",
-    "시작시간",
-    "종료시간",
-    "센터",
-    "공간",
-    "인원",
-    "예약자",
-    "부서",
-    "센터(지역)",
-    "연락처",
-    "목적",
-    "예약유형",
-    "고정기간"
-
-  ];
-
-
-  const rows =
-    data.map(
-      (item, index) => [
-
-        index + 1,
-
-        item.date,
-
-        getDayName(item.date),
-
-        item.start_time,
-
-        item.end_time,
-
-        item.center,
-
-        item.room,
-
-        item.people,
-
-        item.user_name,
-
-        item.department,
-
-        item.region,
-
-        item.phone,
-
-        item.purpose,
-
-        item.is_recurring
-          ? "고정"
-          : "일회성",
-
-        item.recurring_months || ""
-
-      ]
-    );
-
-
-  const csvRows = [
-
-    headers,
-
-    ...rows
-
-  ];
-
-
-  const csv =
-    csvRows
-      .map(row =>
-        row
-          .map(value =>
-            `"${String(
-              value ?? ""
-            ).replace(
-              /"/g,
-              '""'
-            )}"`
-          )
-          .join(",")
-      )
-      .join("\n");
-
-
-  const blob =
-    new Blob(
-      [
-        "\uFEFF" +
-        csv
-      ],
+  const ok = confirm("이 예약을 정말 삭제하시겠습니까?\n삭제하면 되돌릴 수 없습니다.");
+  if (!ok) return;
+
+  try {
+    const response = await fetch(
+      `${SUPABASE_URL}/rest/v1/Reservations?id=eq.${id}`,
       {
-        type:
-          "text/csv;charset=utf-8;"
+        method: "DELETE",
+        headers: {
+          "apikey": SUPABASE_PUBLISHABLE_KEY,
+          "Authorization": `Bearer ${SUPABASE_PUBLISHABLE_KEY}`
+        }
       }
     );
 
-
-  const url =
-    URL.createObjectURL(blob);
-
-
-  const link =
-    document.createElement("a");
-
-  link.href =
-    url;
-
-  link.download =
-    `예약목록_${getTodayString()}.csv`;
-
-  link.click();
-
-
-  URL.revokeObjectURL(url);
-
-}
-
-
-// ==========================================================
-// 43. ESC로 모달 닫기
-// ==========================================================
-
-document.addEventListener(
-  "keydown",
-  event => {
-
-    if (
-      event.key !== "Escape"
-    ) {
+    if (!response.ok) {
+      alert("삭제에 실패했습니다. (Supabase에 delete 정책이 설정되어 있는지 확인해주세요)");
+      console.error("삭제 실패:", await response.text());
       return;
     }
 
+    allReservations = allReservations.filter(r => String(r.id) !== String(id));
 
-    if ($("addModal")) {
+    applyFilters();
+    renderSummary();
+    renderTodayView();
+    renderCenterView();
+    renderWeeklyAdminView();
+    renderStatsView();
 
-      $("addModal")
-        .classList.remove(
-          "active"
-        );
-
-    }
-
-
-    if ($("detailModal")) {
-
-      $("detailModal")
-        .classList.remove(
-          "active"
-        );
-
-    }
-
+  } catch (error) {
+    console.error("삭제 오류:", error);
+    alert("삭제 중 문제가 발생했습니다.");
   }
-);
-
-
-// ==========================================================
-// 44. 초기화
-// ==========================================================
-
-async function initAdmin() {
-
-  console.log(
-    "관리자 페이지 초기화 시작"
-  );
-
-
-  // 센터 목록
-  populateCenterSelects();
-
-
-  // 필터 공간
-  populateRoomSelect(
-    $("filterRoom"),
-    "",
-    true
-  );
-
-
-  populateRoomSelect(
-    $("weeklyFilterRoom"),
-    "",
-    true
-  );
-
-
-  // 예약 추가 공간
-  populateRoomSelect(
-    $("addRoom"),
-    "",
-    false
-  );
-
-
-  // 시간
-  populateAddTimeOptions();
-
-
-  // 예약 유형
-  updateReservationTypeUI();
-
-
-  // 날짜
-  renderSelectedDates();
-
-
-  // 데이터
-  await loadAllReservations();
-
-
-  console.log(
-    "관리자 페이지 초기화 완료"
-  );
-
 }
 
+// ==========================================
+// 고정(반복) 예약 - 전체 시리즈 삭제
+// ==========================================
 
-initAdmin();
+async function deleteRecurringSeries(groupId, count) {
+  const ok = confirm(
+    `이 고정예약 시리즈는 총 ${count}건이에요.\n전체 ${count}건을 모두 삭제하시겠습니까?\n삭제하면 되돌릴 수 없습니다.`
+  );
+  if (!ok) return;
+
+  try {
+    const response = await fetch(
+      `${SUPABASE_URL}/rest/v1/Reservations?recurring_group_id=eq.${encodeURIComponent(groupId)}`,
+      {
+        method: "DELETE",
+        headers: {
+          "apikey": SUPABASE_PUBLISHABLE_KEY,
+          "Authorization": `Bearer ${SUPABASE_PUBLISHABLE_KEY}`
+        }
+      }
+    );
+
+    if (!response.ok) {
+      alert("삭제에 실패했습니다.");
+      console.error("전체 시리즈 삭제 실패:", await response.text());
+      return;
+    }
+
+    allReservations = allReservations.filter(r => r.recurring_group_id !== groupId);
+
+    applyFilters();
+    renderSummary();
+    renderTodayView();
+    renderCenterView();
+    renderWeeklyAdminView();
+    renderStatsView();
+
+    alert(`총 ${count}건이 모두 삭제됐어요.`);
+
+  } catch (error) {
+    console.error("전체 시리즈 삭제 오류:", error);
+    alert("삭제 중 문제가 발생했습니다.");
+  }
+}
+
+// ==========================================
+// 엑셀(CSV) 다운로드
+// ==========================================
+
+function exportCSV() {
+  const headers = ["날짜", "시간", "센터", "공간", "예약유형", "인원", "예약자", "부서", "연락처", "목적", "신청일시"];
+
+  const rows = filteredReservations.map(r => [
+    r.date,
+    `${r.start_time} ~ ${r.end_time}`,
+    r.center,
+    r.room,
+    r.is_recurring ? `고정 ${r.recurring_months}개월` : "일회성",
+    r.people,
+    r.user_name,
+    r.department,
+    r.phone,
+    (r.purpose || "").replace(/\n/g, " "),
+    formatDateTime(r.created_at)
+  ]);
+
+  const csvContent = [headers, ...rows]
+    .map(row => row.map(cell => `"${String(cell ?? "").replace(/"/g, '""')}"`).join(","))
+    .join("\n");
+
+  const blob = new Blob(["\ufeff" + csvContent], { type: "text/csv;charset=utf-8;" });
+  const url = URL.createObjectURL(blob);
+
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = `예약목록_${toDateString(new Date())}.csv`;
+  a.click();
+
+  URL.revokeObjectURL(url);
+}
+
+// ==========================================
+// 오늘 예약 화면
+// ==========================================
+
+function renderTodayView() {
+  const todayStr = toDateString(new Date());
+  document.getElementById("todayDateLabel").textContent = `${formatDateLabel(todayStr)} 예약 목록`;
+
+  const rows = allReservations.filter(r => r.date === todayStr)
+    .sort((a, b) => (a.start_time || "").localeCompare(b.start_time || ""));
+
+  const tbody = document.getElementById("todayTableBody");
+  tbody.innerHTML = "";
+
+  if (rows.length === 0) {
+    tbody.innerHTML = `<tr class="empty-row"><td colspan="10">오늘 예약이 없습니다.</td></tr>`;
+    return;
+  }
+
+  rows.forEach((r, index) => {
+    const tr = document.createElement("tr");
+    tr.innerHTML = `
+      <td>${index + 1}</td>
+      <td>${r.start_time} ~ ${r.end_time}</td>
+      <td>${r.center || ""}</td>
+      <td>${r.room || ""}</td>
+      <td>${r.people || ""}</td>
+      <td>${r.user_name || ""}</td>
+      <td>${r.department || ""}</td>
+      <td>${r.phone || ""}</td>
+      <td>${r.purpose || ""}</td>
+      <td>
+        <button class="action-btn detail" data-id="${r.id}">상세</button>
+        <button class="action-btn delete" data-id="${r.id}">삭제</button>
+      </td>
+    `;
+    tbody.appendChild(tr);
+  });
+
+  tbody.querySelectorAll(".action-btn.detail").forEach(btn => {
+    btn.addEventListener("click", () => openDetail(btn.dataset.id));
+  });
+
+  tbody.querySelectorAll(".action-btn.delete").forEach(btn => {
+    btn.addEventListener("click", () => deleteReservation(btn.dataset.id));
+  });
+}
+
+// ==========================================
+// 센터별 예약 현황 화면
+// ==========================================
+
+function renderCenterView() {
+  const cardsWrap = document.getElementById("centerCards");
+  cardsWrap.innerHTML = "";
+
+  centers.forEach(center => {
+    const count = allReservations.filter(r => r.center === center).length;
+
+    const card = document.createElement("div");
+    card.className = "center-stat-card";
+    if (selectedCenterCard === center) card.classList.add("active");
+
+    card.innerHTML = `
+      <strong>${center}</strong>
+      <div class="count">${count}<span>건</span></div>
+    `;
+
+    card.addEventListener("click", () => {
+      selectedCenterCard = selectedCenterCard === center ? "" : center;
+      renderCenterView();
+    });
+
+    cardsWrap.appendChild(card);
+  });
+
+  document.getElementById("centerListTitle").textContent =
+    selectedCenterCard ? `${selectedCenterCard} 예약 목록` : "전체 센터";
+
+  const rows = (selectedCenterCard
+    ? allReservations.filter(r => r.center === selectedCenterCard)
+    : allReservations
+  ).slice(0, 100); // 너무 많으면 100건까지만 표시
+
+  const tbody = document.getElementById("centerTableBody");
+  tbody.innerHTML = "";
+
+  if (rows.length === 0) {
+    tbody.innerHTML = `<tr class="empty-row"><td colspan="9">예약이 없습니다.</td></tr>`;
+    return;
+  }
+
+  rows.forEach((r, index) => {
+    const tr = document.createElement("tr");
+    tr.innerHTML = `
+      <td>${index + 1}</td>
+      <td>${formatDateLabel(r.date)}</td>
+      <td>${r.start_time} ~ ${r.end_time}</td>
+      <td>${r.center || ""}</td>
+      <td>${r.room || ""}</td>
+      <td>${r.people || ""}</td>
+      <td>${r.user_name || ""}</td>
+      <td>${r.phone || ""}</td>
+      <td>${r.purpose || ""}</td>
+    `;
+    tbody.appendChild(tr);
+  });
+}
+
+// ==========================================
+// 주간 예약 현황 (관리자)
+// ==========================================
+
+let weeklyAdminOffset = 0;
+
+function initWeeklyFilterOptions() {
+  const centerSelect = document.getElementById("weeklyFilterCenter");
+  centers.forEach(c => {
+    const option = document.createElement("option");
+    option.value = c;
+    option.textContent = c;
+    centerSelect.appendChild(option);
+  });
+
+  updateWeeklyRoomOptions();
+
+  centerSelect.addEventListener("change", () => {
+    updateWeeklyRoomOptions();
+    renderWeeklyAdminView();
+  });
+
+  document.getElementById("weeklyFilterRoom").addEventListener("change", renderWeeklyAdminView);
+}
+
+function updateWeeklyRoomOptions() {
+  const center = document.getElementById("weeklyFilterCenter").value;
+  const roomSelect = document.getElementById("weeklyFilterRoom");
+  const currentValue = roomSelect.value;
+
+  roomSelect.innerHTML = `<option value="">전체 공간</option>`;
+
+  const rooms = center ? (roomsByCenter[center] || []) : allRooms;
+
+  rooms.forEach(r => {
+    const option = document.createElement("option");
+    option.value = r;
+    option.textContent = r;
+    roomSelect.appendChild(option);
+  });
+
+  if (rooms.includes(currentValue)) {
+    roomSelect.value = currentValue;
+  }
+}
+
+function getWeeklyAdminDates() {
+  const base = new Date();
+  base.setDate(base.getDate() + weeklyAdminOffset * 7);
+
+  const day = base.getDay();
+  const start = new Date(base);
+  start.setDate(base.getDate() - day);
+  start.setHours(0, 0, 0, 0);
+
+  const dates = [];
+  for (let i = 0; i < 7; i++) {
+    const d = new Date(start);
+    d.setDate(start.getDate() + i);
+    dates.push(d);
+  }
+  return dates;
+}
+
+function renderWeeklyAdminView() {
+  const dates = getWeeklyAdminDates();
+  const startStr = toDateString(dates[0]);
+  const endStr = toDateString(dates[6]);
+
+  document.getElementById("weeklyAdminRange").textContent =
+    `${dates[0].getFullYear()}년 ${dates[0].getMonth() + 1}월 ${dates[0].getDate()}일 ~ ${dates[6].getMonth() + 1}월 ${dates[6].getDate()}일`;
+
+  const center = document.getElementById("weeklyFilterCenter").value;
+  const room = document.getElementById("weeklyFilterRoom").value;
+
+  const weekRows = allReservations.filter(r => {
+    if (r.date < startStr || r.date > endStr) return false;
+    if (center && r.center !== center) return false;
+    if (room && r.room !== room) return false;
+    return true;
+  });
+
+  const dayNames = ["일", "월", "화", "수", "목", "금", "토"];
+  const todayStr = toDateString(new Date());
+
+  const calendar = document.getElementById("weeklyAdminCalendar");
+  calendar.innerHTML = "";
+
+  dates.forEach((date, index) => {
+    const dateStr = toDateString(date);
+
+    const dayColumn = document.createElement("div");
+    dayColumn.className = "week-admin-day";
+
+    const header = document.createElement("div");
+    header.className = "week-admin-day-header";
+    if (index === 0) header.classList.add("sun");
+    if (index === 6) header.classList.add("sat");
+    if (dateStr === todayStr) header.classList.add("today");
+
+    header.innerHTML = `
+      <span class="day-name">${dayNames[index]}</span>
+      <span class="day-number">${date.getDate()}</span>
+    `;
+
+    const body = document.createElement("div");
+    body.className = "week-admin-day-body";
+
+    const dayReservations = weekRows
+      .filter(r => r.date === dateStr)
+      .sort((a, b) => (a.start_time || "").localeCompare(b.start_time || ""));
+
+    if (dayReservations.length === 0) {
+      body.innerHTML = `<div class="week-admin-empty">예약 없음</div>`;
+    }
+
+    dayReservations.forEach(r => {
+      const card = document.createElement("div");
+      card.className = "week-admin-reservation";
+      card.innerHTML = `
+        <div class="week-admin-reservation-time">${r.start_time} ~ ${r.end_time}</div>
+        <div class="week-admin-reservation-name">${r.center} · ${r.room}</div>
+        <div class="week-admin-reservation-meta">${r.user_name || ""} / ${r.department || ""}</div>
+      `;
+      body.appendChild(card);
+    });
+
+    dayColumn.appendChild(header);
+    dayColumn.appendChild(body);
+    calendar.appendChild(dayColumn);
+  });
+}
+
+document.getElementById("weeklyPrev").addEventListener("click", () => {
+  weeklyAdminOffset--;
+  renderWeeklyAdminView();
+});
+
+document.getElementById("weeklyNext").addEventListener("click", () => {
+  weeklyAdminOffset++;
+  renderWeeklyAdminView();
+});
+
+document.getElementById("weeklyThisWeek").addEventListener("click", () => {
+  weeklyAdminOffset = 0;
+  renderWeeklyAdminView();
+});
+
+// ==========================================
+// 통계 화면
+// ==========================================
+
+function renderStatsView() {
+  const total = allReservations.length;
+
+  // 평균 이용시간
+  let totalMinutes = 0;
+  let validCount = 0;
+
+  allReservations.forEach(r => {
+    if (!r.start_time || !r.end_time) return;
+    const [sh, sm] = r.start_time.split(":").map(Number);
+    const [eh, em] = r.end_time.split(":").map(Number);
+    const diff = (eh * 60 + em) - (sh * 60 + sm);
+    if (diff > 0) {
+      totalMinutes += diff;
+      validCount++;
+    }
+  });
+
+  const avgMinutes = validCount ? Math.round(totalMinutes / validCount) : 0;
+  const avgLabel = avgMinutes ? `${Math.floor(avgMinutes / 60)}시간 ${avgMinutes % 60}분` : "-";
+
+  // 가장 많이 쓰인 센터
+  const centerCounts = {};
+  centers.forEach(c => centerCounts[c] = 0);
+  allReservations.forEach(r => { if (r.center in centerCounts) centerCounts[r.center]++; });
+
+  const topCenter = Object.entries(centerCounts).sort((a, b) => b[1] - a[1])[0];
+
+  const statsCards = document.getElementById("statsCards");
+  statsCards.innerHTML = `
+    <div class="summary-card">
+      <div class="summary-icon blue">📦</div>
+      <div><span>전체 예약</span><strong>${total}건</strong></div>
+    </div>
+    <div class="summary-card">
+      <div class="summary-icon green">⏱</div>
+      <div><span>평균 이용시간</span><strong>${avgLabel}</strong></div>
+    </div>
+    <div class="summary-card">
+      <div class="summary-icon purple">⭐</div>
+      <div><span>가장 인기있는 센터</span><strong>${topCenter && topCenter[1] > 0 ? topCenter[0] : "-"}</strong></div>
+    </div>
+  `;
+
+  // 센터별 막대그래프
+  const maxCenterCount = Math.max(1, ...Object.values(centerCounts));
+  const centerBarChart = document.getElementById("centerBarChart");
+  centerBarChart.innerHTML = Object.entries(centerCounts).map(([name, count]) => `
+    <div class="bar-row">
+      <div class="bar-label">${name}</div>
+      <div class="bar-track"><div class="bar-fill" style="width:${(count / maxCenterCount) * 100}%"></div></div>
+      <div class="bar-value">${count}건</div>
+    </div>
+  `).join("");
+
+  // 공간 유형(강의실/상담실) 막대그래프
+  let lectureCount = 0;
+  let counselCount = 0;
+
+  allReservations.forEach(r => {
+    if ((r.room || "").startsWith("강의실")) lectureCount++;
+    else if ((r.room || "").startsWith("상담실")) counselCount++;
+  });
+
+  const maxRoomCount = Math.max(1, lectureCount, counselCount);
+  const roomTypeBarChart = document.getElementById("roomTypeBarChart");
+  roomTypeBarChart.innerHTML = `
+    <div class="bar-row">
+      <div class="bar-label">강의실</div>
+      <div class="bar-track"><div class="bar-fill" style="width:${(lectureCount / maxRoomCount) * 100}%"></div></div>
+      <div class="bar-value">${lectureCount}건</div>
+    </div>
+    <div class="bar-row">
+      <div class="bar-label">상담실</div>
+      <div class="bar-track"><div class="bar-fill" style="width:${(counselCount / maxRoomCount) * 100}%"></div></div>
+      <div class="bar-value">${counselCount}건</div>
+    </div>
+  `;
+}
+
+// ==========================================
+// 사이드바 화면 전환
+// ==========================================
+
+document.querySelectorAll(".nav-item").forEach(btn => {
+  btn.addEventListener("click", () => {
+    document.querySelectorAll(".nav-item").forEach(b => b.classList.remove("active"));
+    btn.classList.add("active");
+
+    document.querySelectorAll(".admin-view").forEach(v => v.classList.remove("active"));
+    document.getElementById(`view-${btn.dataset.view}`).classList.add("active");
+
+    if (btn.dataset.view === "today") renderTodayView();
+    if (btn.dataset.view === "byCenter") renderCenterView();
+    if (btn.dataset.view === "weekly") renderWeeklyAdminView();
+    if (btn.dataset.view === "stats") renderStatsView();
+  });
+});
+
+// ==========================================
+// 필터/버튼 이벤트
+// ==========================================
+
+document.getElementById("searchBtn").addEventListener("click", applyFilters);
+document.getElementById("resetBtn").addEventListener("click", resetFilters);
+document.getElementById("refreshBtn").addEventListener("click", async () => {
+  await fetchReservations();
+  applyFilters();
+  renderSummary();
+  renderWeeklyAdminView();
+});
+document.getElementById("exportBtn").addEventListener("click", exportCSV);
+
+document.getElementById("pageSizeSelect").addEventListener("change", (e) => {
+  pageSize = Number(e.target.value);
+  currentPage = 1;
+  renderTable();
+});
+
+// ==========================================
+// 초기 실행
+// ==========================================
+
+async function init() {
+  initFilterOptions();
+  initWeeklyFilterOptions();
+  await fetchReservations();
+
+  filteredReservations = [...allReservations];
+
+  renderSummary();
+  renderTable();
+}
+
+init();

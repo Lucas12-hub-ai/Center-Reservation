@@ -1,396 +1,161 @@
 <!DOCTYPE html>
 <html lang="ko">
-
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-
-  <title>공간 예약 관리자</title>
-
-  <link rel="stylesheet" href="admin.css">
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>공간 예약 관리자</title>
+<link rel="stylesheet" href="admin.css">
 </head>
-
-
 <body>
 
 <div class="admin-layout">
 
-
-  <!-- ==========================================
-       SIDEBAR
-  ========================================== -->
-
+  <!-- 사이드바 -->
   <aside class="sidebar">
-
     <div class="sidebar-logo">
       <span class="logo-icon">▦</span>
       공간 예약 관리자
     </div>
 
-
     <nav class="sidebar-nav">
-
-      <button
-        class="nav-item active"
-        data-view="dashboard"
-      >
-        <span class="nav-icon">⌂</span>
-        <span>예약 관리</span>
+      <button class="nav-item active" data-view="dashboard">
+        <span class="nav-icon">⌂</span> 예약 관리
       </button>
-
-
-      <button
-        class="nav-item"
-        data-view="today"
-      >
-        <span class="nav-icon">▤</span>
-        <span>오늘 예약</span>
+      <button class="nav-item" data-view="today">
+        <span class="nav-icon">▤</span> 오늘 예약
       </button>
-
-
-      <button
-        class="nav-item"
-        data-view="byCenter"
-      >
-        <span class="nav-icon">▥</span>
-        <span>센터별 예약 현황</span>
+      <button class="nav-item" data-view="byCenter">
+        <span class="nav-icon">▥</span> 센터별 예약 현황
       </button>
-
-
-      <button
-        class="nav-item"
-        data-view="weekly"
-      >
-        <span class="nav-icon">▦</span>
-        <span>주간 예약 현황</span>
+      <button class="nav-item" data-view="weekly">
+        <span class="nav-icon">▦</span> 주간 예약 현황
       </button>
-
-
-      <button
-        class="nav-item"
-        data-view="stats"
-      >
-        <span class="nav-icon">▲</span>
-        <span>통계</span>
+      <button class="nav-item" data-view="stats">
+        <span class="nav-icon">▲</span> 통계
       </button>
-
-
-      <button
-        class="nav-item"
-        data-view="settings"
-      >
-        <span class="nav-icon">⚙</span>
-        <span>설정</span>
+      <button class="nav-item" data-view="settings">
+        <span class="nav-icon">⚙</span> 설정
       </button>
-
     </nav>
 
-
     <div class="sidebar-footer">
-
       <div class="admin-account">
-
         <span class="account-icon">●</span>
-
         <div>
           <strong>관리자 계정</strong>
           <small>admin@example.com</small>
         </div>
-
       </div>
-
     </div>
-
   </aside>
 
-
-
-  <!-- ==========================================
-       MAIN
-  ========================================== -->
-
+  <!-- 메인 -->
   <main class="admin-main">
 
-
-    <!-- ==========================================
-         예약 관리
-    ========================================== -->
-
-    <section
-      id="view-dashboard"
-      class="admin-view active"
-    >
+    <!-- ============ 예약 관리 ============ -->
+    <section id="view-dashboard" class="admin-view active">
 
       <div class="admin-header">
-
         <div>
-
           <h1>예약 관리</h1>
-
-          <p>
-            전체 예약 현황을 확인하고 관리할 수 있습니다.
-          </p>
-
+          <p>전체 예약 현황을 확인하고 관리할 수 있습니다.</p>
         </div>
-
       </div>
-
-
-
-      <!-- SUMMARY -->
 
       <div class="summary-grid">
-
-
         <div class="summary-card">
-
-          <div class="summary-icon blue">
-            📅
-          </div>
-
+          <div class="summary-icon blue">📅</div>
           <div>
-
             <span>오늘 예약</span>
-
-            <strong id="statToday">
-              0건
-            </strong>
-
+            <strong id="statToday">0건</strong>
             <small id="statTodayDate"></small>
-
           </div>
-
         </div>
-
-
-
         <div class="summary-card">
-
-          <div class="summary-icon green">
-            🗓
-          </div>
-
+          <div class="summary-icon green">🗓</div>
           <div>
-
             <span>이번 주 예약</span>
-
-            <strong id="statWeek">
-              0건
-            </strong>
-
+            <strong id="statWeek">0건</strong>
             <small id="statWeekRange"></small>
-
           </div>
-
         </div>
-
-
-
         <div class="summary-card">
-
-          <div class="summary-icon purple">
-            👥
-          </div>
-
+          <div class="summary-icon purple">👥</div>
           <div>
-
             <span>이번 달 예약</span>
-
-            <strong id="statMonth">
-              0건
-            </strong>
-
+            <strong id="statMonth">0건</strong>
             <small id="statMonthLabel"></small>
-
           </div>
-
         </div>
-
-
-
         <div class="summary-card">
-
-          <div class="summary-icon orange">
-            🏛
-          </div>
-
+          <div class="summary-icon orange">🏛</div>
           <div>
-
             <span>전체 예약</span>
-
-            <strong id="statTotal">
-              0건
-            </strong>
-
-            <small>
-              누적 전체
-            </small>
-
+            <strong id="statTotal">0건</strong>
+            <small>누적 전체</small>
           </div>
-
         </div>
-
       </div>
-
-
-
-      <!-- FILTER -->
 
       <div class="filter-card">
-
-
         <div class="filter-group">
-
           <label>날짜</label>
-
-          <input
-            type="date"
-            id="filterDate"
-          >
-
+          <input type="date" id="filterDate">
         </div>
-
-
-
         <div class="filter-group">
-
           <label>센터</label>
-
           <select id="filterCenter">
-
-            <option value="">
-              전체 센터
-            </option>
-
+            <option value="">전체 센터</option>
           </select>
-
         </div>
-
-
-
         <div class="filter-group">
-
           <label>공간</label>
-
           <select id="filterRoom">
-
-            <option value="">
-              전체 공간
-            </option>
-
+            <option value="">전체 공간</option>
           </select>
-
         </div>
-
-
-
         <div class="filter-group">
-
           <label>예약자</label>
-
-          <input
-            type="text"
-            id="filterName"
-            placeholder="예약자 이름 검색"
-          >
-
+          <input type="text" id="filterName" placeholder="예약자 이름 검색">
         </div>
-
-
-
         <div class="filter-group">
-
           <label>목적</label>
-
-          <input
-            type="text"
-            id="filterPurpose"
-            placeholder="목적 검색"
-          >
-
+          <input type="text" id="filterPurpose" placeholder="목적 검색">
         </div>
-
-
-
+        <div class="filter-group">
+          <label>예약유형</label>
+          <select id="filterType">
+            <option value="">전체</option>
+            <option value="single">일회성</option>
+            <option value="recurring">고정 사용</option>
+          </select>
+        </div>
         <div class="filter-buttons">
-
-          <button
-            id="searchBtn"
-            class="filter-search"
-          >
-            🔍 검색
-          </button>
-
-
-          <button
-            id="resetBtn"
-            class="filter-reset"
-          >
-            ↺ 초기화
-          </button>
-
+          <button id="searchBtn" class="filter-search">🔍 검색</button>
+          <button id="resetBtn" class="filter-reset">↺ 초기화</button>
         </div>
-
       </div>
 
-
-
-      <!-- RESERVATION LIST -->
-
       <div class="list-card">
-
-
         <div class="list-header">
-
-          <strong id="listTitle">
-            예약 목록 (총 0건)
-          </strong>
-
-
+          <strong id="listTitle">예약 목록 (총 0건)</strong>
           <div class="list-actions">
-
-            <button
-              id="addReservationBtn"
-              class="primary-btn"
-            >
-              + 예약 추가
-            </button>
-
-
-            <button
-              id="refreshBtn"
-              class="ghost-btn"
-            >
-              ↻ 새로고침
-            </button>
-
-
-            <button
-              id="exportBtn"
-              class="ghost-btn"
-            >
-              ⬇ 엑셀 다운로드
-            </button>
-
+            <button id="addReservationBtn" class="primary-btn">+ 예약 추가</button>
+            <button id="refreshBtn" class="ghost-btn">↻ 새로고침</button>
+            <button id="exportBtn" class="ghost-btn">⬇ 엑셀 다운로드</button>
           </div>
-
         </div>
 
-
-
         <div class="table-wrapper">
-
           <table class="admin-table">
-
             <thead>
-
               <tr>
-
                 <th>번호</th>
                 <th>날짜</th>
                 <th>시간</th>
                 <th>센터</th>
                 <th>공간</th>
+                <th>유형</th>
                 <th>인원</th>
                 <th>예약자</th>
                 <th>부서</th>
@@ -398,1071 +163,257 @@
                 <th>목적</th>
                 <th>신청일시</th>
                 <th>관리</th>
-
               </tr>
-
             </thead>
-
-
             <tbody id="tableBody"></tbody>
-
           </table>
-
         </div>
-
-
 
         <div class="table-footer">
-
-          <div
-            id="pagination"
-            class="pagination"
-          ></div>
-
-
+          <div id="pagination" class="pagination"></div>
           <select id="pageSizeSelect">
-
-            <option value="10">
-              10개씩 보기
-            </option>
-
-            <option value="20">
-              20개씩 보기
-            </option>
-
-            <option value="50">
-              50개씩 보기
-            </option>
-
+            <option value="10">10개씩 보기</option>
+            <option value="20">20개씩 보기</option>
+            <option value="50">50개씩 보기</option>
           </select>
-
         </div>
-
       </div>
 
     </section>
 
-
-
-    <!-- ==========================================
-         오늘 예약
-    ========================================== -->
-
-    <section
-      id="view-today"
-      class="admin-view"
-    >
-
+    <!-- ============ 오늘 예약 ============ -->
+    <section id="view-today" class="admin-view">
       <div class="admin-header">
-
         <div>
-
           <h1>오늘 예약</h1>
-
           <p id="todayDateLabel"></p>
-
         </div>
-
       </div>
 
-
-
       <div class="list-card">
-
         <div class="table-wrapper">
-
           <table class="admin-table">
-
             <thead>
-
               <tr>
-
-                <th>번호</th>
-                <th>시간</th>
-                <th>센터</th>
-                <th>공간</th>
-                <th>인원</th>
-                <th>예약자</th>
-                <th>부서</th>
-                <th>연락처</th>
-                <th>목적</th>
-                <th>관리</th>
-
+                <th>번호</th><th>시간</th><th>센터</th><th>공간</th><th>인원</th>
+                <th>예약자</th><th>부서</th><th>연락처</th><th>목적</th><th>관리</th>
               </tr>
-
             </thead>
-
-
             <tbody id="todayTableBody"></tbody>
-
           </table>
-
         </div>
-
       </div>
-
     </section>
 
-
-
-    <!-- ==========================================
-         센터별 예약 현황
-    ========================================== -->
-
-    <section
-      id="view-byCenter"
-      class="admin-view"
-    >
-
+    <!-- ============ 센터별 예약 현황 ============ -->
+    <section id="view-byCenter" class="admin-view">
       <div class="admin-header">
-
         <div>
-
           <h1>센터별 예약 현황</h1>
-
-          <p>
-            카드를 클릭하면 아래 목록이 그 센터로 필터링돼요.
-          </p>
-
+          <p>카드를 클릭하면 아래 목록이 그 센터로 필터링돼요.</p>
         </div>
-
       </div>
 
-
-
-      <div
-        id="centerCards"
-        class="center-card-grid"
-      ></div>
-
-
+      <div id="centerCards" class="center-card-grid"></div>
 
       <div class="list-card">
-
         <div class="list-header">
-
-          <strong id="centerListTitle">
-            전체 센터
-          </strong>
-
+          <strong id="centerListTitle">전체 센터</strong>
         </div>
-
-
-
         <div class="table-wrapper">
-
           <table class="admin-table">
-
             <thead>
-
               <tr>
-
-                <th>번호</th>
-                <th>날짜</th>
-                <th>시간</th>
-                <th>센터</th>
-                <th>공간</th>
-                <th>인원</th>
-                <th>예약자</th>
-                <th>연락처</th>
-                <th>목적</th>
-
+                <th>번호</th><th>날짜</th><th>시간</th><th>센터</th><th>공간</th><th>인원</th>
+                <th>예약자</th><th>연락처</th><th>목적</th>
               </tr>
-
             </thead>
-
-
             <tbody id="centerTableBody"></tbody>
-
           </table>
-
         </div>
-
       </div>
-
     </section>
 
-
-
-    <!-- ==========================================
-         주간 예약 현황
-    ========================================== -->
-
-    <section
-      id="view-weekly"
-      class="admin-view"
-    >
-
+    <!-- ============ 주간 예약 현황 ============ -->
+    <section id="view-weekly" class="admin-view">
       <div class="admin-header">
-
         <div>
-
           <h1>주간 예약 현황</h1>
-
-          <p>
-            센터·공간을 선택하면 일~토 스케줄표로 볼 수 있어요.
-          </p>
-
+          <p>센터·공간을 선택하면 일~토 스케줄표로 볼 수 있어요.</p>
         </div>
-
       </div>
-
-
 
       <div class="filter-card">
-
-
         <div class="filter-group">
-
           <label>센터</label>
-
           <select id="weeklyFilterCenter">
-
-            <option value="">
-              전체 센터
-            </option>
-
+            <option value="">전체 센터</option>
           </select>
-
         </div>
-
-
-
         <div class="filter-group">
-
           <label>공간</label>
-
           <select id="weeklyFilterRoom">
-
-            <option value="">
-              전체 공간
-            </option>
-
+            <option value="">전체 공간</option>
           </select>
-
         </div>
-
       </div>
-
-
 
       <div class="list-card weekly-admin-card">
-
         <div class="weekly-admin-header">
-
           <strong id="weeklyAdminRange"></strong>
-
-
           <div class="weekly-navigation">
-
-            <button id="weeklyPrev">
-              ‹
-            </button>
-
-            <button id="weeklyThisWeek">
-              이번주
-            </button>
-
-            <button id="weeklyNext">
-              ›
-            </button>
-
+            <button id="weeklyPrev">‹</button>
+            <button id="weeklyThisWeek">이번주</button>
+            <button id="weeklyNext">›</button>
           </div>
-
         </div>
 
-
-        <div
-          id="weeklyAdminCalendar"
-          class="weekly-admin-calendar"
-        ></div>
-
+        <div id="weeklyAdminCalendar" class="weekly-admin-calendar"></div>
       </div>
-
     </section>
 
-
-
-    <!-- ==========================================
-         통계
-    ========================================== -->
-
-    <section
-      id="view-stats"
-      class="admin-view"
-    >
-
+    <!-- ============ 통계 ============ -->
+    <section id="view-stats" class="admin-view">
       <div class="admin-header">
-
         <div>
-
           <h1>통계</h1>
-
-          <p>
-            전체 예약 데이터를 기준으로 한 간단한 통계입니다.
-          </p>
-
+          <p>전체 예약 데이터를 기준으로 한 간단한 통계입니다.</p>
         </div>
-
       </div>
 
-
-
-      <div
-        class="summary-grid"
-        id="statsCards"
-      ></div>
-
-
+      <div class="summary-grid" id="statsCards"></div>
 
       <div class="list-card">
-
-        <strong>
-          센터별 예약 비율
-        </strong>
-
-        <div
-          id="centerBarChart"
-          class="bar-chart"
-        ></div>
-
+        <strong>센터별 예약 비율</strong>
+        <div id="centerBarChart" class="bar-chart"></div>
       </div>
-
-
 
       <div class="list-card">
-
-        <strong>
-          공간 유형별 예약 비율
-          (강의실 / 상담실)
-        </strong>
-
-        <div
-          id="roomTypeBarChart"
-          class="bar-chart"
-        ></div>
-
+        <strong>공간 유형별 예약 비율 (강의실 / 상담실)</strong>
+        <div id="roomTypeBarChart" class="bar-chart"></div>
       </div>
-
     </section>
 
-
-
-    <!-- ==========================================
-         설정
-    ========================================== -->
-
-    <section
-      id="view-settings"
-      class="admin-view"
-    >
-
+    <!-- ============ 설정 ============ -->
+    <section id="view-settings" class="admin-view">
       <div class="admin-header">
-
         <div>
-
           <h1>설정</h1>
-
-          <p>
-            관리자 페이지 관련 설정입니다.
-          </p>
-
+          <p>관리자 페이지 관련 설정입니다.</p>
         </div>
-
       </div>
-
-
 
       <div class="list-card settings-card">
-
-        <strong>
-          접근 권한
-        </strong>
-
-        <p>
-          현재 이 페이지는
-          <b>
-            비밀번호 없이 URL만 알면 누구나
-          </b>
-          볼 수 있어요.
-          나중에 로그인(비밀번호) 보호가 필요하면 말씀해주세요.
-        </p>
-
+        <strong>접근 권한</strong>
+        <p>현재 이 페이지는 <b>비밀번호 없이 URL만 알면 누구나</b> 볼 수 있어요. 나중에 로그인(비밀번호) 보호가 필요하면 말씀해주세요.</p>
       </div>
-
-
 
       <div class="list-card settings-card">
-
-        <strong>
-          연결된 데이터베이스
-        </strong>
-
-        <p>
-          Supabase 프로젝트에 연결되어
-          실시간으로 예약 데이터를 불러옵니다.
-          (Reservations 테이블)
-        </p>
-
+        <strong>연결된 데이터베이스</strong>
+        <p>Supabase 프로젝트에 연결되어 실시간으로 예약 데이터를 불러옵니다. (Reservations 테이블)</p>
       </div>
-
     </section>
-
 
   </main>
-
 </div>
 
-
-
-<!-- ==========================================
-     상세보기 모달
-========================================== -->
-
-<div
-  id="detailModal"
-  class="modal-overlay"
->
-
+<!-- 상세보기 모달 -->
+<div id="detailModal" class="modal-overlay">
   <div class="modal-box">
-
     <div class="modal-header">
-
-      <strong>
-        예약 상세정보
-      </strong>
-
-      <button
-        id="closeModal"
-        class="modal-close"
-      >
-        ✕
-      </button>
-
+      <strong>예약 상세정보</strong>
+      <button id="closeModal" class="modal-close">✕</button>
     </div>
-
-
-    <div
-      id="modalBody"
-      class="modal-body"
-    ></div>
-
+    <div id="modalBody" class="modal-body"></div>
+    <div id="modalRecurringActions" class="modal-recurring-actions" style="display:none;">
+      <p id="modalRecurringInfo"></p>
+      <div class="modal-recurring-buttons">
+        <button id="deleteThisOnlyBtn" class="ghost-btn">이 날짜만 삭제</button>
+        <button id="deleteSeriesBtn" class="action-btn delete">전체 시리즈 삭제</button>
+      </div>
+    </div>
   </div>
-
 </div>
 
-
-
-<!-- ==========================================
-     예약 직접 추가 모달
-========================================== -->
-
-<div
-  id="addModal"
-  class="modal-overlay"
->
-
+<!-- 예약 추가 모달 -->
+<div id="addModal" class="modal-overlay">
   <div class="modal-box">
-
     <div class="modal-header">
-
-      <strong>
-        예약 직접 추가
-      </strong>
-
-      <button
-        id="closeAddModal"
-        class="modal-close"
-      >
-        ✕
-      </button>
-
+      <strong>예약 직접 추가</strong>
+      <button id="closeAddModal" class="modal-close">✕</button>
     </div>
 
-
-
-    <form
-      id="addForm"
-      class="add-form"
-    >
-
-
-      <!-- =========================
-           센터 / 공간
-      ========================== -->
-
+    <form id="addForm" class="add-form">
       <div class="form-row">
-
-
         <div class="form-field">
-
-          <label>
-            센터<em>*</em>
-          </label>
-
-          <select
-            id="addCenter"
-            required
-          >
-
-            <option value="">
-              선택해주세요
-            </option>
-
+          <label>센터<em>*</em></label>
+          <select id="addCenter" required>
+            <option value="">선택해주세요</option>
           </select>
-
         </div>
-
-
-
         <div class="form-field">
-
-          <label>
-            공간<em>*</em>
-          </label>
-
-          <select
-            id="addRoom"
-            required
-          >
-
-            <option value="">
-              센터를 먼저 선택해주세요
-            </option>
-
+          <label>공간<em>*</em></label>
+          <select id="addRoom" required>
+            <option value="">센터를 먼저 선택해주세요</option>
           </select>
-
         </div>
-
-
       </div>
-
-
-
-      <!-- =========================
-           예약 유형
-      ========================== -->
-
-      <div class="form-field full">
-
-        <label>
-          예약 유형<em>*</em>
-        </label>
-
-
-        <div class="reservation-type-options">
-
-
-          <label class="reservation-type-option">
-
-            <input
-              type="radio"
-              name="adminReservationType"
-              value="single"
-              checked
-            >
-
-            <span>
-              일회성
-            </span>
-
-          </label>
-
-
-
-          <label class="reservation-type-option">
-
-            <input
-              type="radio"
-              name="adminReservationType"
-              value="recurring"
-            >
-
-            <span>
-              고정
-            </span>
-
-          </label>
-
-
-        </div>
-
-      </div>
-
-
-
-      <!-- =========================
-           날짜 선택
-      ========================== -->
-
-      <div
-        id="singleDateGroup"
-        class="form-field full"
-      >
-
-        <label>
-          예약 날짜<em>*</em>
-        </label>
-
-
-        <div class="date-multi-box">
-
-
-          <div class="date-multi-header">
-
-            <span>
-              여러 날짜를 선택할 수 있습니다.
-            </span>
-
-            <button
-              type="button"
-              id="clearSelectedDates"
-              class="small-clear-btn"
-            >
-              전체 해제
-            </button>
-
-          </div>
-
-
-          <input
-            type="date"
-            id="addDatePicker"
-          >
-
-
-          <div
-            id="selectedDates"
-            class="selected-dates"
-          >
-
-            <span class="selected-date-empty">
-              선택된 날짜가 없습니다.
-            </span>
-
-          </div>
-
-
-          <!-- 실제 JS에서 선택 날짜들을 관리 -->
-          <input
-            type="hidden"
-            id="addDate"
-          >
-
-        </div>
-
-      </div>
-
-
-
-      <!-- =========================
-           고정 예약
-      ========================== -->
-
-      <div
-        id="recurringOptions"
-        class="recurring-options-admin"
-        style="display:none;"
-      >
-
-
-        <!-- 시작 날짜 -->
-
-        <div class="form-field">
-
-          <label>
-            시작 날짜<em>*</em>
-          </label>
-
-          <input
-            type="date"
-            id="adminStartDate"
-          >
-
-        </div>
-
-
-
-        <!-- 반복 요일 -->
-
-        <div
-          class="form-field"
-          id="adminRecurringDaysGroup"
-        >
-
-          <label>
-            반복 요일<em>*</em>
-          </label>
-
-
-          <div
-            class="weekday-selector"
-            id="adminRecurringDays"
-          >
-
-
-            <button
-              type="button"
-              data-day="1"
-            >
-              월
-            </button>
-
-
-            <button
-              type="button"
-              data-day="2"
-            >
-              화
-            </button>
-
-
-            <button
-              type="button"
-              data-day="3"
-            >
-              수
-            </button>
-
-
-            <button
-              type="button"
-              data-day="4"
-            >
-              목
-            </button>
-
-
-            <button
-              type="button"
-              data-day="5"
-            >
-              금
-            </button>
-
-
-            <button
-              type="button"
-              data-day="6"
-            >
-              토
-            </button>
-
-
-            <button
-              type="button"
-              data-day="0"
-            >
-              일
-            </button>
-
-
-          </div>
-
-
-          <small class="field-help">
-            여러 요일을 동시에 선택할 수 있습니다.
-          </small>
-
-        </div>
-
-
-
-        <!-- 고정 기간 -->
-
-        <div
-          class="form-field"
-          id="adminRecurringMonthsGroup"
-        >
-
-          <label>
-            고정 기간<em>*</em>
-          </label>
-
-
-          <select
-            id="adminRecurringMonths"
-          >
-
-            <option value="1">
-              1개월
-            </option>
-
-            <option value="2">
-              2개월
-            </option>
-
-            <option
-              value="3"
-              selected
-            >
-              3개월
-            </option>
-
-            <option value="4">
-              4개월
-            </option>
-
-            <option value="5">
-              5개월
-            </option>
-
-            <option value="6">
-              6개월
-            </option>
-
-            <option value="12">
-              12개월
-            </option>
-
-          </select>
-
-        </div>
-
-
-      </div>
-
-
-
-      <!-- =========================
-           인원
-      ========================== -->
 
       <div class="form-row">
-
-
         <div class="form-field">
-
-          <label>
-            인원<em>*</em>
-          </label>
-
-          <input
-            type="number"
-            id="addPeople"
-            min="1"
-            value="2"
-            required
-          >
-
+          <label>날짜<em>*</em></label>
+          <input type="date" id="addDate" required>
         </div>
-
-
         <div class="form-field">
-
-          <label>
-            시작시간<em>*</em>
-          </label>
-
-          <input
-            type="time"
-            id="addStartTime"
-            step="1800"
-            required
-          >
-
+          <label>인원<em>*</em></label>
+          <input type="number" id="addPeople" min="1" value="2" required>
         </div>
-
-
       </div>
 
-
-
-      <!-- =========================
-           종료시간
-      ========================== -->
-
       <div class="form-row">
-
         <div class="form-field">
-
-          <label>
-            종료시간<em>*</em>
-          </label>
-
-          <input
-            type="time"
-            id="addEndTime"
-            step="1800"
-            required
-          >
-
+          <label>시작시간<em>*</em></label>
+          <input type="time" id="addStartTime" step="1800" required>
         </div>
-
-
         <div class="form-field">
-
-          <label>
-            예약자<em>*</em>
-          </label>
-
-          <input
-            type="text"
-            id="addUserName"
-            placeholder="이름"
-            required
-          >
-
+          <label>종료시간<em>*</em></label>
+          <input type="time" id="addEndTime" step="1800" required>
         </div>
-
       </div>
 
-
-
-      <!-- =========================
-           부서 / 센터(지역)
-      ========================== -->
-
       <div class="form-row">
-
-
         <div class="form-field">
-
-          <label>
-            부서<em>*</em>
-          </label>
-
-          <input
-            type="text"
-            id="addDepartment"
-            placeholder="부서명"
-            required
-          >
-
+          <label>예약자<em>*</em></label>
+          <input type="text" id="addUserName" placeholder="이름" required>
         </div>
-
-
-
         <div class="form-field">
-
-          <label>
-            센터(지역)<em>*</em>
-          </label>
-
-          <input
-            type="text"
-            id="addRegion"
-            placeholder="센터(지역)명"
-            required
-          >
-
+          <label>부서<em>*</em></label>
+          <input type="text" id="addDepartment" placeholder="부서명" required>
         </div>
-
-
       </div>
 
-
-
-      <!-- =========================
-           연락처
-      ========================== -->
-
       <div class="form-row">
-
         <div class="form-field full">
-
-          <label>
-            연락처<em>*</em>
-          </label>
-
-          <input
-            type="tel"
-            id="addPhone"
-            placeholder="010-0000-0000"
-            required
-          >
-
+          <label>연락처<em>*</em></label>
+          <input type="tel" id="addPhone" placeholder="010-0000-0000" required>
         </div>
-
       </div>
-
-
-
-      <!-- =========================
-           목적
-      ========================== -->
 
       <div class="form-row">
-
         <div class="form-field full">
-
-          <label>
-            목적<em>*</em>
-          </label>
-
-          <textarea
-            id="addPurpose"
-            rows="3"
-            placeholder="사용 목적"
-            required
-          ></textarea>
-
+          <label>목적<em>*</em></label>
+          <textarea id="addPurpose" rows="3" placeholder="사용 목적" required></textarea>
         </div>
-
       </div>
-
-
-
-      <!-- =========================
-           선택 요약
-      ========================== -->
-
-      <div
-        id="adminReservationSummary"
-        class="admin-reservation-summary"
-      >
-
-        <span class="summary-title">
-          예약 요약
-        </span>
-
-
-        <div id="adminReservationSummaryText">
-          날짜와 예약 정보를 선택해주세요.
-        </div>
-
-      </div>
-
-
-
-      <!-- =========================
-           버튼
-      ========================== -->
 
       <div class="form-actions">
-
-
-        <button
-          type="button"
-          id="cancelAddBtn"
-          class="filter-reset"
-        >
-          취소
-        </button>
-
-
-        <button
-          type="submit"
-          id="submitAddBtn"
-          class="filter-search"
-        >
-          추가하기
-        </button>
-
-
+        <button type="button" id="cancelAddBtn" class="filter-reset">취소</button>
+        <button type="submit" id="submitAddBtn" class="filter-search">추가하기</button>
       </div>
-
-
     </form>
-
   </div>
-
 </div>
 
-
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="admin.js"></script>
-
 </body>
-
 </html>

@@ -27,13 +27,13 @@ const supabaseClient =
 
 const centers = {
 
-  "서교1센터": {
+  "큰 서교센터": {
     capacity: 50,
     open: "06:00",
     close: "24:00"
   },
 
-  "서교2센터": {
+  "작은 서교센터": {
     capacity: 55,
     open: "06:00",
     close: "24:00"
@@ -56,14 +56,14 @@ const centers = {
 
 const roomsByCenter = {
 
-  "서교1센터": [
+  "큰 서교센터": [
     "강의실1",
     "강의실2",
     "상담실1",
     "상담실2"
   ],
 
-  "서교2센터": [
+  "작은 서교센터": [
     "강의실",
     "상담실"
   ],

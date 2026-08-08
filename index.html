@@ -27,7 +27,7 @@
         <h1>공간 예약</h1>
         <p>원하는 공간과 시간을 선택해주세요.</p>
       </div>
-      <div class="hero-photo" style="background-image: url('assets.png');"></div>
+      <div class="hero-photo" style="background-image: url('assets/hero-lobby.png');"></div>
     </div>
 
     <!-- 센터 -->
@@ -39,7 +39,7 @@
     <div class="center-select-grid">
 
       <button class="center-option"
-        data-center="큰 서교센터"
+        data-center="서교1센터"
         data-capacity="50">
         <span class="option-icon">
           <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -50,12 +50,12 @@
             <path d="M3 21h18" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/>
           </svg>
         </span>
-        <strong>큰 서교센터</strong>
+        <strong>서교1센터</strong>
         <span>최대 50명</span>
       </button>
 
       <button class="center-option"
-        data-center="작은 서교센터"
+        data-center="서교2센터"
         data-capacity="55">
         <span class="option-icon">
           <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -66,13 +66,13 @@
             <path d="M3 21h18" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/>
           </svg>
         </span>
-        <strong>작은 서교센터</strong>
+        <strong>서교2센터</strong>
         <span>최대 55명</span>
       </button>
 
       <button class="center-option"
         data-center="명동센터"
-        data-capacity="80">
+        data-capacity="100">
         <span class="option-icon">
           <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
             <path d="M4 21V5a1 1 0 0 1 1-1h6a1 1 0 0 1 1 1v16" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/>
@@ -83,7 +83,7 @@
           </svg>
         </span>
         <strong>명동센터</strong>
-        <span>최대 80명</span>
+        <span>최대 100명</span>
       </button>
 
       <button class="center-option"
@@ -203,6 +203,12 @@
              class="calendar-days"></div>
 
       </div>
+
+      <p class="calendar-hint">
+        💡 일회성 예약은 여러 날짜를 한 번에 선택할 수 있어요. (같은 시간으로 각 날짜에 예약돼요)
+      </p>
+
+      <div id="selectedDatesChips" class="selected-dates-chips"></div>
 
     </div>
 
@@ -397,8 +403,19 @@
           <option value="1">1개월</option>
           <option value="3">3개월</option>
           <option value="6">6개월</option>
+          <option value="custom">직접입력</option>
 
         </select>
+
+        <input
+          type="number"
+          id="recurringMonthsCustom"
+          class="recurring-months-custom"
+          min="1"
+          max="24"
+          placeholder="개월 수 입력 (예: 4)"
+          style="display:none;"
+        >
 
         <p>
           선택한 날짜의 요일을 기준으로 매주 같은 요일에 예약됩니다.
@@ -556,20 +573,7 @@
 
       </div>
 
-      <div class="input-group">
 
-        <label>
-          센터(지역)<em>*</em>
-        </label>
-
-        <input
-          id="region"
-          type="text"
-          placeholder="센터(지역)명을 입력해주세요."
-        >
-
-      </div>
-      
       <div class="input-group">
 
         <label>
@@ -690,11 +694,6 @@
           <strong id="confirmDepartment"></strong>
         </div>
 
-        <div class="confirm-row">
-          <span>센터(지역)</span>
-          <strong id="confirmRegion"></strong>
-        </div>
-        
         <div class="confirm-row">
           <span>연락처</span>
           <strong id="confirmPhone"></strong>

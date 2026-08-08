@@ -14,13 +14,13 @@ const supabaseClient = window.supabase.createClient(
 // ==========================================
 
 const centers = {
-  "큰 서교센터": {
+  "서교1센터": {
     capacity: 50,
     open: "06:00",
     close: "24:00"
   },
 
-  "작은 서교센터": {
+  "서교2센터": {
     capacity: 55,
     open: "06:00",
     close: "24:00"
@@ -46,14 +46,14 @@ const centers = {
 
 const roomsByCenter = {
 
-  "큰 서교센터": [
-    "강의실1(좌)",
-    "강의실2(우)",
+  "서교1센터": [
+    "강의실1",
+    "강의실2",
     "상담실1",
     "상담실2"
   ],
 
-  "작은 서교센터": [
+  "서교2센터": [
     "강의실",
     "상담실"
   ],
@@ -83,6 +83,7 @@ const reservation = {
   room: "",
 
   date: "",
+  dates: [], // 여러 날짜 선택 (일회성 예약 다중 선택용)
 
   startTime: "",
   endTime: "",
@@ -91,7 +92,6 @@ const reservation = {
 
   userName: "",
   department: "",
-  region: "",
   phone: "",
   purpose: "",
 
@@ -497,7 +497,7 @@ function renderCalendar() {
 
 
     if (
-      reservation.date === dateString
+      reservation.dates.includes(dateString)
     ) {
 
       button.classList.add("selected");
@@ -521,16 +521,38 @@ function renderCalendar() {
       "click",
       async () => {
 
+        if (reservation.isRecurring) {
+
+          // 고정 사용: 시작 날짜 하나만 선택 (클릭할 때마다 교체)
+          reservation.dates = [dateString];
+
+        } else {
+
+          // 일회성: 여러 날짜를 토글 방식으로 선택
+          const index =
+            reservation.dates.indexOf(dateString);
+
+          if (index === -1) {
+
+            reservation.dates.push(dateString);
+
+            reservation.dates.sort();
+
+          } else {
+
+            reservation.dates.splice(index, 1);
+
+          }
+
+        }
+
         reservation.date =
-          dateString;
+          reservation.dates[0] || "";
 
         reservation.startTime = "";
         reservation.endTime = "";
 
-        document.getElementById(
-          "quickDate"
-        ).textContent =
-          `${year}년 ${month + 1}월 ${day}일`;
+        updateSelectedDatesUI();
 
         renderCalendar();
 
@@ -549,6 +571,111 @@ function renderCalendar() {
     calendarDays.appendChild(button);
 
   }
+
+}
+
+
+// ==========================================
+// 선택된 날짜 표시 (칩)
+// ==========================================
+
+function updateSelectedDatesUI() {
+
+  const wrap =
+    document.getElementById("selectedDatesChips");
+
+  if (!wrap) return;
+
+  wrap.innerHTML = "";
+
+  if (reservation.dates.length === 0) {
+
+    wrap.innerHTML =
+      `<span class="chips-empty">선택된 날짜가 없습니다.</span>`;
+
+  } else {
+
+    reservation.dates.forEach(dateString => {
+
+      const chip =
+        document.createElement("span");
+
+      chip.className = "selected-date-chip";
+
+      const [y, m, d] =
+        dateString.split("-");
+
+      chip.innerHTML =
+        `${Number(m)}.${Number(d)}` +
+        (reservation.isRecurring
+          ? ""
+          : `<span data-date="${dateString}">×</span>`);
+
+      wrap.appendChild(chip);
+
+    });
+
+  }
+
+
+  // 빠른 요약(quickDate) 갱신
+  const quickDate =
+    document.getElementById("quickDate");
+
+  if (reservation.dates.length === 0) {
+
+    quickDate.textContent = "선택하기";
+
+  } else if (reservation.dates.length === 1) {
+
+    const [y, m, d] =
+      reservation.dates[0].split("-");
+
+    quickDate.textContent =
+      `${Number(y)}년 ${Number(m)}월 ${Number(d)}일`;
+
+  } else {
+
+    const [y, m, d] =
+      reservation.dates[0].split("-");
+
+    quickDate.textContent =
+      `${Number(m)}월 ${Number(d)}일 외 ${reservation.dates.length - 1}일`;
+
+  }
+
+
+  // 칩의 × 클릭하면 그 날짜만 선택 해제
+  wrap.querySelectorAll("[data-date]").forEach(el => {
+
+    el.addEventListener("click", async () => {
+
+      const target = el.dataset.date;
+
+      reservation.dates =
+        reservation.dates.filter(d => d !== target);
+
+      reservation.date =
+        reservation.dates[0] || "";
+
+      reservation.startTime = "";
+      reservation.endTime = "";
+
+      updateSelectedDatesUI();
+
+      renderCalendar();
+
+      await loadBookedReservations();
+
+      updateDuration();
+
+      updateQuickTime();
+
+      validateReservation();
+
+    });
+
+  });
 
 }
 
@@ -733,7 +860,7 @@ async function loadBookedReservations() {
 
   if (
     !reservation.center ||
-    !reservation.date ||
+    reservation.dates.length === 0 ||
     !reservation.room
   ) {
 
@@ -757,9 +884,9 @@ async function loadBookedReservations() {
         "center",
         reservation.center
       )
-      .eq(
+      .in(
         "date",
-        reservation.date
+        reservation.dates
       )
       .eq(
         "room",
@@ -1662,6 +1789,20 @@ document
         reservation.isRecurring =
           recurring;
 
+        // 고정 사용으로 바꾸면 시작 날짜 1개만 남기고 정리
+        if (recurring && reservation.dates.length > 1) {
+
+          reservation.dates =
+            [reservation.dates[0]];
+
+          reservation.date =
+            reservation.dates[0];
+
+          renderCalendar();
+          updateSelectedDatesUI();
+
+        }
+
 
         document.getElementById(
           "recurringOptions"
@@ -1682,8 +1823,41 @@ document.getElementById(
   "change",
   event => {
 
-    reservation.recurringMonths =
-      Number(event.target.value);
+    const customInput =
+      document.getElementById(
+        "recurringMonthsCustom"
+      );
+
+    if (event.target.value === "custom") {
+
+      customInput.style.display = "block";
+
+      reservation.recurringMonths =
+        Number(customInput.value) || 1;
+
+    } else {
+
+      customInput.style.display = "none";
+
+      reservation.recurringMonths =
+        Number(event.target.value);
+
+    }
+
+  }
+);
+
+
+document.getElementById(
+  "recurringMonthsCustom"
+).addEventListener(
+  "input",
+  event => {
+
+    const value =
+      Math.max(1, Math.min(24, Number(event.target.value) || 1));
+
+    reservation.recurringMonths = value;
 
   }
 );
@@ -1815,7 +1989,7 @@ function validateReservation() {
   const complete =
     reservation.center &&
     reservation.room &&
-    reservation.date &&
+    reservation.dates.length > 0 &&
     reservation.startTime &&
     reservation.endTime &&
     reservation.people > 0;
@@ -1863,11 +2037,6 @@ document.getElementById(
         "department"
       ).value.trim();
 
-    const region =
-      document.getElementById(
-        "region"
-      ).value.trim();
-
     const phone =
       document.getElementById(
         "phone"
@@ -1900,15 +2069,6 @@ document.getElementById(
 
     }
 
-    if (!region) {
-
-      alert(
-        "센터(지역)을 입력해주세요."
-      );
-
-      return;
-
-    }
 
     if (!phone) {
 
@@ -1937,9 +2097,6 @@ document.getElementById(
 
     reservation.department =
       department;
-
-    reservation.region =
-      region;
 
     reservation.phone =
       phone;
@@ -1977,9 +2134,9 @@ function updateConfirmation() {
   document.getElementById(
     "confirmDate"
   ).textContent =
-    formatDate(
-      reservation.date
-    );
+    reservation.isRecurring || reservation.dates.length <= 1
+      ? formatDate(reservation.date)
+      : `${formatDate(reservation.dates[0])} 외 ${reservation.dates.length - 1}일`;
 
 
   document.getElementById(
@@ -2013,10 +2170,6 @@ function updateConfirmation() {
   ).textContent =
     reservation.department;
 
-  document.getElementById(
-    "confirmRegion"
-  ).textContent =
-    reservation.region;
 
   document.getElementById(
     "confirmPhone"
@@ -2092,8 +2245,9 @@ function getRecurringDates() {
     !reservation.date
   ) {
 
+    // 일회성: 선택된 모든 날짜를 그대로 반환 (다중 선택)
     return [
-      reservation.date
+      ...reservation.dates
     ];
 
   }
@@ -2217,9 +2371,6 @@ document.getElementById(
           department:
             reservation.department,
 
-          region:
-            reservation.region,
-
           phone:
             reservation.phone,
 
@@ -2290,6 +2441,11 @@ document.getElementById(
           : "";
 
 
+      const dateSummary =
+        reservation.isRecurring || reservation.dates.length <= 1
+          ? formatDate(reservation.date)
+          : `${formatDate(reservation.dates[0])} 외 ${reservation.dates.length - 1}일 (총 ${reservation.dates.length}건)`;
+
       const summary = `
 
         <strong>
@@ -2300,7 +2456,7 @@ document.getElementById(
 
         <br>
 
-        ${formatDate(reservation.date)}
+        ${dateSummary}
 
         <br>
 
@@ -2411,6 +2567,8 @@ document.getElementById(
 updatePeople();
 
 renderCalendar();
+
+updateSelectedDatesUI();
 
 renderTimeSlots();
 

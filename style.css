@@ -7,7 +7,7 @@
 :root {
   --color-cream-light: #FFF7E6;
   --color-cream-soft: #FFEFC2;
-  --color-accent: #FFD86B;  
+  --color-accent: #FFD86B;
   --color-gray: #F5F5F5;
   --color-dark: #333333;
 }
@@ -616,6 +616,50 @@ button {
   transform: translateX(-50%);
 }
 
+.calendar-hint {
+  margin-top: 10px;
+  font-size: 11px;
+  color: #999;
+}
+
+.selected-dates-chips {
+  margin-top: 10px;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 7px;
+  min-height: 24px;
+}
+
+.chips-empty {
+  color: #bbb;
+  font-size: 12px;
+}
+
+.selected-date-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  height: 28px;
+  padding: 0 10px;
+  border: 1px solid #f0d889;
+  border-radius: 7px;
+  background: var(--color-cream-light, #fff9e0);
+  color: #7b5c00;
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.selected-date-chip span {
+  cursor: pointer;
+  color: #a68b00;
+  font-size: 14px;
+  line-height: 1;
+}
+
+.selected-date-chip span:hover {
+  color: #c0392b;
+}
+
 
 /* =========================
    TIME
@@ -836,6 +880,22 @@ button {
   background: white;
   border-radius: 7px;
   padding: 0 12px;
+}
+
+.recurring-months-custom {
+  width: 100%;
+  height: 45px;
+  border: 1px solid #ddd;
+  background: white;
+  border-radius: 7px;
+  padding: 0 12px;
+  margin-top: 8px;
+  font-size: 13px;
+}
+
+.recurring-months-custom:focus {
+  outline: none;
+  border-color: var(--color-accent, #FFD86B);
 }
 
 .recurring-options p {

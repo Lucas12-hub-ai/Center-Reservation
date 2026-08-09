@@ -550,6 +550,50 @@ button {
   font-size: 20px;
 }
 
+.calendar-hint {
+  margin-top: 10px;
+  font-size: 11px;
+  color: #999;
+}
+
+.selected-dates-chips {
+  margin-top: 10px;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 7px;
+  min-height: 24px;
+}
+
+.chips-empty {
+  color: #bbb;
+  font-size: 12px;
+}
+
+.selected-date-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  height: 28px;
+  padding: 0 10px;
+  border: 1px solid #f0d889;
+  border-radius: 7px;
+  background: #fff9e0;
+  color: #7b5c00;
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.selected-date-chip span {
+  cursor: pointer;
+  color: #a68b00;
+  font-size: 14px;
+  line-height: 1;
+}
+
+.selected-date-chip span:hover {
+  color: #c0392b;
+}
+
 .weekdays,
 .calendar-days {
   display: grid;

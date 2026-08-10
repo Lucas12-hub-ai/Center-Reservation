@@ -14,13 +14,13 @@ const supabaseClient = window.supabase.createClient(
 // ==========================================
 
 const centers = {
-  "큰 서교센터": {
+  "서교1센터": {
     capacity: 50,
     open: "06:00",
     close: "24:00"
   },
 
-  "작은 서교센터": {
+  "서교2센터": {
     capacity: 55,
     open: "06:00",
     close: "24:00"
@@ -46,14 +46,14 @@ const centers = {
 
 const roomsByCenter = {
 
-  "큰 서교센터": [
-    "강의실1(좌)",
-    "강의실2(우)",
+  "서교1센터": [
+    "강의실1",
+    "강의실2",
     "상담실1",
     "상담실2"
   ],
 
-  "작은 서교센터": [
+  "서교2센터": [
     "강의실",
     "상담실"
   ],
@@ -81,8 +81,10 @@ const reservation = {
   center: "",
   capacity: 0,
   room: "",
+  rooms: [], // 공간 다중 선택 (강의실+상담실 동시 선택용)
 
   date: "",
+  dates: [], // 여러 날짜 선택 (일회성 예약 다중 선택용)
 
   startTime: "",
   endTime: "",
@@ -91,14 +93,14 @@ const reservation = {
 
   userName: "",
   department: "",
-  region: "",
   phone: "",
   purpose: "",
 
   // 반복 예약
   isRecurring: false,
   recurringMonths: 1,
-  recurringGroupId: ""
+  recurringGroupId: "",
+  recurringWeekdays: [] // 고정예약 반복 요일 다중선택 (예: [2,4,5] = 화목금)
 
 };
 
@@ -260,6 +262,7 @@ centerOptions.forEach(option => {
       Number(option.dataset.capacity);
 
     reservation.room = "";
+    reservation.rooms = [];
 
     reservation.startTime = "";
     reservation.endTime = "";
@@ -350,7 +353,7 @@ function renderRooms() {
       `<span class="option-icon small">${iconSvg}</span><span class="room-option-label">${room}</span>`;
 
 
-    if (reservation.room === room) {
+    if (reservation.rooms.includes(room)) {
 
       button.classList.add("selected");
 
@@ -361,14 +364,34 @@ function renderRooms() {
       "click",
       async () => {
 
-        reservation.room = room;
+        const index =
+          reservation.rooms.indexOf(room);
+
+        if (index === -1) {
+
+          reservation.rooms.push(room);
+
+        } else {
+
+          reservation.rooms.splice(index, 1);
+
+        }
+
+        // 기존 코드와 호환을 위해 room(단일)은 첫번째 선택값으로 유지
+        reservation.room =
+          reservation.rooms[0] || "";
 
         reservation.startTime = "";
         reservation.endTime = "";
 
         document.getElementById(
           "quickRoom"
-        ).textContent = room;
+        ).textContent =
+          reservation.rooms.length === 0
+            ? "선택하기"
+            : reservation.rooms.length === 1
+              ? reservation.rooms[0]
+              : `${reservation.rooms[0]} 외 ${reservation.rooms.length - 1}개`;
 
         renderRooms();
 
@@ -497,7 +520,7 @@ function renderCalendar() {
 
 
     if (
-      reservation.date === dateString
+      reservation.dates.includes(dateString)
     ) {
 
       button.classList.add("selected");
@@ -521,16 +544,38 @@ function renderCalendar() {
       "click",
       async () => {
 
+        if (reservation.isRecurring) {
+
+          // 고정 사용: 시작 날짜 하나만 선택 (클릭할 때마다 교체)
+          reservation.dates = [dateString];
+
+        } else {
+
+          // 일회성: 여러 날짜를 토글 방식으로 선택
+          const index =
+            reservation.dates.indexOf(dateString);
+
+          if (index === -1) {
+
+            reservation.dates.push(dateString);
+
+            reservation.dates.sort();
+
+          } else {
+
+            reservation.dates.splice(index, 1);
+
+          }
+
+        }
+
         reservation.date =
-          dateString;
+          reservation.dates[0] || "";
 
         reservation.startTime = "";
         reservation.endTime = "";
 
-        document.getElementById(
-          "quickDate"
-        ).textContent =
-          `${year}년 ${month + 1}월 ${day}일`;
+        updateSelectedDatesUI();
 
         renderCalendar();
 
@@ -549,6 +594,111 @@ function renderCalendar() {
     calendarDays.appendChild(button);
 
   }
+
+}
+
+
+// ==========================================
+// 선택된 날짜 표시 (칩)
+// ==========================================
+
+function updateSelectedDatesUI() {
+
+  const wrap =
+    document.getElementById("selectedDatesChips");
+
+  if (!wrap) return;
+
+  wrap.innerHTML = "";
+
+  if (reservation.dates.length === 0) {
+
+    wrap.innerHTML =
+      `<span class="chips-empty">선택된 날짜가 없습니다.</span>`;
+
+  } else {
+
+    reservation.dates.forEach(dateString => {
+
+      const chip =
+        document.createElement("span");
+
+      chip.className = "selected-date-chip";
+
+      const [y, m, d] =
+        dateString.split("-");
+
+      chip.innerHTML =
+        `${Number(m)}.${Number(d)}` +
+        (reservation.isRecurring
+          ? ""
+          : `<span data-date="${dateString}">×</span>`);
+
+      wrap.appendChild(chip);
+
+    });
+
+  }
+
+
+  // 빠른 요약(quickDate) 갱신
+  const quickDate =
+    document.getElementById("quickDate");
+
+  if (reservation.dates.length === 0) {
+
+    quickDate.textContent = "선택하기";
+
+  } else if (reservation.dates.length === 1) {
+
+    const [y, m, d] =
+      reservation.dates[0].split("-");
+
+    quickDate.textContent =
+      `${Number(y)}년 ${Number(m)}월 ${Number(d)}일`;
+
+  } else {
+
+    const [y, m, d] =
+      reservation.dates[0].split("-");
+
+    quickDate.textContent =
+      `${Number(m)}월 ${Number(d)}일 외 ${reservation.dates.length - 1}일`;
+
+  }
+
+
+  // 칩의 × 클릭하면 그 날짜만 선택 해제
+  wrap.querySelectorAll("[data-date]").forEach(el => {
+
+    el.addEventListener("click", async () => {
+
+      const target = el.dataset.date;
+
+      reservation.dates =
+        reservation.dates.filter(d => d !== target);
+
+      reservation.date =
+        reservation.dates[0] || "";
+
+      reservation.startTime = "";
+      reservation.endTime = "";
+
+      updateSelectedDatesUI();
+
+      renderCalendar();
+
+      await loadBookedReservations();
+
+      updateDuration();
+
+      updateQuickTime();
+
+      validateReservation();
+
+    });
+
+  });
 
 }
 
@@ -733,8 +883,8 @@ async function loadBookedReservations() {
 
   if (
     !reservation.center ||
-    !reservation.date ||
-    !reservation.room
+    reservation.dates.length === 0 ||
+    reservation.rooms.length === 0
   ) {
 
     bookedReservations = [];
@@ -757,13 +907,13 @@ async function loadBookedReservations() {
         "center",
         reservation.center
       )
-      .eq(
+      .in(
         "date",
-        reservation.date
+        reservation.dates
       )
-      .eq(
+      .in(
         "room",
-        reservation.room
+        reservation.rooms
       );
 
 
@@ -1091,9 +1241,15 @@ document
 
         else {
 
+          // 이미 종료시간이 있으면 거기서부터 누적해서 더함
+          // (예: +1시간을 세 번 누르면 총 +3시간)
+          const base =
+            reservation.endTime ||
+            reservation.startTime;
+
           endTime =
             addMinutes(
-              reservation.startTime,
+              base,
               Number(duration)
             );
 
@@ -1662,6 +1818,20 @@ document
         reservation.isRecurring =
           recurring;
 
+        // 고정 사용으로 바꾸면 시작 날짜 1개만 남기고 정리
+        if (recurring && reservation.dates.length > 1) {
+
+          reservation.dates =
+            [reservation.dates[0]];
+
+          reservation.date =
+            reservation.dates[0];
+
+          renderCalendar();
+          updateSelectedDatesUI();
+
+        }
+
 
         document.getElementById(
           "recurringOptions"
@@ -1676,14 +1846,74 @@ document
   });
 
 
+// ==========================================
+// 고정예약 - 반복 요일 다중선택
+// ==========================================
+
+document
+  .querySelectorAll(
+    '#weekdayCheckboxes input[type="checkbox"]'
+  )
+  .forEach(checkbox => {
+
+    checkbox.addEventListener(
+      "change",
+      () => {
+
+        reservation.recurringWeekdays =
+          Array.from(
+            document.querySelectorAll(
+              '#weekdayCheckboxes input[type="checkbox"]:checked'
+            )
+          ).map(el => Number(el.value));
+
+      }
+    );
+
+  });
+
+
 document.getElementById(
   "recurringMonths"
 ).addEventListener(
   "change",
   event => {
 
-    reservation.recurringMonths =
-      Number(event.target.value);
+    const customInput =
+      document.getElementById(
+        "recurringMonthsCustom"
+      );
+
+    if (event.target.value === "custom") {
+
+      customInput.style.display = "block";
+
+      reservation.recurringMonths =
+        Number(customInput.value) || 1;
+
+    } else {
+
+      customInput.style.display = "none";
+
+      reservation.recurringMonths =
+        Number(event.target.value);
+
+    }
+
+  }
+);
+
+
+document.getElementById(
+  "recurringMonthsCustom"
+).addEventListener(
+  "input",
+  event => {
+
+    const value =
+      Math.max(1, Math.min(24, Number(event.target.value) || 1));
+
+    reservation.recurringMonths = value;
 
   }
 );
@@ -1814,8 +2044,8 @@ function validateReservation() {
 
   const complete =
     reservation.center &&
-    reservation.room &&
-    reservation.date &&
+    reservation.rooms.length > 0 &&
+    reservation.dates.length > 0 &&
     reservation.startTime &&
     reservation.endTime &&
     reservation.people > 0;
@@ -1863,11 +2093,6 @@ document.getElementById(
         "department"
       ).value.trim();
 
-    const region =
-      document.getElementById(
-        "region"
-      ).value.trim();
-
     const phone =
       document.getElementById(
         "phone"
@@ -1900,15 +2125,6 @@ document.getElementById(
 
     }
 
-    if (!region) {
-
-      alert(
-        "센터(지역)을 입력해주세요."
-      );
-
-      return;
-
-    }
 
     if (!phone) {
 
@@ -1937,9 +2153,6 @@ document.getElementById(
 
     reservation.department =
       department;
-
-    reservation.region =
-      region;
 
     reservation.phone =
       phone;
@@ -1971,15 +2184,15 @@ function updateConfirmation() {
   document.getElementById(
     "confirmRoom"
   ).textContent =
-    reservation.room;
+    reservation.rooms.join(" + ");
 
 
   document.getElementById(
     "confirmDate"
   ).textContent =
-    formatDate(
-      reservation.date
-    );
+    reservation.isRecurring || reservation.dates.length <= 1
+      ? formatDate(reservation.date)
+      : `${formatDate(reservation.dates[0])} 외 ${reservation.dates.length - 1}일`;
 
 
   document.getElementById(
@@ -2013,10 +2226,6 @@ function updateConfirmation() {
   ).textContent =
     reservation.department;
 
-  document.getElementById(
-    "confirmRegion"
-  ).textContent =
-    reservation.region;
 
   document.getElementById(
     "confirmPhone"
@@ -2092,8 +2301,9 @@ function getRecurringDates() {
     !reservation.date
   ) {
 
+    // 일회성: 선택된 모든 날짜를 그대로 반환 (다중 선택)
     return [
-      reservation.date
+      ...reservation.dates
     ];
 
   }
@@ -2115,8 +2325,11 @@ function getRecurringDates() {
   );
 
 
-  const targetDay =
-    start.getDay();
+  // 체크된 요일이 없으면, 시작일의 요일로 자동 반복
+  const targetDays =
+    reservation.recurringWeekdays.length > 0
+      ? reservation.recurringWeekdays
+      : [start.getDay()];
 
 
   const current =
@@ -2126,8 +2339,9 @@ function getRecurringDates() {
   while (current < end) {
 
     if (
-      current.getDay() ===
-      targetDay
+      targetDays.includes(
+        current.getDay()
+      )
     ) {
 
       dates.push(
@@ -2190,54 +2404,61 @@ document.getElementById(
         getRecurringDates();
 
 
-      const rows =
-        dates.map(date => ({
+      // 날짜 × 공간(여러 개 선택 가능) 조합으로 저장
+      const rows = [];
 
-          center:
-            reservation.center,
+      dates.forEach(date => {
 
-          room:
-            reservation.room,
+        reservation.rooms.forEach(room => {
 
-          date:
-            date,
+          rows.push({
 
-          start_time:
-            reservation.startTime,
+            center:
+              reservation.center,
 
-          end_time:
-            reservation.endTime,
+            room:
+              room,
 
-          people:
-            reservation.people,
+            date:
+              date,
 
-          user_name:
-            reservation.userName,
+            start_time:
+              reservation.startTime,
 
-          department:
-            reservation.department,
+            end_time:
+              reservation.endTime,
 
-          region:
-            reservation.region,
+            people:
+              reservation.people,
 
-          phone:
-            reservation.phone,
+            user_name:
+              reservation.userName,
 
-          purpose:
-            reservation.purpose,
+            department:
+              reservation.department,
 
-          is_recurring:
-            reservation.isRecurring,
+            phone:
+              reservation.phone,
 
-          recurring_months:
-            reservation.isRecurring
-              ? reservation.recurringMonths
-              : null,
+            purpose:
+              reservation.purpose,
 
-          recurring_group_id:
-            groupId
+            is_recurring:
+              reservation.isRecurring,
 
-        }));
+            recurring_months:
+              reservation.isRecurring
+                ? reservation.recurringMonths
+                : null,
+
+            recurring_group_id:
+              groupId
+
+          });
+
+        });
+
+      });
 
 
       const {
@@ -2290,6 +2511,11 @@ document.getElementById(
           : "";
 
 
+      const dateSummary =
+        reservation.isRecurring || reservation.dates.length <= 1
+          ? formatDate(reservation.date)
+          : `${formatDate(reservation.dates[0])} 외 ${reservation.dates.length - 1}일 (총 ${reservation.dates.length}건)`;
+
       const summary = `
 
         <strong>
@@ -2300,7 +2526,7 @@ document.getElementById(
 
         <br>
 
-        ${formatDate(reservation.date)}
+        ${dateSummary}
 
         <br>
 
@@ -2411,6 +2637,8 @@ document.getElementById(
 updatePeople();
 
 renderCalendar();
+
+updateSelectedDatesUI();
 
 renderTimeSlots();
 

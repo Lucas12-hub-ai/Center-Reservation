@@ -550,50 +550,6 @@ button {
   font-size: 20px;
 }
 
-.calendar-hint {
-  margin-top: 10px;
-  font-size: 11px;
-  color: #999;
-}
-
-.selected-dates-chips {
-  margin-top: 10px;
-  display: flex;
-  flex-wrap: wrap;
-  gap: 7px;
-  min-height: 24px;
-}
-
-.chips-empty {
-  color: #bbb;
-  font-size: 12px;
-}
-
-.selected-date-chip {
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  height: 28px;
-  padding: 0 10px;
-  border: 1px solid #f0d889;
-  border-radius: 7px;
-  background: #fff9e0;
-  color: #7b5c00;
-  font-size: 12px;
-  font-weight: 700;
-}
-
-.selected-date-chip span {
-  cursor: pointer;
-  color: #a68b00;
-  font-size: 14px;
-  line-height: 1;
-}
-
-.selected-date-chip span:hover {
-  color: #c0392b;
-}
-
 .weekdays,
 .calendar-days {
   display: grid;
@@ -924,6 +880,52 @@ button {
   background: white;
   border-radius: 7px;
   padding: 0 12px;
+}
+
+.recurring-months-label {
+  display: block;
+  margin-top: 16px;
+  margin-bottom: 8px;
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.weekday-checkboxes {
+  display: flex;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+
+.weekday-check {
+  position: relative;
+  cursor: pointer;
+}
+
+.weekday-check input {
+  position: absolute;
+  opacity: 0;
+  pointer-events: none;
+}
+
+.weekday-check span {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  border: 1px solid #ddd;
+  background: white;
+  font-size: 12px;
+  font-weight: 700;
+  color: #777;
+  transition: .15s;
+}
+
+.weekday-check input:checked + span {
+  background: var(--color-accent, #FFD86B);
+  border-color: var(--color-accent, #FFD86B);
+  color: #171717;
 }
 
 .recurring-months-custom {

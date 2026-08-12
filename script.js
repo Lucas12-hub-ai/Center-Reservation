@@ -124,6 +124,8 @@ const confirmPage =
 const completePage =
   document.getElementById("completePage");
 
+const myReservationPage =
+  document.getElementById("myReservationButton");
 
 function showPage(page) {
 
@@ -2495,6 +2497,9 @@ document.getElementById(
             purpose:
               reservation.purpose,
 
+            reservation_password:
+              reservation.reservationPassword,
+
             is_recurring:
               reservation.isRecurring,
 
@@ -2687,6 +2692,22 @@ document.getElementById(
   }
 );
 
+// ==========================================
+// 내 예약정보 확인
+// ==========================================
+
+document.getElementById(
+  "myReservationButton"
+).addEventListener(
+  "click",
+  () => {
+
+    showPage(
+      myReservationPage
+    );
+
+  }
+);
 
 // ==========================================
 // 초기 실행

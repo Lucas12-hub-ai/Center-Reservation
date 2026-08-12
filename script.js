@@ -97,6 +97,8 @@ const reservation = {
   phone: "",
   purpose: "",
 
+  reservationPassword: "",
+
   // 반복 예약
   isRecurring: false,
   recurringMonths: 1,
@@ -2109,6 +2111,10 @@ document.getElementById(
         "purpose"
       ).value.trim();
 
+    const reservationPassword =
+      document.getElementById(
+        "reservationPassword"
+      ).value.trim();
 
     if (!name) {
 
@@ -2162,6 +2168,25 @@ document.getElementById(
 
     }
 
+    if (!reservationPassword) {
+
+      alert(
+        "예약 비밀번호를 입력해주세요."
+      );
+
+      return;
+
+    }
+
+    if (reservationPassword.length < 4) {
+
+      alert(
+        "예약 비밀번호는 최소 4자리 이상이어야 합니다."
+      );
+
+      return;
+
+    }
 
     reservation.userName =
       name;
@@ -2178,7 +2203,9 @@ document.getElementById(
     reservation.purpose =
       purpose;
 
-
+    reservation.reservationPassword =
+      reservationPassword;
+      
     updateConfirmation();
 
     showPage(confirmPage);

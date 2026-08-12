@@ -93,6 +93,7 @@ const reservation = {
 
   userName: "",
   department: "",
+  region: "",
   phone: "",
   purpose: "",
 
@@ -2092,6 +2093,11 @@ document.getElementById(
       document.getElementById(
         "department"
       ).value.trim();
+    
+      const region =
+      document.getElementById(
+        "region"
+      ).value.trim();
 
     const phone =
       document.getElementById(
@@ -2125,6 +2131,15 @@ document.getElementById(
 
     }
 
+    if (!region) {
+
+      alert(
+        "지역을 입력해주세요."
+      );
+
+      return;
+
+    }
 
     if (!phone) {
 
@@ -2153,6 +2168,9 @@ document.getElementById(
 
     reservation.department =
       department;
+
+    reservation.region =
+      region;
 
     reservation.phone =
       phone;
@@ -2226,6 +2244,10 @@ function updateConfirmation() {
   ).textContent =
     reservation.department;
 
+  document.getElementById(
+    "confirmRegion"
+  ).textContent =
+    reservation.region;
 
   document.getElementById(
     "confirmPhone"
@@ -2436,6 +2458,9 @@ document.getElementById(
 
             department:
               reservation.department,
+            
+            region:
+              reservation.region,
 
             phone:
               reservation.phone,
@@ -2452,7 +2477,13 @@ document.getElementById(
                 : null,
 
             recurring_group_id:
-              groupId
+              groupId,
+            
+            recurring_weekdays:
+              reservation.isRecurring
+                ? reservation.recurringWeekdays
+                : null
+      
 
           });
 

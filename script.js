@@ -27,7 +27,7 @@ const centers = {
   },
 
   "명동센터": {
-    capacity: 100,
+    capacity: 70,
     open: "06:00",
     close: "24:00"
   },

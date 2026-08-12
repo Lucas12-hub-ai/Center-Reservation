@@ -47,8 +47,28 @@ button {
   color: var(--color-dark);
 }
 
+.header-right {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+#myReservationButton {
+  border: none;
+  background: transparent;
+  font-size: 16px;
+  font-weight: 600;
+  color: #a68b4a;
+  cursor: pointer;
+  padding: 8px 4px;
+}
+
+#myReservationButton:hover {
+  opacity: 0.7;
+}
+
 .header-title {
-  font-size: 14px;
+  font-size: 16px;
   color: #a68b4a;
 }
 

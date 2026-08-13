@@ -124,8 +124,13 @@ const confirmPage =
 const completePage =
   document.getElementById("completePage");
 
+// 20260813 1024 modified by backboneofhys
+// myReservationButton -> myReservationPage
+
 const myReservationPage =
-  document.getElementById("myReservationButton");
+  document.getElementById("myReservationPage");
+
+// end
 
 function showPage(page) {
 

@@ -2691,7 +2691,7 @@ document.getElementById(
   () => {
 
     showPage(
-      myReservationPage
+      ReservationPage
     );
 
   }

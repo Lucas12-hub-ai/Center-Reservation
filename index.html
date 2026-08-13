@@ -820,61 +820,58 @@
            class="page">
 
     <div class="page-heading">
-
       <span>MY RESERVATION</span>
-
       <h1>내 예약 정보 확인</h1>
-
       <p>예약자 이름과 예약 비밀번호를 입력해주세요.</p>
 
     </div>
 
     <div class="form-card">
 
-      <div class="input-group">
-
+      <div class="form-group">
         <label>
-          예약자 이름<em>*</em>
+          예약자 이름
         </label>
 
         <input
           id="myReservationName"
           type="text"
-          placeholder="이름을 입력해주세요."
+          required placeholder="이름을 입력해주세요."
         >
 
       </div>
       
-      <div class="input-group">
+      <div class="form-group">
         <label>
-          연락처<em>*</em>
+          연락처
         </label>
         <input
           id="myReservationPhone"
           type="tel"
-          placeholder="010-0000-0000"
+          required placeholder="010-0000-0000"
         >
       </div>
 
-      <div class="input-group">
+      <div class="form-group">
 
         <label>
-          예약 비밀번호<em>*</em>
+          예약 비밀번호
         </label>
 
         <input
           id="myReservationPassword"
           type="password"
-          placeholder="예약 비밀번호 4자리"
+          required placeholder="예약 비밀번호 4자리"
           maxlength="4"
           inputmode="numeric"
           pattern="[0-9]{4}"
         >
 
       </div>
+      <button type="submit" class="btn btn-primary">조회하기
+      </button>
 
       <div class="navigation">
-
         <button
           id="backToHomeFromMyReservation"
           class="sub-button">
@@ -891,10 +888,14 @@
 
     </div>
 
-    <!-- 조회 결과 -->
-    <div id="myReservationResult" class="my-reservation-result"></div>
-
   </section>
+  
+  <!-- 조회 결과 영역 (초기 숨김) -->
+  <div id="resultSection" style="display:none; margin-top: 30px;">
+    <h2>예약 조회 결과</h2>
+    <div id="reservationDetails">
+    </div>
+  </div>
 </main>
 
 

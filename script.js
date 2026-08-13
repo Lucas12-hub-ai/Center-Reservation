@@ -2703,6 +2703,23 @@ document.getElementById(
   () => {
 
     showPage(
+      reservationPage
+    );
+
+  }
+);
+
+// ==========================================
+// 홈으로 돌아가기
+// ==========================================
+
+document.getElementById(
+  "backToHomeFromMyReservation"
+).addEventListener(
+  "click",
+  () => {
+
+    showPage(
       myReservationPage
     );
 

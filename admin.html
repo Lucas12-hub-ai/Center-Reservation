@@ -159,6 +159,7 @@
                 <th>인원</th>
                 <th>예약자</th>
                 <th>부서</th>
+                <th>센터(지역)</th>
                 <th>연락처</th>
                 <th>목적</th>
                 <th>신청일시</th>
@@ -196,7 +197,7 @@
             <thead>
               <tr>
                 <th>번호</th><th>시간</th><th>센터</th><th>공간</th><th>인원</th>
-                <th>예약자</th><th>부서</th><th>연락처</th><th>목적</th><th>관리</th>
+                <th>예약자</th><th>부서</th><th>센터(지역)</th><th>연락처</th><th>목적</th><th>관리</th>
               </tr>
             </thead>
             <tbody id="todayTableBody"></tbody>
@@ -390,6 +391,11 @@
           <label>부서<em>*</em></label>
           <input type="text" id="addDepartment" placeholder="부서명" required>
         </div>
+        <div class="form-field">
+          <label>센터(지역)<em>*</em></label>
+          <input type="text" id="addRegion" placeholder="센터(지역)명" required>
+        </div>
+      </div>
       </div>
 
       <div class="form-row">

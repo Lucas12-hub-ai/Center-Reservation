@@ -124,8 +124,13 @@ const confirmPage =
 const completePage =
   document.getElementById("completePage");
 
+// 20260813 1024 modified by backboneofhys
+// myReservationButton -> myReservationPage
+
 const myReservationPage =
-  document.getElementById("myReservationButton");
+  document.getElementById("myReservationPage");
+
+// end
 
 function showPage(page) {
 
@@ -2704,6 +2709,23 @@ document.getElementById(
 
     showPage(
       myReservationPage
+    );
+
+  }
+);
+
+// ==========================================
+// 홈으로 돌아가기
+// ==========================================
+
+document.getElementById(
+  "backToHomeFromMyReservation"
+).addEventListener(
+  "click",
+  () => {
+
+    showPage(
+      reservationPage
     );
 
   }

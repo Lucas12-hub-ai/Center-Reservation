@@ -12,7 +12,7 @@ const SUPABASE_PUBLISHABLE_KEY = "sb_publishable_v8DnBpF4GX4oABnGOfpRxA_QH6ruB5Q
 const centers = ["큰 서교센터", "작은 서교센터", "명동센터", "합정역센터"];
 
 const roomsByCenter = {
-  "큰 서교센터": ["강의실1", "강의실2", "상담실1", "상담실2"],
+  "큰 서교센터": ["강의실1(좌)", "강의실2(와)", "상담실1", "상담실2"],
   "작은 서교센터": ["강의실", "상담실"],
   "명동센터": ["강의실", "상담실1", "상담실2"],
   "합정역센터": ["강의실", "상담실"]
@@ -241,6 +241,7 @@ function renderTable() {
       <td>${r.people || ""}</td>
       <td>${r.user_name || ""}</td>
       <td>${r.department || ""}</td>
+      <td>${r.region || ""}</td>
       <td>${r.phone || ""}</td>
       <td>${r.purpose || ""}</td>
       <td>${formatDateTime(r.created_at)}</td>
@@ -253,12 +254,22 @@ function renderTable() {
   });
 
   tbody.querySelectorAll(".action-btn.detail").forEach(btn => {
-    btn.addEventListener("click", () => openDetail(btn.dataset.id));
-  });
+  btn.addEventListener("click", () => {
+    const reservation = allReservations.find(
+      item => String(item.id) === String(btn.dataset.id)
+    );
 
-  tbody.querySelectorAll(".action-btn.delete").forEach(btn => {
-    btn.addEventListener("click", () => deleteReservation(btn.dataset.id));
+    if (reservation) {
+      renderDetailView(reservation);
+    }
   });
+});
+
+tbody.querySelectorAll(".action-btn.delete").forEach(btn => {
+  btn.addEventListener("click", () => {
+    deleteReservation(btn.dataset.id);
+  });
+});
 
   renderPagination();
 }
@@ -296,10 +307,7 @@ function renderPagination() {
 // 상세보기 모달
 // ==========================================
 
-function openDetail(id) {
-  const r = allReservations.find(item => String(item.id) === String(id));
-  if (!r) return;
-
+function renderDetailView(r) {
   const modalBody = document.getElementById("modalBody");
   modalBody.innerHTML = `
     <div class="modal-row"><span>센터</span><strong>${r.center || ""}</strong></div>
@@ -310,10 +318,16 @@ function openDetail(id) {
     <div class="modal-row"><span>인원</span><strong>${r.people}명</strong></div>
     <div class="modal-row"><span>예약자</span><strong>${r.user_name || ""}</strong></div>
     <div class="modal-row"><span>부서</span><strong>${r.department || ""}</strong></div>
+    <div class="modal-row"><span>센터(지역)</span><strong>${r.region || ""}</strong></div>
     <div class="modal-row"><span>연락처</span><strong>${r.phone || ""}</strong></div>
     <div class="modal-row"><span>목적</span><strong>${r.purpose || ""}</strong></div>
     <div class="modal-row"><span>신청일시</span><strong>${formatDateTime(r.created_at)}</strong></div>
   `;
+
+  const editBtn = document.getElementById("modalEditBtn");
+  editBtn.style.display = "block";
+  editBtn.textContent = "예약수정";
+  editBtn.onclick = () => renderDetailEditForm(r);
 
   const recurringActions = document.getElementById("modalRecurringActions");
 
@@ -339,6 +353,8 @@ function openDetail(id) {
     recurringActions.style.display = "none";
   }
 
+//
+
   document.getElementById("detailModal").classList.add("show");
 }
 
@@ -346,6 +362,208 @@ document.getElementById("closeModal").addEventListener("click", () => {
   document.getElementById("detailModal").classList.remove("show");
 });
 
+document.getElementById("detailModal").addEventListener("click", (e) => {
+  if (e.target.id === "detailModal") {
+    document.getElementById("detailModal").classList.remove("show");
+  }
+});
+
+// ==========================================
+// 상세보기 - 수정 모드 (모달 안에서 바로 수정)
+// ==========================================
+ 
+function renderDetailEditForm(r) {
+  const modalBody = document.getElementById("modalBody");
+ 
+  const roomOptions = (roomsByCenter[r.center] || [])
+    .map(room => `<option value="${room}" ${room === r.room ? "selected" : ""}>${room}</option>`)
+    .join("");
+ 
+  const centerOptions = centers
+    .map(c => `<option value="${c}" ${c === r.center ? "selected" : ""}>${c}</option>`)
+    .join("");
+ 
+  modalBody.innerHTML = `
+    <form id="inlineEditForm" class="add-form">
+      <div class="form-row">
+        <div class="form-field">
+          <label>센터<em>*</em></label>
+          <select id="inlineEditCenter" required>${centerOptions}</select>
+        </div>
+        <div class="form-field">
+          <label>공간<em>*</em></label>
+          <select id="inlineEditRoom" required>${roomOptions}</select>
+        </div>
+      </div>
+ 
+      <div class="form-row">
+        <div class="form-field">
+          <label>날짜<em>*</em></label>
+          <input type="date" id="inlineEditDate" value="${r.date}" required>
+        </div>
+        <div class="form-field">
+          <label>인원<em>*</em></label>
+          <input type="number" id="inlineEditPeople" min="1" value="${r.people}" required>
+        </div>
+      </div>
+ 
+      <div class="form-row">
+        <div class="form-field">
+          <label>시작시간<em>*</em></label>
+          <input type="time" id="inlineEditStartTime" step="1800" value="${r.start_time}" required>
+        </div>
+        <div class="form-field">
+          <label>종료시간<em>*</em></label>
+          <input type="time" id="inlineEditEndTime" step="1800" value="${r.end_time}" required>
+        </div>
+      </div>
+ 
+      <div class="form-row">
+        <div class="form-field">
+          <label>예약자<em>*</em></label>
+          <input type="text" id="inlineEditUserName" value="${r.user_name || ""}" required>
+        </div>
+        <div class="form-field">
+          <label>부서<em>*</em></label>
+          <input type="text" id="inlineEditDepartment" value="${r.department || ""}" required>
+        </div>
+        <div class="form-field">
+          <label>센터(지역)<em>*</em></label>
+          <input type="text" id="inlineEditRegion" value="${r.region || ""}" required>
+        </div>
+      </div>
+ 
+      <div class="form-row">
+        <div class="form-field full">
+          <label>연락처<em>*</em></label>
+          <input type="tel" id="inlineEditPhone" value="${r.phone || ""}" required>
+        </div>
+      </div>
+ 
+      <div class="form-row">
+        <div class="form-field full">
+          <label>목적<em>*</em></label>
+          <textarea id="inlineEditPurpose" rows="3" required>${r.purpose || ""}</textarea>
+        </div>
+      </div>
+ 
+      <div class="form-actions">
+        <button type="button" id="inlineEditCancelBtn" class="filter-reset">취소</button>
+        <button type="submit" id="inlineEditSaveBtn" class="filter-search">저장하기</button>
+      </div>
+    </form>
+  `;
+ 
+  // 수정 모드에서는 수정버튼/시리즈삭제 버튼 숨김
+  document.getElementById("modalEditBtn").style.display = "none";
+  document.getElementById("modalRecurringActions").style.display = "none";
+ 
+  // 센터를 바꾸면 그 센터의 공간 목록으로 갱신
+  document.getElementById("inlineEditCenter").addEventListener("change", (e) => {
+    const roomSelect = document.getElementById("inlineEditRoom");
+    roomSelect.innerHTML = (roomsByCenter[e.target.value] || [])
+      .map(room => `<option value="${room}">${room}</option>`)
+      .join("");
+  });
+ 
+  document.getElementById("inlineEditCancelBtn").addEventListener("click", () => {
+    renderDetailView(r);
+  });
+ 
+  document.getElementById("inlineEditForm").addEventListener("submit", async (e) => {
+    e.preventDefault();
+    await saveInlineEdit(r.id);
+  });
+}
+ 
+async function saveInlineEdit(id) {
+  const center = document.getElementById("inlineEditCenter").value;
+  const room = document.getElementById("inlineEditRoom").value;
+  const date = document.getElementById("inlineEditDate").value;
+  const startTime = document.getElementById("inlineEditStartTime").value;
+  const endTime = document.getElementById("inlineEditEndTime").value;
+  const people = Number(document.getElementById("inlineEditPeople").value);
+  const userName = document.getElementById("inlineEditUserName").value.trim();
+  const department = document.getElementById("inlineEditDepartment").value.trim();
+  const region = document.getElementById("inlineEditRegion").value.trim();
+  const phone = document.getElementById("inlineEditPhone").value.trim();
+  const purpose = document.getElementById("inlineEditPurpose").value.trim();
+ 
+  if (!center || !room) { alert("센터와 공간을 선택해주세요."); return; }
+  if (!date) { alert("날짜를 선택해주세요."); return; }
+  if (!startTime || !endTime) { alert("시작시간과 종료시간을 입력해주세요."); return; }
+  if (startTime >= endTime) { alert("종료시간은 시작시간보다 늦어야 해요."); return; }
+  if (!people || people < 1) { alert("인원을 확인해주세요."); return; }
+  if (!userName || !department || !region || !phone || !purpose) { alert("예약자 정보를 모두 입력해주세요."); return; }
+ 
+  const saveBtn = document.getElementById("inlineEditSaveBtn");
+  saveBtn.disabled = true;
+  saveBtn.textContent = "저장 중...";
+ 
+  try {
+    const response = await fetch(
+      `${SUPABASE_URL}/rest/v1/Reservations?id=eq.${id}`,
+      {
+        method: "PATCH",
+        headers: {
+          "Content-Type": "application/json",
+          "apikey": SUPABASE_PUBLISHABLE_KEY,
+          "Authorization": `Bearer ${SUPABASE_PUBLISHABLE_KEY}`,
+          "Prefer": "return=representation"
+        },
+        body: JSON.stringify({
+          center, room, date,
+          start_time: startTime,
+          end_time: endTime,
+          people,
+          user_name: userName,
+          department,
+          region,
+          phone,
+          purpose
+        })
+      }
+    );
+ 
+    const result = await response.json();
+ 
+    if (!response.ok) {
+      console.error("예약 수정 실패:", result);
+      alert("예약 수정에 실패했습니다.\n\n" + JSON.stringify(result, null, 2) +
+        "\n\n(Supabase에 update 정책/권한이 설정되어 있는지 확인해주세요)");
+      saveBtn.disabled = false;
+      saveBtn.textContent = "저장하기";
+      return;
+    }
+ 
+    await fetchReservations();
+    applyFilters();
+    renderSummary();
+    renderTodayView();
+    renderCenterView();
+    renderWeeklyAdminView();
+    renderStatsView();
+ 
+    const updated = allReservations.find(item => String(item.id) === String(id));
+ 
+    if (updated) {
+      renderDetailView(updated);
+    } else {
+      document.getElementById("detailModal").classList.remove("show");
+    }
+ 
+  } catch (error) {
+    console.error("예약 수정 오류:", error);
+    alert("예약 수정 중 문제가 발생했습니다.");
+    saveBtn.disabled = false;
+    saveBtn.textContent = "저장하기";
+  }
+}
+ 
+document.getElementById("closeModal").addEventListener("click", () => {
+  document.getElementById("detailModal").classList.remove("show");
+});
+ 
 document.getElementById("detailModal").addEventListener("click", (e) => {
   if (e.target.id === "detailModal") {
     document.getElementById("detailModal").classList.remove("show");
@@ -417,6 +635,7 @@ addForm.addEventListener("submit", async (e) => {
   const people = Number(document.getElementById("addPeople").value);
   const userName = document.getElementById("addUserName").value.trim();
   const department = document.getElementById("addDepartment").value.trim();
+  const region = document.getElementById("addRegion").value.trim();
   const phone = document.getElementById("addPhone").value.trim();
   const purpose = document.getElementById("addPurpose").value.trim();
 
@@ -425,7 +644,7 @@ addForm.addEventListener("submit", async (e) => {
   if (!startTime || !endTime) { alert("시작시간과 종료시간을 입력해주세요."); return; }
   if (startTime >= endTime) { alert("종료시간은 시작시간보다 늦어야 해요."); return; }
   if (!people || people < 1) { alert("인원을 확인해주세요."); return; }
-  if (!userName || !department || !phone || !purpose) { alert("예약자 정보를 모두 입력해주세요."); return; }
+  if (!userName || !department || !region || !phone || !purpose) { alert("예약자 정보를 모두 입력해주세요."); return; }
 
   const submitBtn = document.getElementById("submitAddBtn");
   submitBtn.disabled = true;
@@ -449,6 +668,7 @@ addForm.addEventListener("submit", async (e) => {
           people,
           user_name: userName,
           department,
+          region,
           phone,
           purpose
         })
@@ -584,6 +804,7 @@ function exportCSV() {
     r.people,
     r.user_name,
     r.department,
+    r.region,
     r.phone,
     (r.purpose || "").replace(/\n/g, " "),
     formatDateTime(r.created_at)
@@ -633,10 +854,12 @@ function renderTodayView() {
       <td>${r.people || ""}</td>
       <td>${r.user_name || ""}</td>
       <td>${r.department || ""}</td>
+      <td>${r.region || ""}</td>
       <td>${r.phone || ""}</td>
       <td>${r.purpose || ""}</td>
       <td>
         <button class="action-btn detail" data-id="${r.id}">상세</button>
+        <button class="action-btn edit" data-id="${r.id}">수정</button>
         <button class="action-btn delete" data-id="${r.id}">삭제</button>
       </td>
     `;
@@ -644,12 +867,35 @@ function renderTodayView() {
   });
 
   tbody.querySelectorAll(".action-btn.detail").forEach(btn => {
-    btn.addEventListener("click", () => openDetail(btn.dataset.id));
-  });
+  btn.addEventListener("click", () => {
+    const reservation = allReservations.find(
+      item => String(item.id) === String(btn.dataset.id)
+    );
 
-  tbody.querySelectorAll(".action-btn.delete").forEach(btn => {
-    btn.addEventListener("click", () => deleteReservation(btn.dataset.id));
+    if (reservation) {
+      renderDetailView(reservation);
+    }
   });
+});
+
+tbody.querySelectorAll(".action-btn.edit").forEach(btn => {
+  btn.addEventListener("click", () => {
+    const reservation = allReservations.find(
+      item => String(item.id) === String(btn.dataset.id)
+    );
+
+    if (reservation) {
+      renderDetailEditForm(reservation);
+      document.getElementById("detailModal").classList.add("show");
+    }
+  });
+});
+
+tbody.querySelectorAll(".action-btn.delete").forEach(btn => {
+  btn.addEventListener("click", () => {
+    deleteReservation(btn.dataset.id);
+  });
+});
 }
 
 // ==========================================

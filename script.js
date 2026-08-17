@@ -250,6 +250,7 @@ const timeSlotGrid =
 
 let bookedReservations = [];
 
+let myReservations = []; // 내 예약 조회용
 
 // ==========================================
 // 센터 선택
@@ -2110,8 +2111,10 @@ document.getElementById(
 
     const phone =
       document.getElementById(
-        "phone"
-      ).value.trim();
+        "phone")
+        .value
+        .replace(/-/g, "")
+        .trim();
 
     const purpose =
       document.getElementById(
@@ -2730,6 +2733,906 @@ document.getElementById(
 
   }
 );
+
+// ==========================================
+// 조회 버튼 
+// ==========================================
+
+const checkMyReservationButton =
+  document.getElementById(
+    "checkMyReservationButton"
+  );
+checkMyReservationButton.addEventListener(
+  "click",
+  async (event) => {event.preventDefault();
+    await checkMyReservations();
+  }
+);
+// ======================================
+// 내 예약 조회 
+// ======================================
+
+async function checkMyReservations() {
+
+  const name =
+    document.getElementById(
+      "myReservationName"
+    ).value.trim();
+
+  const phone =
+    document.getElementById(
+      "myReservationPhone"
+    ).value
+    .replace(/-/g, "");
+
+  const password =
+    document.getElementById(
+      "myReservationPassword"
+    ).value.trim();
+
+// ==========================================
+// 입력값 확인 
+// ==========================================
+
+if (!name || !phone || !password) {
+
+  alert(
+    "예약자 이름, 연락처, 예약 비밀번호를 입력해주세요."
+  );
+  return;}
+
+// ==========================================
+// Supabase에서 예약 정보 조회
+// ==========================================
+  const { data, error } =
+    await supabaseClient
+      .from("Reservations")
+      .select("*")
+      .eq("user_name", name)
+      .eq("phone", phone)
+      .eq("reservation_password", password)
+      .order("date", { ascending: true });
+
+  if (error) {
+    console.error(
+      "예약 조회 오류:",
+      error);
+    alert(
+      "예약 조회 중 오류가 발생했습니다."
+    );
+    return;
+  }
+
+  if (!data || data.length === 0) {
+    alert(
+      "예약 정보가 없습니다. 입력하신 정보를 확인해주세요."
+    );
+    return;
+  }
+
+  console.log(
+    "예약 조회 결과:",
+    data
+  );
+
+  // 조회 결과 저장
+  myReservations = data;
+
+  // 예약 정보 표시
+  renderMyReservations(myReservations);
+}
+
+function renderMyReservations(reservations) {
+
+  const list = document.getElementById("myReservationList");
+
+  if (!list) {
+    console.error(
+      "myReservationList 요소를 찾을 수 없습니다." 
+    );
+    
+    return;
+  }
+
+  list.innerHTML = "";
+
+  reservations.forEach(reservation => {
+
+    const card = document.createElement("div");
+
+    card.className = "my-reservation-card";
+
+    card.innerHTML = `
+      <div class="my-reservation-card-top">
+
+        <div>
+          <div class="reservation-center">
+            ${escapeHTML(reservation.center || "")}
+          </div>
+
+          <div class="reservation-room">
+            ${escapeHTML(reservation.room || "")}
+          </div>
+        </div>
+
+        <span class="reservation-status">
+          ${reservation.is_recurring ? "고정예약" : "일회성"}
+        </span>
+
+      </div>
+
+
+      <div class="my-reservation-info">
+
+        <div>
+          <span>날짜</span>
+          <strong>${formatDate(reservation.date)}</strong>
+        </div>
+
+        <div>
+          <span>시간</span>
+          <strong>
+            ${reservation.start_time} ~ ${reservation.end_time}
+          </strong>
+        </div>
+
+      </div>
+
+
+      <button
+        type="button"
+        class="main-button"
+        data-id="${reservation.id}"
+      >
+        예약 상세보기
+      </button>
+    `;
+
+    const detailButton = 
+      card.querySelector(
+        "button[data-id]"
+      );
+
+    detailButton.addEventListener(
+      "click",
+      () => {
+        openMyReservationDetail(
+          reservation.id
+        );
+      }
+    );
+
+    list.appendChild(card);
+
+  });
+
+  showPage(
+    document.getElementById(
+      "myReservationListPage"
+    )
+  );
+}
+
+function openMyReservationDetail(reservationId) {
+
+  const reservation = myReservations.find(
+    item => String(item.id) === String(reservationId)
+  );
+
+  if (!reservation) {
+    alert("예약 정보를 찾을 수 없습니다.");
+    return;
+  }
+
+  renderMyReservationDetail(reservation);
+
+}
+
+function renderMyReservationDetail(r) {
+
+  const detail = document.getElementById("myReservationDetail");
+
+  detail.innerHTML = `
+    <div class="reservation-detail-box">
+
+      <h2>예약 상세정보</h2>
+
+      <div class="detail-row">
+        <span>센터</span>
+        <strong>${r.center || ""}</strong>
+      </div>
+
+      <div class="detail-row">
+        <span>공간</span>
+        <strong>${r.room || ""}</strong>
+      </div>
+
+      <div class="detail-row">
+        <span>날짜</span>
+        <strong>${formatDate(r.date)}</strong>
+      </div>
+
+      <div class="detail-row">
+        <span>시간</span>
+        <strong>${r.start_time} ~ ${r.end_time}</strong>
+      </div>
+
+      <div class="detail-row">
+        <span>인원</span>
+        <strong>${r.people}명</strong>
+      </div>
+
+      <div class="detail-row">
+        <span>사용 목적</span>
+        <strong>${r.purpose || ""}</strong>
+      </div>
+
+
+      <div class="reservation-actions">
+
+        <button
+          type="button"
+          class="sub-button"
+          onclick="editMyReservation('${r.id}')"
+        >
+          예약 수정
+        </button>
+
+        <button
+          type="button"
+          class="delete-button"
+          onclick="cancelMyReservation('${r.id}')"
+        >
+          예약 취소
+        </button>
+
+      </div>
+
+    </div>
+  `;
+
+
+  document
+    .querySelectorAll(".page")
+    .forEach(page => page.classList.remove("active"));
+
+  document
+    .getElementById("myReservationDetailPage")
+    .classList.add("active");
+
+}
+
+// ==========================================
+// 내 예약 - 예약 수정
+// ==========================================
+
+function editMyReservation(reservationId) {
+
+  const target =
+    myReservations.find(
+      item => String(item.id) === String(reservationId)
+    );
+
+  if (!target) {
+
+    alert("예약 정보를 찾을 수 없습니다.");
+
+    return;
+
+  }
+
+
+  const detail =
+    document.getElementById("myReservationDetail");
+
+
+  // 센터 운영시간 기준 시간 옵션 생성
+  const centerInfo =
+    centers[target.center];
+
+  if (!centerInfo) {
+
+    alert("센터 정보를 찾을 수 없습니다.");
+
+    return;
+
+  }
+
+
+  const startMinutes =
+    timeToMinutes(centerInfo.open);
+
+  const closeMinutes =
+    timeToMinutes(centerInfo.close);
+
+
+  // 시작시간 옵션
+  let startTimeOptions = "";
+
+  for (
+    let minute = startMinutes;
+    minute < closeMinutes;
+    minute += 30
+  ) {
+
+    const time =
+      minutesToTime(minute);
+
+    startTimeOptions += `
+      <option
+        value="${time}"
+        ${time === target.start_time ? "selected" : ""}
+      >
+        ${time}
+      </option>
+    `;
+
+  }
+
+
+  // 종료시간 옵션
+  let endTimeOptions = "";
+
+  for (
+    let minute = startMinutes + 30;
+    minute <= closeMinutes;
+    minute += 30
+  ) {
+
+    const time =
+      minutesToTime(minute);
+
+    endTimeOptions += `
+      <option
+        value="${time}"
+        ${time === target.end_time ? "selected" : ""}
+      >
+        ${time}
+      </option>
+    `;
+
+  }
+
+
+  detail.innerHTML = `
+
+    <div class="reservation-detail-box">
+
+      <h2>예약 수정</h2>
+
+
+      <div class="detail-row">
+        <span>센터</span>
+        <strong>
+          ${escapeHTML(target.center || "")}
+        </strong>
+      </div>
+
+
+      <div class="detail-row">
+        <span>공간</span>
+        <strong>
+          ${escapeHTML(target.room || "")}
+        </strong>
+      </div>
+
+
+      <div class="detail-row">
+        <span>날짜</span>
+
+        <input
+          type="date"
+          id="editReservationDate"
+          value="${target.date || ""}"
+        >
+      </div>
+
+
+      <div class="detail-row">
+        <span>시작시간</span>
+
+        <select id="editReservationStart">
+          ${startTimeOptions}
+        </select>
+      </div>
+
+
+      <div class="detail-row">
+        <span>종료시간</span>
+
+        <select id="editReservationEnd">
+          ${endTimeOptions}
+        </select>
+      </div>
+
+
+      <div class="detail-row">
+        <span>인원</span>
+
+        <input
+          type="number"
+          id="editReservationPeople"
+          min="1"
+          max="${centerInfo.capacity}"
+          value="${target.people || 1}"
+        >
+      </div>
+
+
+      <div class="detail-row">
+        <span>사용 목적</span>
+
+        <textarea
+          id="editReservationPurpose"
+          rows="4"
+        >${escapeHTML(target.purpose || "")}</textarea>
+
+      </div>
+
+
+      <div class="reservation-actions">
+
+        <button
+          type="button"
+          class="sub-button"
+          onclick="saveMyReservation('${target.id}')"
+        >
+          수정 저장
+        </button>
+
+
+        <button
+          type="button"
+          class="delete-button"
+          onclick="renderMyReservationDetailById('${target.id}')"
+        >
+          수정 취소
+        </button>
+
+      </div>
+
+    </div>
+
+  `;
+
+
+  // 날짜가 과거로 가지 않도록 오늘 날짜 설정
+  const dateInput =
+    document.getElementById(
+      "editReservationDate"
+    );
+
+  if (dateInput) {
+
+    dateInput.min =
+      dateToString(new Date());
+
+  }
+
+}
+
+
+// ==========================================
+// 내 예약 - 수정된 예약 상세 다시 보기
+// ==========================================
+
+function renderMyReservationDetailById(reservationId) {
+
+  const target =
+    myReservations.find(
+      item => String(item.id) === String(reservationId)
+    );
+
+  if (!target) {
+
+    alert("예약 정보를 찾을 수 없습니다.");
+
+    return;
+
+  }
+
+  renderMyReservationDetail(target);
+
+}
+
+
+// ==========================================
+// 내 예약 - 수정 저장
+// ==========================================
+
+async function saveMyReservation(reservationId) {
+
+  const target =
+    myReservations.find(
+      item => String(item.id) === String(reservationId)
+    );
+
+  if (!target) {
+
+    alert("예약 정보를 찾을 수 없습니다.");
+
+    return;
+
+  }
+
+
+  const date =
+    document
+      .getElementById("editReservationDate")
+      .value;
+
+  const startTime =
+    document
+      .getElementById("editReservationStart")
+      .value;
+
+  const endTime =
+    document
+      .getElementById("editReservationEnd")
+      .value;
+
+  const people =
+    Number(
+      document
+        .getElementById("editReservationPeople")
+        .value
+    );
+
+  const purpose =
+    document
+      .getElementById("editReservationPurpose")
+      .value
+      .trim();
+
+
+  // =========================
+  // 기본 입력 확인
+  // =========================
+
+  if (!date) {
+
+    alert("날짜를 선택해주세요.");
+
+    return;
+
+  }
+
+
+  if (!startTime || !endTime) {
+
+    alert("시작시간과 종료시간을 선택해주세요.");
+
+    return;
+
+  }
+
+
+  if (
+    timeToMinutes(endTime) <=
+    timeToMinutes(startTime)
+  ) {
+
+    alert(
+      "종료시간은 시작시간보다 늦어야 합니다."
+    );
+
+    return;
+
+  }
+
+
+  if (
+    !people ||
+    people < 1
+  ) {
+
+    alert("이용 인원을 확인해주세요.");
+
+    return;
+
+  }
+
+
+  const centerInfo =
+    centers[target.center];
+
+
+  if (
+    centerInfo &&
+    people > centerInfo.capacity
+  ) {
+
+    alert(
+      `${target.center}은 최대 ${centerInfo.capacity}명까지 이용할 수 있습니다.`
+    );
+
+    return;
+
+  }
+
+
+  // =========================
+  // 예약 충돌 확인
+  // =========================
+
+  const {
+    data: conflictData,
+    error: conflictError
+  } =
+    await supabaseClient
+      .from("Reservations")
+      .select(
+        "id, start_time, end_time"
+      )
+      .eq(
+        "center",
+        target.center
+      )
+      .eq(
+        "room",
+        target.room
+      )
+      .eq(
+        "date",
+        date
+      )
+      .neq(
+        "id",
+        reservationId
+      );
+
+
+  if (conflictError) {
+
+    console.error(
+      "예약 충돌 확인 오류:",
+      conflictError
+    );
+
+    alert(
+      "예약 가능 여부를 확인하는 중 오류가 발생했습니다."
+    );
+
+    return;
+
+  }
+
+
+  const hasConflict =
+    (conflictData || []).some(item => {
+
+      const bookedStart =
+        timeToMinutes(
+          item.start_time
+        );
+
+      const bookedEnd =
+        timeToMinutes(
+          item.end_time
+        );
+
+      const newStart =
+        timeToMinutes(
+          startTime
+        );
+
+      const newEnd =
+        timeToMinutes(
+          endTime
+        );
+
+      return (
+        newStart < bookedEnd &&
+        newEnd > bookedStart
+      );
+
+    });
+
+
+  if (hasConflict) {
+
+    alert(
+      "선택한 날짜와 시간에 이미 예약이 있습니다."
+    );
+
+    return;
+
+  }
+
+
+  // =========================
+  // Supabase 수정
+  // =========================
+
+  const {
+    data,
+    error
+  } =
+    await supabaseClient
+      .from("Reservations")
+      .update({
+
+        date:
+          date,
+
+        start_time:
+          startTime,
+
+        end_time:
+          endTime,
+
+        people:
+          people,
+
+        purpose:
+          purpose
+
+      })
+      .eq(
+        "id",
+        reservationId
+      )
+      .select()
+      .single();
+
+
+  if (error) {
+
+    console.error(
+      "예약 수정 오류:",
+      error
+    );
+
+    alert(
+      "예약 수정에 실패했습니다."
+    );
+
+    return;
+
+  }
+
+
+  // =========================
+  // 현재 조회 목록 갱신
+  // =========================
+
+  const index =
+    myReservations.findIndex(
+      item =>
+        String(item.id) ===
+        String(reservationId)
+    );
+
+
+  if (index !== -1) {
+
+    myReservations[index] =
+      data;
+
+  }
+
+
+  alert(
+    "예약 정보가 수정되었습니다."
+  );
+
+
+  // 수정된 상세정보 다시 표시
+  renderMyReservationDetail(
+    data
+  );
+
+}
+
+
+// ==========================================
+// 내 예약 - 예약 취소
+// ==========================================
+
+async function cancelMyReservation(reservationId) {
+
+  const target =
+    myReservations.find(
+      item => String(item.id) === String(reservationId)
+    );
+
+  if (!target) {
+
+    alert("예약 정보를 찾을 수 없습니다.");
+
+    return;
+
+  }
+
+
+  // 고정예약인지 확인
+  if (
+    target.is_recurring &&
+    target.recurring_group_id
+  ) {
+
+    const choice =
+      confirm(
+        "고정예약입니다.\n\n" +
+        "확인을 누르면 이 날짜만 취소합니다.\n" +
+        "취소를 누르면 취소하지 않습니다."
+      );
+
+    if (!choice) {
+
+      return;
+
+    }
+
+  } else {
+
+    const choice =
+      confirm(
+        "이 예약을 취소할까요?"
+      );
+
+    if (!choice) {
+
+      return;
+
+    }
+
+  }
+
+
+  // =========================
+  // Supabase 삭제
+  // =========================
+
+  const { error } =
+    await supabaseClient
+      .from("Reservations")
+      .delete()
+      .eq("id", reservationId);
+
+
+  if (error) {
+
+    console.error(
+      "예약 취소 오류:",
+      error
+    );
+
+    alert(
+      "예약 취소에 실패했습니다."
+    );
+
+    return;
+
+  }
+
+
+  // =========================
+  // 현재 조회 목록에서도 제거
+  // =========================
+
+  myReservations =
+    myReservations.filter(
+      item =>
+        String(item.id) !==
+        String(reservationId)
+    );
+
+
+  alert(
+    "예약이 취소되었습니다."
+  );
+
+
+  // =========================
+  // 내 예약 목록으로 돌아가기
+  // =========================
+
+  renderMyReservations(
+    myReservations
+  );
+
+}
 
 // ==========================================
 // 초기 실행

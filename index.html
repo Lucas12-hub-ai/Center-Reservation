@@ -820,8 +820,7 @@
 id="myReservationButton" -> id="myReservationPage"
 -->
 
-  <section id="myReservationPage"
-           class="page">
+  <section id="myReservationPage" class="page">
 
     <div class="page-heading">
       <span>MY RESERVATION</span>
@@ -871,6 +870,10 @@ id="myReservationButton" -> id="myReservationPage"
           pattern="[0-9]{4}"
         >
 
+        <button id="checkMyReservationButton">
+          예약 조회
+        </button>
+
       </div>
       <button type="submit" class="btn btn-primary">조회하기
       </button>
@@ -893,6 +896,29 @@ id="myReservationButton" -> id="myReservationPage"
     </div>
 
   </section>
+
+  <section id="myReservationListPage" class="page">
+
+  <div class="page-heading">
+    <div class="eyebrow">MY RESERVATION LIST</div>
+    <h1>내 예약 목록</h1>
+    <p>예약을 선택하면 상세 내용을 확인하고 수정할 수 있어요.</p>
+  </div>
+
+  <div id="myReservationList">
+  </div>
+
+  <div class="navigation">
+    <button
+      type="button"
+      class="sub-button"
+      onclick="backToMyReservationForm()"
+    >
+      조회 화면으로 돌아가기
+    </button>
+  </div>
+
+</section>
   
   <!-- 조회 결과 영역 (초기 숨김) -->
   <div id="resultSection" style="display:none; margin-top: 30px;">

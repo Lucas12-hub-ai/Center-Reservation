@@ -870,10 +870,6 @@ id="myReservationButton" -> id="myReservationPage"
           pattern="[0-9]{4}"
         >
 
-        <button id="checkMyReservationButton">
-          예약 조회
-        </button>
-
       </div>
       <button type="submit" class="btn btn-primary">조회하기
       </button>
@@ -907,12 +903,13 @@ id="myReservationButton" -> id="myReservationPage"
 
   <div id="myReservationList">
   </div>
+  <div id="myReservationDetail"></div>
 
   <div class="navigation">
     <button
       type="button"
       class="sub-button"
-      onclick="backToMyReservationForm()"
+      id="backToMyReservationList"
     >
       조회 화면으로 돌아가기
     </button>

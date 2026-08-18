@@ -3631,8 +3631,36 @@ async function cancelMyReservation(reservationId) {
   renderMyReservations(
     myReservations
   );
+  
+// ==========================================
+// 예약 목록 → 예약 조회 화면으로
+// ==========================================
+
+function backToMyReservationForm() {
+
+  showPage(
+    document.getElementById(
+      "myReservationPage"
+    )
+  );
+}
 
 }
+
+document.getElementById(
+  "backToMyReservationList"
+).addEventListener(
+  "click",
+  () => {
+
+    showPage(
+      document.getElementById(
+        "myReservationListPage"
+      )
+    );
+
+  }
+);
 
 // ==========================================
 // 초기 실행

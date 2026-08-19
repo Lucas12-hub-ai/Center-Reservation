@@ -3716,8 +3716,7 @@ async function cancelMyReservation(reservationId) {
 
   const target =
     myReservations.find(
-      item =>
-        String(item.id) === String(reservationId)
+      item => String(item.id) === String(reservationId)
     );
 
 
@@ -3732,6 +3731,7 @@ async function cancelMyReservation(reservationId) {
   }
 
 
+<<<<<<< HEAD
   // ==========================================
   // 고정예약 여부 확인
   // ==========================================
@@ -3741,37 +3741,50 @@ async function cancelMyReservation(reservationId) {
       target.is_recurring &&
       target.recurring_group_id
     );
+=======
+  // 고정예약인지 확인
+  if (
+    target.is_recurring &&
+    target.recurring_group_id
+  ) {
+>>>>>>> 01a6bb828ab8dbf2036440191a1294a19c3abd23
 
-
-  let choice;
-
-
-  if (isRecurring) {
-
-    choice =
+    const choice =
       confirm(
+<<<<<<< HEAD
         "고정예약 전체를 취소할까요?\n\n" +
         "확인을 누르면 이 고정예약에 포함된\n" +
         "모든 날짜와 공간 예약이 전체 삭제됩니다.\n\n" +
         "취소를 누르면 삭제하지 않습니다."
+=======
+        "고정예약입니다.\n\n" +
+        "확인을 누르면 이 날짜만 취소합니다.\n" +
+        "취소를 누르면 취소하지 않습니다."
+>>>>>>> 01a6bb828ab8dbf2036440191a1294a19c3abd23
       );
+
+    if (!choice) {
+
+      return;
+
+    }
 
   } else {
 
-    choice =
+    const choice =
       confirm(
         "이 예약을 취소할까요?"
       );
 
+    if (!choice) {
+
+      return;
+
+    }
+
   }
 
-
-  if (!choice) {
-
-    return;
-
-  }
-
+<<<<<<< HEAD
 
   // ==========================================
   // Supabase 삭제 요청
@@ -3928,6 +3941,12 @@ async function cancelMyReservation(reservationId) {
 }
 
 
+=======
+  renderMyReservations(
+    myReservations
+  );
+  
+>>>>>>> 01a6bb828ab8dbf2036440191a1294a19c3abd23
 // ==========================================
 // 예약 목록 → 예약 조회 화면으로
 // ==========================================
@@ -3942,6 +3961,7 @@ function backToMyReservationForm() {
 
 }
 
+<<<<<<< HEAD
 
 // ==========================================
 // 예약 상세 → 예약 목록으로 돌아가기
@@ -3955,7 +3975,24 @@ function backToMyReservationList() {
     )
   );
 
+=======
+>>>>>>> 01a6bb828ab8dbf2036440191a1294a19c3abd23
 }
+
+document.getElementById(
+  "backToMyReservationList"
+).addEventListener(
+  "click",
+  () => {
+
+    showPage(
+      document.getElementById(
+        "myReservationListPage"
+      )
+    );
+
+  }
+);
 
 // ==========================================
 // 초기 실행

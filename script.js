@@ -3742,9 +3742,7 @@ async function cancelMyReservation(reservationId) {
       target.recurring_group_id
     );
 
-
   let choice;
-
 
   if (isRecurring) {
 
@@ -3939,14 +3937,7 @@ function backToMyReservationForm() {
       "myReservationPage"
     )
   );
-
 }
-
-
-// ==========================================
-// 예약 상세 → 예약 목록으로 돌아가기
-// ==========================================
-
 function backToMyReservationList() {
 
   showPage(
@@ -3954,7 +3945,6 @@ function backToMyReservationList() {
       "myReservationListPage"
     )
   );
-
 }
 
 // ==========================================

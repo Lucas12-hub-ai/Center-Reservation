@@ -3708,11 +3708,6 @@ async function saveMyReservation(reservationId) {
 
 }
 
-
-// ==========================================
-// 내 예약 - 예약 취소
-// ==========================================
-
 // ==========================================
 // 내 예약 - 예약 취소
 // ==========================================
@@ -3866,51 +3861,6 @@ async function cancelMyReservation(reservationId) {
   );
 
 }
-
-
-  // =========================
-  // Supabase 삭제
-  // =========================
-
-  const { error } =
-    await supabaseClient
-      .from("Reservations")
-      .delete()
-      .eq("recurring_group_id", target.recurring_group_id);
-
-
-  if (error) {
-
-    console.error(
-      "예약 취소 오류:",
-      error
-    );
-
-    alert(
-      "예약 취소에 실패했습니다."
-    );
-
-    return;
-
-  }
-
-
-  // =========================
-  // 현재 조회 목록에서도 제거
-  // =========================
-
-  myReservations =
-    myReservations.filter(
-      item =>
-        String(item.id) !==
-        String(reservationId)
-    );
-
-
-  alert(
-    "예약이 취소되었습니다."
-  );
-
 
 // =========================
 // 내 예약 목록으로 돌아가기

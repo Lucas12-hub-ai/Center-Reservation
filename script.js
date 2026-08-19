@@ -3772,7 +3772,7 @@ async function cancelMyReservation(reservationId) {
     await supabaseClient
       .from("Reservations")
       .delete()
-      .eq("id", reservationId);
+      .eq("recurring_group_id", target.recurring_group_id);
 
 
   if (error) {

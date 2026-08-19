@@ -3716,7 +3716,8 @@ async function cancelMyReservation(reservationId) {
 
   const target =
     myReservations.find(
-      item => String(item.id) === String(reservationId)
+      item =>
+        String(item.id) === String(reservationId)
     );
 
 
@@ -3740,11 +3741,12 @@ async function cancelMyReservation(reservationId) {
       target.is_recurring &&
       target.recurring_group_id
     );
-  // 고정예약인지 확인
-  if (
-    isRecurring) {
 
-    const choice =
+  let choice;
+
+  if (isRecurring) {
+
+    choice =
       confirm(
         "고정예약 전체를 취소할까요?\n\n" +
         "확인을 누르면 이 고정예약에 포함된\n" +
@@ -3752,24 +3754,19 @@ async function cancelMyReservation(reservationId) {
         "취소를 누르면 삭제하지 않습니다."
       );
 
-    if (!choice) {
-
-      return;
-
-    }
-
   } else {
 
-    const choice =
+    choice =
       confirm(
         "이 예약을 취소할까요?"
       );
 
-    if (!choice) {
+  }
 
-      return;
 
-    }
+  if (!choice) {
+
+    return;
 
   }
 
@@ -3919,7 +3916,7 @@ async function cancelMyReservation(reservationId) {
 
 
   // ==========================================
-  // 남아있는 예약 목록 표시
+  // 남은 예약 목록 표시
   // ==========================================
 
   renderMyReservations(
@@ -3941,7 +3938,6 @@ function backToMyReservationForm() {
     )
   );
 }
-
 function backToMyReservationList() {
 
   showPage(

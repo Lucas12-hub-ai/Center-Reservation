@@ -3719,26 +3719,48 @@ async function cancelMyReservation(reservationId) {
       item => String(item.id) === String(reservationId)
     );
 
+
   if (!target) {
 
-    alert("예약 정보를 찾을 수 없습니다.");
+    alert(
+      "예약 정보를 찾을 수 없습니다."
+    );
 
     return;
 
   }
 
 
+<<<<<<< HEAD
+  // ==========================================
+  // 고정예약 여부 확인
+  // ==========================================
+
+  const isRecurring =
+    Boolean(
+      target.is_recurring &&
+      target.recurring_group_id
+    );
+=======
   // 고정예약인지 확인
   if (
     target.is_recurring &&
     target.recurring_group_id
   ) {
+>>>>>>> 01a6bb828ab8dbf2036440191a1294a19c3abd23
 
     const choice =
       confirm(
+<<<<<<< HEAD
+        "고정예약 전체를 취소할까요?\n\n" +
+        "확인을 누르면 이 고정예약에 포함된\n" +
+        "모든 날짜와 공간 예약이 전체 삭제됩니다.\n\n" +
+        "취소를 누르면 삭제하지 않습니다."
+=======
         "고정예약입니다.\n\n" +
         "확인을 누르면 이 날짜만 취소합니다.\n" +
         "취소를 누르면 취소하지 않습니다."
+>>>>>>> 01a6bb828ab8dbf2036440191a1294a19c3abd23
       );
 
     if (!choice) {
@@ -3762,10 +3784,169 @@ async function cancelMyReservation(reservationId) {
 
   }
 
+<<<<<<< HEAD
+
+  // ==========================================
+  // Supabase 삭제 요청
+  // ==========================================
+
+  let deleteQuery =
+    supabaseClient
+      .from("Reservations")
+      .delete();
+
+
+  if (isRecurring) {
+
+    // 같은 고정예약 그룹 전체 삭제
+    deleteQuery =
+      deleteQuery.eq(
+        "recurring_group_id",
+        target.recurring_group_id
+      );
+
+  } else {
+
+    // 일회성 예약 1건만 삭제
+    deleteQuery =
+      deleteQuery.eq(
+        "id",
+        reservationId
+      );
+
+  }
+
+
+  const {
+    data: deletedRows,
+    error
+  } =
+    await deleteQuery
+      .select("id");
+
+
+  // ==========================================
+  // 삭제 오류
+  // ==========================================
+
+  if (error) {
+
+    console.error(
+      "예약 취소 오류:",
+      error
+    );
+
+    alert(
+      "예약 취소에 실패했습니다.\n\n" +
+      error.message
+    );
+
+    return;
+
+  }
+
+
+  // ==========================================
+  // 실제 삭제된 데이터 확인
+  // ==========================================
+
+  if (
+    !deletedRows ||
+    deletedRows.length === 0
+  ) {
+
+    console.error(
+      "삭제된 예약이 없습니다.",
+      {
+        reservationId:
+          reservationId,
+
+        recurringGroupId:
+          target.recurring_group_id,
+
+        isRecurring:
+          isRecurring
+      }
+    );
+
+
+    alert(
+      "예약 삭제가 처리되지 않았습니다.\n\n" +
+      "Supabase의 삭제 권한(RLS) 또는 예약 조건을 확인해주세요."
+    );
+
+    return;
+
+  }
+
+
+  console.log(
+    "삭제된 예약:",
+    deletedRows
+  );
+
+
+  // ==========================================
+  // 현재 목록에서도 제거
+  // ==========================================
+
+  if (isRecurring) {
+
+    myReservations =
+      myReservations.filter(
+        item =>
+          item.recurring_group_id !==
+          target.recurring_group_id
+      );
+
+  } else {
+
+    myReservations =
+      myReservations.filter(
+        item =>
+          String(item.id) !==
+          String(reservationId)
+      );
+
+  }
+
+
+  // ==========================================
+  // 완료 메시지
+  // ==========================================
+
+  if (isRecurring) {
+
+    alert(
+      `${deletedRows.length}건의 고정예약이 전체 취소되었습니다.`
+    );
+
+  } else {
+
+    alert(
+      "예약이 취소되었습니다."
+    );
+
+  }
+
+
+  // ==========================================
+  // 남아있는 예약 목록 표시
+  // ==========================================
+
+  renderMyReservations(
+    myReservations
+  );
+
+}
+
+
+=======
   renderMyReservations(
     myReservations
   );
   
+>>>>>>> 01a6bb828ab8dbf2036440191a1294a19c3abd23
 // ==========================================
 // 예약 목록 → 예약 조회 화면으로
 // ==========================================
@@ -3777,8 +3958,25 @@ function backToMyReservationForm() {
       "myReservationPage"
     )
   );
+
 }
 
+<<<<<<< HEAD
+
+// ==========================================
+// 예약 상세 → 예약 목록으로 돌아가기
+// ==========================================
+
+function backToMyReservationList() {
+
+  showPage(
+    document.getElementById(
+      "myReservationListPage"
+    )
+  );
+
+=======
+>>>>>>> 01a6bb828ab8dbf2036440191a1294a19c3abd23
 }
 
 document.getElementById(

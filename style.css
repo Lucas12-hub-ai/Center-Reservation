@@ -518,6 +518,7 @@ button {
   color: #999;
   display: -webkit-box;
   -webkit-line-clamp: 2;
+  line-clamp: 2;
   -webkit-box-orient: vertical;
   overflow: hidden;
 }
@@ -1015,6 +1016,7 @@ button {
   outline: none;
   color: var(--color-dark);
   -moz-appearance: textfield;
+  appearance: textfield;
 }
 
 .people-input::-webkit-outer-spin-button,

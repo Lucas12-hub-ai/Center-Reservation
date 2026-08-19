@@ -3831,20 +3831,19 @@ function backToMyReservationForm() {
 
 }
 
-document.getElementById(
-  "backToMyReservationList"
-).addEventListener(
-  "click",
-  () => {
+// ==========================================
+// 예약 상세 → 예약 목록으로 돌아가기
+// ==========================================
 
-    showPage(
-      document.getElementById(
-        "myReservationListPage"
-      )
-    );
+function backToMyReservationList() {
 
-  }
-);
+  showPage(
+    document.getElementById(
+      "myReservationListPage"
+    )
+  );
+
+}
 
 // ==========================================
 // 초기 실행

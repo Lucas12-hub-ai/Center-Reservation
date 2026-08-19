@@ -891,30 +891,47 @@ id="myReservationButton" -> id="myReservationPage"
     </div>
 
   </section>
-
+<!-- 내 예약 목록 -->
   <section id="myReservationListPage" class="page">
+    <div class="page-heading">
+      <div class="eyebrow">MY RESERVATION LIST</div>
+      <h1>내 예약 목록</h1>
+      <p>예약을 선택하면 상세 내용을 확인하고 수정할 수 있어요.</p>
+    </div>
 
-  <div class="page-heading">
-    <div class="eyebrow">MY RESERVATION LIST</div>
-    <h1>내 예약 목록</h1>
-    <p>예약을 선택하면 상세 내용을 확인하고 수정할 수 있어요.</p>
-  </div>
+    <div id="myReservationList"></div>
+    <div class="navigation">
+      <button
+        type="button"
+        class="sub-button"
+        id="backToMyReservationList"
+      >
+        조회 화면으로 돌아가기
+      </button>
+    </div>
+  
+  </section>
 
-  <div id="myReservationList">
-  </div>
-  <div id="myReservationDetail"></div>
+  <!-- 내 예약 상세 -->
+  <section id="myReservationDetailPage" class="page">
+    <div class="page-heading">
+      <div class="eyebrow">MY RESERVATION DETAIL</div>
+      <h1>예약 상세정보</h1>
+      <p> 예약 상세 내용을 확인하고 수정 또는 취소할 수 있어요.</p>
+    </div>
 
-  <div class="navigation">
-    <button
-      type="button"
-      class="sub-button"
-      id="backToMyReservationList"
-    >
-      조회 화면으로 돌아가기
-    </button>
-  </div>
+    <div id="myReservationDetail"></div>
 
-</section>
+    <div class="navigation">
+      <button
+        type="button"
+        class="sub-button"
+        id="backToMyReservationList"
+      >
+        예약 목록으로 돌아가기
+      </button>
+    </div>
+  </section>
   
   <!-- 조회 결과 영역 (초기 숨김) -->
   <div id="resultSection" style="display:none; margin-top: 30px;">

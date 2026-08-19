@@ -3716,8 +3716,7 @@ async function cancelMyReservation(reservationId) {
 
   const target =
     myReservations.find(
-      item =>
-        String(item.id) === String(reservationId)
+      item => String(item.id) === String(reservationId)
     );
 
   if (!target) {
@@ -3729,142 +3728,39 @@ async function cancelMyReservation(reservationId) {
   }
 
 
-  // =========================
   // 고정예약인지 확인
-  // =========================
-
-  const isRecurring =
+  if (
     target.is_recurring &&
-    target.recurring_group_id;
+    target.recurring_group_id
+  ) {
 
-
-  let choice;
-
-
-  if (isRecurring) {
-
-    choice =
+    const choice =
       confirm(
-        "고정예약 전체를 취소할까요?\n\n" +
-        "확인을 누르면 이 고정예약에 포함된\n" +
-        "모든 날짜와 공간 예약이 전체 삭제됩니다.\n\n" +
+        "고정예약입니다.\n\n" +
+        "확인을 누르면 이 날짜만 취소합니다.\n" +
         "취소를 누르면 취소하지 않습니다."
       );
 
+    if (!choice) {
+
+      return;
+
+    }
+
   } else {
 
-    choice =
+    const choice =
       confirm(
         "이 예약을 취소할까요?"
       );
 
-  }
+    if (!choice) {
 
+      return;
 
-  if (!choice) {
-
-    return;
-
-  }
-
-
-  // =========================
-  // Supabase 삭제
-  // =========================
-
-  let deleteQuery =
-    supabaseClient
-      .from("Reservations")
-      .delete();
-
-
-  if (isRecurring) {
-
-    // 고정예약 전체 삭제
-    deleteQuery =
-      deleteQuery.eq(
-        "recurring_group_id",
-        target.recurring_group_id
-      );
-
-  } else {
-
-    // 일회성 예약 1건 삭제
-    deleteQuery =
-      deleteQuery.eq(
-        "id",
-        reservationId
-      );
+    }
 
   }
-
-
-  const { error } =
-    await deleteQuery;
-
-
-  if (error) {
-
-    console.error(
-      "예약 취소 오류:",
-      error
-    );
-
-    alert(
-      "예약 취소에 실패했습니다.\n\n" +
-      error.message
-    );
-
-    return;
-
-  }
-
-
-  // =========================
-  // 현재 조회 목록에서도 제거
-  // =========================
-
-  if (isRecurring) {
-
-    myReservations =
-      myReservations.filter(
-        item =>
-          item.recurring_group_id !==
-          target.recurring_group_id
-      );
-
-  } else {
-
-    myReservations =
-      myReservations.filter(
-        item =>
-          String(item.id) !==
-          String(reservationId)
-      );
-
-  }
-
-
-  alert(
-    isRecurring
-      ? "고정예약 전체가 취소되었습니다."
-      : "예약이 취소되었습니다."
-  );
-
-
-  // =========================
-  // 남은 예약이 있으면 목록 표시
-  // =========================
-
-  renderMyReservations(
-    myReservations
-  );
-
-}
-
-// =========================
-// 내 예약 목록으로 돌아가기
-// =========================
 
   renderMyReservations(
     myReservations
@@ -3883,19 +3779,22 @@ function backToMyReservationForm() {
   );
 }
 
-// ==========================================
-// 예약 상세 → 예약 목록으로 돌아가기
-// ==========================================
-
-function backToMyReservationList() {
-
-  showPage(
-    document.getElementById(
-      "myReservationListPage"
-    )
-  );
-
 }
+
+document.getElementById(
+  "backToMyReservationList"
+).addEventListener(
+  "click",
+  () => {
+
+    showPage(
+      document.getElementById(
+        "myReservationListPage"
+      )
+    );
+
+  }
+);
 
 // ==========================================
 // 초기 실행

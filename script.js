@@ -2822,62 +2822,238 @@ if (!name || !phone || !password) {
   renderMyReservations(myReservations);
 }
 
+// ======================================
+// 내 예약 목록 표시
+// ======================================
+
 function renderMyReservations(reservations) {
 
-  const list = document.getElementById("myReservationList");
+  const list =
+    document.getElementById(
+      "myReservationList"
+    );
 
   if (!list) {
+
     console.error(
-      "myReservationList 요소를 찾을 수 없습니다." 
+      "myReservationList 요소를 찾을 수 없습니다."
     );
-    
+
     return;
+
   }
+
 
   list.innerHTML = "";
 
+
+  // 예약이 없는 경우
+  if (!reservations || reservations.length === 0) {
+
+    list.innerHTML = `
+      <div class="my-reservation-empty">
+        조회된 예약 정보가 없습니다.
+      </div>
+    `;
+
+    showPage(
+      document.getElementById(
+        "myReservationListPage"
+      )
+    );
+
+    return;
+
+  }
+
+
   reservations.forEach(reservation => {
 
-    const card = document.createElement("div");
+    const card =
+      document.createElement("div");
 
-    card.className = "my-reservation-card";
+    card.className =
+      "my-reservation-card";
+
+
+    const reservationType =
+      reservation.is_recurring
+        ? "고정예약"
+        : "일회성";
+
+
+    const dateText =
+      reservation.date
+        ? formatDate(reservation.date)
+        : "-";
+
+
+    const timeText =
+      reservation.start_time &&
+      reservation.end_time
+        ? `${reservation.start_time} ~ ${reservation.end_time}`
+        : "-";
+
+
+    const peopleText =
+      reservation.people
+        ? `${reservation.people}명`
+        : "-";
+
 
     card.innerHTML = `
+
+      <!-- =========================
+           예약 상단
+      ========================== -->
+
       <div class="my-reservation-card-top">
 
         <div>
+
           <div class="reservation-center">
-            ${escapeHTML(reservation.center || "")}
+            ${escapeHTML(
+              reservation.center || "-"
+            )}
           </div>
 
           <div class="reservation-room">
-            ${escapeHTML(reservation.room || "")}
+            ${escapeHTML(
+              reservation.room || "-"
+            )}
           </div>
+
         </div>
 
+
         <span class="reservation-status">
-          ${reservation.is_recurring ? "고정예약" : "일회성"}
+          ${reservationType}
         </span>
 
       </div>
 
 
+      <!-- =========================
+           예약 기본 정보
+      ========================== -->
+
       <div class="my-reservation-info">
 
         <div>
-          <span>날짜</span>
-          <strong>${formatDate(reservation.date)}</strong>
+
+          <span>이용날짜</span>
+
+          <strong>
+            ${dateText}
+          </strong>
+
         </div>
 
+
         <div>
-          <span>시간</span>
+
+          <span>이용시간</span>
+
           <strong>
-            ${reservation.start_time} ~ ${reservation.end_time}
+            ${timeText}
           </strong>
+
+        </div>
+
+
+        <div>
+
+          <span>이용인원</span>
+
+          <strong>
+            ${peopleText}
+          </strong>
+
         </div>
 
       </div>
 
+
+      <!-- =========================
+           상세 정보
+      ========================== -->
+
+      <div class="my-reservation-extra">
+
+        <div class="my-reservation-extra-row">
+
+          <span>사용 목적</span>
+
+          <strong>
+            ${escapeHTML(
+              reservation.purpose || "-"
+            )}
+          </strong>
+
+        </div>
+
+
+        <div class="my-reservation-extra-grid">
+
+          <div>
+
+            <span>예약자</span>
+
+            <strong>
+              ${escapeHTML(
+                reservation.user_name || "-"
+              )}
+            </strong>
+
+          </div>
+
+
+          <div>
+
+            <span>부서</span>
+
+            <strong>
+              ${escapeHTML(
+                reservation.department || "-"
+              )}
+            </strong>
+
+          </div>
+
+
+          <div>
+
+            <span>센터(지역)</span>
+
+            <strong>
+              ${escapeHTML(
+                reservation.region || "-"
+              )}
+            </strong>
+
+          </div>
+
+
+          <div>
+
+            <span>연락처</span>
+
+            <strong>
+              ${escapeHTML(
+                reservation.phone || "-"
+              )}
+            </strong>
+
+          </div>
+
+        </div>
+
+      </div>
+
+
+      <!-- =========================
+           상세보기 버튼
+      ========================== -->
 
       <button
         type="button"
@@ -2886,31 +3062,39 @@ function renderMyReservations(reservations) {
       >
         예약 상세보기
       </button>
+
     `;
 
-    const detailButton = 
+
+    const detailButton =
       card.querySelector(
         "button[data-id]"
       );
 
+
     detailButton.addEventListener(
       "click",
       () => {
+
         openMyReservationDetail(
           reservation.id
         );
+
       }
     );
+
 
     list.appendChild(card);
 
   });
+
 
   showPage(
     document.getElementById(
       "myReservationListPage"
     )
   );
+
 }
 
 function openMyReservationDetail(reservationId) {

@@ -2717,6 +2717,17 @@ document.getElementById(
   }
 );
 
+document.getElementById(
+  "backToMyReservationList"
+).addEventListener(
+  "click",
+  () => {
+
+    showPage(myReservationPage);
+
+  }
+);
+
 // ==========================================
 // 홈으로 돌아가기
 // ==========================================

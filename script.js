@@ -2796,13 +2796,16 @@ if (!name || !phone || !password) {
 // ==========================================
 // Supabase에서 예약 정보 조회
 // ==========================================
-  const { data, error } =
+const todayStr = new Date().toISOString().split("T")[0]; // 오늘 날짜 (YYYY-MM-DD)
+
+const { data, error } =
     await supabaseClient
       .from("Reservations")
       .select("*")
       .eq("user_name", name)
       .eq("phone", phone)
       .eq("reservation_password", password)
+      .gte("date", todayStr)
       .order("date", { ascending: true });
 
   if (error) {

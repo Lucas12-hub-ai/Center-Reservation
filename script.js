@@ -2805,7 +2805,7 @@ const { data, error } =
       .eq("user_name", name)
       .eq("phone", phone)
       .eq("reservation_password", password)
-      .gte("date", todayStr)
+      .or(`date.gte.${todayStr},end_date.gte.${todayStr}`)
       .order("date", { ascending: true });
 
   if (error) {

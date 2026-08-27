@@ -2796,7 +2796,7 @@ if (!name || !phone || !password) {
 // ==========================================
 // Supabase에서 예약 정보 조회
 // ==========================================
-const todayStr = new Date().toISOString().split("T")[0]; // 오늘 날짜 (YYYY-MM-DD)
+const todayStr = dateToString(new Date());
 
 const { data, error } =
     await supabaseClient
@@ -2805,7 +2805,7 @@ const { data, error } =
       .eq("user_name", name)
       .eq("phone", phone)
       .eq("reservation_password", password)
-      .or(`date.gte.${todayStr},end_date.gte.${todayStr}`)
+      .gte("date", todayStr)
       .order("date", { ascending: true });
 
   if (error) {

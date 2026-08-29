@@ -2837,9 +2837,9 @@ const { data, error } =
   renderMyReservations(myReservations);
 }
 
-// ======================================
+// ==========================================
 // 내 예약 목록 표시
-// ======================================
+// ==========================================
 
 function renderMyReservations(reservations) {
 
@@ -2882,7 +2882,105 @@ function renderMyReservations(reservations) {
   }
 
 
-  reservations.forEach(reservation => {
+  // ==========================================
+  // 1. 고정예약 / 일회성 예약 분리
+  // ==========================================
+
+  const recurringReservations = [];
+  const singleReservations = [];
+
+  reservations.forEach(item => {
+
+    if (
+      item.is_recurring &&
+      item.recurring_group_id
+    ) {
+
+      recurringReservations.push(item);
+
+    } else {
+
+      singleReservations.push(item);
+
+    }
+
+  });
+
+
+  // ==========================================
+  // 2. 고정예약을 recurring_group_id 기준으로 묶기
+  // ==========================================
+
+  const recurringGroups = {};
+
+  recurringReservations.forEach(item => {
+
+    const groupId =
+      item.recurring_group_id;
+
+    if (!recurringGroups[groupId]) {
+
+      recurringGroups[groupId] = [];
+
+    }
+
+    recurringGroups[groupId].push(item);
+
+  });
+
+
+  // ==========================================
+  // 3. 통합된 예약 목록 만들기
+  // ==========================================
+
+  const groupedReservations = [];
+
+
+  // 고정예약 그룹 추가
+  Object.values(recurringGroups).forEach(group => {
+
+    groupedReservations.push({
+      type: "recurring",
+      items: group
+    });
+
+  });
+
+
+  // 일회성 예약 추가
+  singleReservations.forEach(item => {
+
+    groupedReservations.push({
+      type: "single",
+      items: [item]
+    });
+
+  });
+
+
+  // 날짜순 정렬
+  groupedReservations.sort((a, b) => {
+
+    const dateA =
+      a.items[0]?.date || "";
+
+    const dateB =
+      b.items[0]?.date || "";
+
+    return dateA.localeCompare(dateB);
+
+  });
+
+
+  // ==========================================
+  // 4. 카드 생성
+  // ==========================================
+
+  groupedReservations.forEach(group => {
+
+    const first =
+      group.items[0];
+
 
     const card =
       document.createElement("div");
@@ -2891,132 +2989,343 @@ function renderMyReservations(reservations) {
       "my-reservation-card";
 
 
-    const reservationType =
-      reservation.is_recurring
-        ? "고정예약"
-        : "일회성";
+    // ==========================================
+    // 일회성 예약
+    // ==========================================
+
+    if (group.type === "single") {
+
+      const dateText =
+        first.date
+          ? formatDate(first.date)
+          : "-";
 
 
-    const dateText =
-      reservation.date
-        ? formatDate(reservation.date)
-        : "-";
+      const timeText =
+        first.start_time &&
+        first.end_time
+          ? `${first.start_time} ~ ${first.end_time}`
+          : "-";
 
 
-    const timeText =
-      reservation.start_time &&
-      reservation.end_time
-        ? `${reservation.start_time} ~ ${reservation.end_time}`
-        : "-";
+      const peopleText =
+        first.people
+          ? `${first.people}명`
+          : "-";
 
 
-    const peopleText =
-      reservation.people
-        ? `${reservation.people}명`
-        : "-";
+      card.innerHTML = `
 
-
-    card.innerHTML = `
-
-      <!-- =========================
-           예약 상단
-      ========================== -->
-
-      <div class="my-reservation-card-top">
-
-        <div>
-
-          <div class="reservation-center">
-            ${escapeHTML(
-              reservation.center || "-"
-            )}
-          </div>
-
-          <div class="reservation-room">
-            ${escapeHTML(
-              reservation.room || "-"
-            )}
-          </div>
-
-        </div>
-
-
-        <span class="reservation-status">
-          ${reservationType}
-        </span>
-
-      </div>
-
-
-      <!-- =========================
-           예약 기본 정보
-      ========================== -->
-
-      <div class="my-reservation-info">
-
-        <div>
-
-          <span>이용날짜</span>
-
-          <strong>
-            ${dateText}
-          </strong>
-
-        </div>
-
-
-        <div>
-
-          <span>이용시간</span>
-
-          <strong>
-            ${timeText}
-          </strong>
-
-        </div>
-
-
-        <div>
-
-          <span>이용인원</span>
-
-          <strong>
-            ${peopleText}
-          </strong>
-
-        </div>
-
-      </div>
-
-
-      <!-- =========================
-           상세 정보
-      ========================== -->
-
-      <div class="my-reservation-extra">
-
-        <div class="my-reservation-extra-row">
-
-          <span>사용 목적</span>
-
-          <strong>
-            ${escapeHTML(
-              reservation.purpose || "-"
-            )}
-          </strong>
-
-        </div>
-
-
-        <div class="my-reservation-extra-grid">
+        <div class="my-reservation-card-top">
 
           <div>
 
-            <span>예약자</span>
+            <div class="reservation-center">
+              ${escapeHTML(
+                first.center || "-"
+              )}
+            </div>
+
+            <div class="reservation-room">
+              ${escapeHTML(
+                first.room || "-"
+              )}
+            </div>
+
+          </div>
+
+
+          <span class="reservation-status">
+            일회성
+          </span>
+
+        </div>
+
+
+        <div class="my-reservation-info">
+
+          <div>
+            <span>이용날짜</span>
+            <strong>
+              ${dateText}
+            </strong>
+          </div>
+
+
+          <div>
+            <span>이용시간</span>
+            <strong>
+              ${timeText}
+            </strong>
+          </div>
+
+
+          <div>
+            <span>이용인원</span>
+            <strong>
+              ${peopleText}
+            </strong>
+          </div>
+
+        </div>
+
+
+        <div class="my-reservation-extra">
+
+          <div class="my-reservation-extra-row">
+
+            <span>사용 목적</span>
 
             <strong>
               ${escapeHTML(
-                reservation.user_name || "-"
+                first.purpose || "-"
+              )}
+            </strong>
+
+          </div>
+
+
+          <div class="my-reservation-extra-grid">
+
+            <div>
+              <span>예약자</span>
+              <strong>
+                ${escapeHTML(
+                  first.user_name || "-"
+                )}
+              </strong>
+            </div>
+
+
+            <div>
+              <span>부서</span>
+              <strong>
+                ${escapeHTML(
+                  first.department || "-"
+                )}
+              </strong>
+            </div>
+
+
+            <div>
+              <span>센터(지역)</span>
+              <strong>
+                ${escapeHTML(
+                  first.region || "-"
+                )}
+              </strong>
+            </div>
+
+
+            <div>
+              <span>연락처</span>
+              <strong>
+                ${escapeHTML(
+                  first.phone || "-"
+                )}
+              </strong>
+            </div>
+
+          </div>
+
+        </div>
+
+
+        <button
+          type="button"
+          class="main-button"
+          data-id="${first.id}"
+        >
+          예약 상세보기
+        </button>
+
+      `;
+
+    }
+
+
+    // ==========================================
+    // 고정예약
+    // ==========================================
+
+    else {
+
+      // ------------------------------------------
+      // 이용 요일
+      // ------------------------------------------
+
+      const weekdayNames = [
+        "일",
+        "월",
+        "화",
+        "수",
+        "목",
+        "금",
+        "토"
+      ];
+
+
+      let weekdays = [];
+
+
+      if (
+        Array.isArray(first.recurring_weekdays) &&
+        first.recurring_weekdays.length > 0
+      ) {
+
+        weekdays =
+          [...first.recurring_weekdays]
+            .sort((a, b) => a - b)
+            .map(day =>
+              weekdayNames[Number(day)]
+            );
+
+      } else {
+
+        // 반복요일 값이 없는 기존 예약 처리
+        const fallbackDate =
+          group.items
+            .map(item => item.date)
+            .sort()[0];
+
+        if (fallbackDate) {
+
+          const dateObj =
+            new Date(
+              `${fallbackDate}T00:00:00`
+            );
+
+          weekdays = [
+            weekdayNames[
+              dateObj.getDay()
+            ]
+          ];
+
+        }
+
+      }
+
+
+      const weekdayText =
+        weekdays.length > 0
+          ? weekdays.join(", ")
+          : "-";
+
+
+      // ------------------------------------------
+      // 이용 기간
+      // ------------------------------------------
+
+      const sortedDates =
+        group.items
+          .map(item => item.date)
+          .filter(Boolean)
+          .sort();
+
+
+      const firstDate =
+        sortedDates[0] || "";
+
+      const lastDate =
+        sortedDates[sortedDates.length - 1] || "";
+
+
+      let periodText =
+        "-";
+
+
+      if (
+        firstDate &&
+        lastDate
+      ) {
+
+        periodText =
+          `${formatDate(firstDate)} ~ ${formatDate(lastDate)}`;
+
+      }
+
+
+      // ------------------------------------------
+      // 반복 개월
+      // ------------------------------------------
+
+      const recurringMonths =
+        first.recurring_months
+          ? `${first.recurring_months}개월`
+          : "";
+
+
+      if (recurringMonths) {
+
+        periodText +=
+          ` (${recurringMonths})`;
+
+      }
+
+      const rooms =
+        [
+          ...new Set(
+            group.items
+              .map(item => item.room)
+              .filter(Boolean)
+          )
+        ];
+
+
+      const roomText =
+        rooms.length > 0
+          ? rooms.join(" + ")
+          : "-";
+
+      const timeText =
+        first.start_time &&
+        first.end_time
+          ? `${first.start_time} ~ ${first.end_time}`
+          : "-";
+
+      const peopleText =
+        first.people
+          ? `${first.people}명`
+          : "-";
+
+
+      card.innerHTML = `
+
+        <div class="my-reservation-card-top">
+
+          <div>
+
+            <div class="reservation-center">
+              ${escapeHTML(
+                first.center || "-"
+              )}
+            </div>
+
+            <div class="reservation-room">
+              ${escapeHTML(
+                roomText
+              )}
+            </div>
+
+          </div>
+
+
+          <span class="reservation-status">
+            고정예약
+          </span>
+
+        </div>
+
+
+        <div class="my-reservation-info">
+
+          <div>
+
+            <span>이용요일</span>
+
+            <strong>
+              ${escapeHTML(
+                weekdayText
               )}
             </strong>
 
@@ -3025,11 +3334,11 @@ function renderMyReservations(reservations) {
 
           <div>
 
-            <span>부서</span>
+            <span>이용기간</span>
 
             <strong>
               ${escapeHTML(
-                reservation.department || "-"
+                periodText
               )}
             </strong>
 
@@ -3038,11 +3347,11 @@ function renderMyReservations(reservations) {
 
           <div>
 
-            <span>센터(지역)</span>
+            <span>이용시간</span>
 
             <strong>
               ${escapeHTML(
-                reservation.region || "-"
+                timeText
               )}
             </strong>
 
@@ -3051,35 +3360,106 @@ function renderMyReservations(reservations) {
 
           <div>
 
-            <span>연락처</span>
+            <span>이용인원</span>
 
             <strong>
-              ${escapeHTML(
-                reservation.phone || "-"
-              )}
+              ${peopleText}
             </strong>
 
           </div>
 
         </div>
 
-      </div>
+
+        <div class="my-reservation-extra">
+
+          <div class="my-reservation-extra-row">
+
+            <span>사용 목적</span>
+
+            <strong>
+              ${escapeHTML(
+                first.purpose || "-"
+              )}
+            </strong>
+
+          </div>
 
 
-      <!-- =========================
-           상세보기 버튼
-      ========================== -->
+          <div class="my-reservation-extra-grid">
 
-      <button
-        type="button"
-        class="main-button"
-        data-id="${reservation.id}"
-      >
-        예약 상세보기
-      </button>
+            <div>
 
-    `;
+              <span>예약자</span>
 
+              <strong>
+                ${escapeHTML(
+                  first.user_name || "-"
+                )}
+              </strong>
+
+            </div>
+
+
+            <div>
+
+              <span>부서</span>
+
+              <strong>
+                ${escapeHTML(
+                  first.department || "-"
+                )}
+              </strong>
+
+            </div>
+
+
+            <div>
+
+              <span>센터(지역)</span>
+
+              <strong>
+                ${escapeHTML(
+                  first.region || "-"
+                )}
+              </strong>
+
+            </div>
+
+
+            <div>
+
+              <span>연락처</span>
+
+              <strong>
+                ${escapeHTML(
+                  first.phone || "-"
+                )}
+              </strong>
+
+            </div>
+
+          </div>
+
+        </div>
+
+
+        <button
+          type="button"
+          class="main-button"
+          data-id="${first.id}"
+        >
+          예약 상세보기
+        </button>
+
+      `;
+
+    }
+
+
+    // ==========================================
+    // 상세보기 버튼
+    // ==========================================
 
     const detailButton =
       card.querySelector(
@@ -3087,16 +3467,20 @@ function renderMyReservations(reservations) {
       );
 
 
-    detailButton.addEventListener(
-      "click",
-      () => {
+    if (detailButton) {
 
-        openMyReservationDetail(
-          reservation.id
-        );
+      detailButton.addEventListener(
+        "click",
+        () => {
 
-      }
-    );
+          openMyReservationDetail(
+            detailButton.dataset.id
+          );
+
+        }
+      );
+
+    }
 
 
     list.appendChild(card);

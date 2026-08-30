@@ -2710,11 +2710,9 @@ document.getElementById(
 ).addEventListener(
   "click",
   () => {
-
     showPage(
       myReservationPage
     );
-
   }
 );
 
@@ -2723,9 +2721,7 @@ document.getElementById(
 ).addEventListener(
   "click",
   () => {
-
-    showPage(myReservationPage);
-
+    showPage(myReservationListPage);
   }
 );
 
@@ -3513,43 +3509,176 @@ function openMyReservationDetail(reservationId) {
 
 function renderMyReservationDetail(r) {
 
-  const detail = document.getElementById("myReservationDetail");
+  const detail =
+    document.getElementById("myReservationDetail");
+
+  const isRecurring =
+    Boolean(
+      r.is_recurring &&
+      r.recurring_group_id
+    );
+
+  let dateSection = "";
+
+  if (isRecurring) {
+
+    const weekdayNames = [
+      "일",
+      "월",
+      "화",
+      "수",
+      "목",
+      "금",
+      "토"
+    ];
+
+    const weekdays =
+      Array.isArray(r.recurring_weekdays)
+        ? r.recurring_weekdays
+            .sort((a, b) => a - b)
+            .map(day => weekdayNames[day])
+            .join(", ")
+        : "-";
+
+    const startDate =
+      r.date
+        ? formatDate(r.date)
+        : "-";
+
+    const endDate =
+      r.date
+        ? (() => {
+
+            const end =
+              new Date(`${r.date}T00:00:00`);
+
+            end.setMonth(
+              end.getMonth() +
+              Number(r.recurring_months || 1)
+            );
+
+            end.setDate(
+              end.getDate() - 1
+            );
+
+            return formatDate(
+              dateToString(end)
+            );
+
+          })()
+        : "-";
+
+    dateSection = `
+
+      <div class="detail-row">
+        <span>이용요일</span>
+        <strong>${escapeHTML(weekdays)}</strong>
+      </div>
+
+      <div class="detail-row">
+        <span>이용기간</span>
+        <strong>
+          ${escapeHTML(startDate)}
+          ~
+          ${escapeHTML(endDate)}
+          (${Number(r.recurring_months || 1)}개월)
+        </strong>
+      </div>
+
+    `;
+
+  } else {
+
+    dateSection = `
+
+      <div class="detail-row">
+        <span>이용날짜</span>
+        <strong>
+          ${r.date ? formatDate(r.date) : "-"}
+        </strong>
+      </div>
+
+    `;
+
+  }
 
   detail.innerHTML = `
+
     <div class="reservation-detail-box">
 
       <h2>예약 상세정보</h2>
 
       <div class="detail-row">
+        <span>예약 유형</span>
+        <strong>
+          ${isRecurring ? "고정예약" : "일회성 예약"}
+        </strong>
+      </div>
+
+      <div class="detail-row">
         <span>센터</span>
-        <strong>${r.center || ""}</strong>
+        <strong>
+          ${escapeHTML(r.center || "-")}
+        </strong>
       </div>
 
       <div class="detail-row">
         <span>공간</span>
-        <strong>${r.room || ""}</strong>
+        <strong>
+          ${escapeHTML(r.room || "-")}
+        </strong>
+      </div>
+
+      ${dateSection}
+
+      <div class="detail-row">
+        <span>이용시간</span>
+        <strong>
+          ${r.start_time || "-"} ~ ${r.end_time || "-"}
+        </strong>
       </div>
 
       <div class="detail-row">
-        <span>날짜</span>
-        <strong>${formatDate(r.date)}</strong>
+        <span>이용인원</span>
+        <strong>
+          ${r.people || "-"}명
+        </strong>
       </div>
 
       <div class="detail-row">
-        <span>시간</span>
-        <strong>${r.start_time} ~ ${r.end_time}</strong>
+        <span>예약자</span>
+        <strong>
+          ${escapeHTML(r.user_name || "-")}
+        </strong>
       </div>
 
       <div class="detail-row">
-        <span>인원</span>
-        <strong>${r.people}명</strong>
+        <span>부서</span>
+        <strong>
+          ${escapeHTML(r.department || "-")}
+        </strong>
+      </div>
+
+      <div class="detail-row">
+        <span>센터(지역)</span>
+        <strong>
+          ${escapeHTML(r.region || "-")}
+        </strong>
+      </div>
+
+      <div class="detail-row">
+        <span>연락처</span>
+        <strong>
+          ${escapeHTML(r.phone || "-")}
+        </strong>
       </div>
 
       <div class="detail-row">
         <span>사용 목적</span>
-        <strong>${r.purpose || ""}</strong>
+        <strong>
+          ${escapeHTML(r.purpose || "-")}
+        </strong>
       </div>
-
 
       <div class="reservation-actions">
 
@@ -3577,11 +3706,18 @@ function renderMyReservationDetail(r) {
 
   document
     .querySelectorAll(".page")
-    .forEach(page => page.classList.remove("active"));
+    .forEach(page =>
+      page.classList.remove("active")
+    );
 
-  document
-    .getElementById("myReservationDetailPage")
-    .classList.add("active");
+  const detailPage =
+    document.getElementById(
+      "myReservationDetailPage"
+    );
+
+  if (detailPage) {
+    detailPage.classList.add("active");
+  }
 
 }
 

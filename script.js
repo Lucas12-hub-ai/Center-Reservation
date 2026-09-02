@@ -2352,26 +2352,11 @@ document.getElementById(
 // 반복 예약 날짜 생성
 // ==========================================
 
-function getRecurringDates() {
-
-  const dates = [];
-
-  if (
-    !reservation.isRecurring ||
-    !reservation.date
-  ) {
-
-    // 일회성: 선택된 모든 날짜를 그대로 반환 (다중 선택)
-    return [
-      ...reservation.dates
-    ];
-
-  }
-
+function generateRecurringDateList(startDateStr, months, weekdays) {
 
   const start =
     new Date(
-      `${reservation.date}T00:00:00`
+      `${startDateStr}T00:00:00`
     );
 
 
@@ -2381,16 +2366,18 @@ function getRecurringDates() {
 
   end.setMonth(
     end.getMonth() +
-    reservation.recurringMonths
+    months
   );
 
 
   // 체크된 요일이 없으면, 시작일의 요일로 자동 반복
   const targetDays =
-    reservation.recurringWeekdays.length > 0
-      ? reservation.recurringWeekdays
+    weekdays.length > 0
+      ? weekdays
       : [start.getDay()];
 
+
+  const dates = [];
 
   const current =
     new Date(start);
@@ -2418,6 +2405,29 @@ function getRecurringDates() {
 
 
   return dates;
+
+}
+
+
+function getRecurringDates() {
+
+  if (
+    !reservation.isRecurring ||
+    !reservation.date
+  ) {
+
+    // 일회성: 선택된 모든 날짜를 그대로 반환 (다중 선택)
+    return [
+      ...reservation.dates
+    ];
+
+  }
+
+  return generateRecurringDateList(
+    reservation.date,
+    reservation.recurringMonths,
+    reservation.recurringWeekdays
+  );
 
 }
 
@@ -3730,6 +3740,63 @@ function renderMyReservationDetail(r) {
 // 내 예약 - 예약 수정
 // ==========================================
 
+function buildTimeOptions(centerInfo, selectedStart, selectedEnd) {
+
+  const startMinutes =
+    timeToMinutes(centerInfo.open);
+
+  const closeMinutes =
+    timeToMinutes(centerInfo.close);
+
+  let startTimeOptions = "";
+
+  for (
+    let minute = startMinutes;
+    minute < closeMinutes;
+    minute += 30
+  ) {
+
+    const time =
+      minutesToTime(minute);
+
+    startTimeOptions += `
+      <option
+        value="${time}"
+        ${time === selectedStart ? "selected" : ""}
+      >
+        ${time}
+      </option>
+    `;
+
+  }
+
+  let endTimeOptions = "";
+
+  for (
+    let minute = startMinutes + 30;
+    minute <= closeMinutes;
+    minute += 30
+  ) {
+
+    const time =
+      minutesToTime(minute);
+
+    endTimeOptions += `
+      <option
+        value="${time}"
+        ${time === selectedEnd ? "selected" : ""}
+      >
+        ${time}
+      </option>
+    `;
+
+  }
+
+  return { startTimeOptions, endTimeOptions };
+
+}
+
+
 function editMyReservation(reservationId) {
 
   const target =
@@ -3750,7 +3817,6 @@ function editMyReservation(reservationId) {
     document.getElementById("myReservationDetail");
 
 
-  // 센터 운영시간 기준 시간 옵션 생성
   const centerInfo =
     centers[target.center];
 
@@ -3763,59 +3829,42 @@ function editMyReservation(reservationId) {
   }
 
 
-  const startMinutes =
-    timeToMinutes(centerInfo.open);
+  const isRecurring =
+    Boolean(
+      target.is_recurring &&
+      target.recurring_group_id
+    );
 
-  const closeMinutes =
-    timeToMinutes(centerInfo.close);
+  const centerOptions = Object.keys(centers)
+    .map(c => `<option value="${c}" ${c === target.center ? "selected" : ""}>${c}</option>`)
+    .join("");
 
+  const roomOptions = (roomsByCenter[target.center] || [])
+    .map(room => `<option value="${room}" ${room === target.room ? "selected" : ""}>${room}</option>`)
+    .join("");
 
-  // 시작시간 옵션
-  let startTimeOptions = "";
+  const { startTimeOptions, endTimeOptions } =
+    buildTimeOptions(centerInfo, target.start_time, target.end_time);
 
-  for (
-    let minute = startMinutes;
-    minute < closeMinutes;
-    minute += 30
-  ) {
+  const weekdayNames = ["일", "월", "화", "수", "목", "금", "토"];
 
-    const time =
-      minutesToTime(minute);
+  const existingWeekdays =
+    Array.isArray(target.recurring_weekdays)
+      ? target.recurring_weekdays
+      : [];
 
-    startTimeOptions += `
-      <option
-        value="${time}"
-        ${time === target.start_time ? "selected" : ""}
-      >
-        ${time}
-      </option>
-    `;
+  const existingMonths =
+    target.recurring_months || 1;
 
-  }
+  const isStandardMonths =
+    [1, 3, 6].includes(existingMonths);
 
-
-  // 종료시간 옵션
-  let endTimeOptions = "";
-
-  for (
-    let minute = startMinutes + 30;
-    minute <= closeMinutes;
-    minute += 30
-  ) {
-
-    const time =
-      minutesToTime(minute);
-
-    endTimeOptions += `
-      <option
-        value="${time}"
-        ${time === target.end_time ? "selected" : ""}
-      >
-        ${time}
-      </option>
-    `;
-
-  }
+  const weekdayCheckboxes = weekdayNames.map((name, index) => `
+    <label class="weekday-check">
+      <input type="checkbox" value="${index}" ${existingWeekdays.includes(index) ? "checked" : ""}>
+      <span>${name}</span>
+    </label>
+  `).join("");
 
 
   detail.innerHTML = `
@@ -3827,28 +3876,67 @@ function editMyReservation(reservationId) {
 
       <div class="detail-row">
         <span>센터</span>
-        <strong>
-          ${escapeHTML(target.center || "")}
-        </strong>
+        <select id="editReservationCenter">${centerOptions}</select>
       </div>
 
 
       <div class="detail-row">
         <span>공간</span>
-        <strong>
-          ${escapeHTML(target.room || "")}
-        </strong>
+        <select id="editReservationRoom">${roomOptions}</select>
       </div>
 
 
       <div class="detail-row">
-        <span>날짜</span>
+        <span>예약유형</span>
+        <select id="editReservationType">
+          <option value="single" ${!isRecurring ? "selected" : ""}>일회성 사용</option>
+          <option value="recurring" ${isRecurring ? "selected" : ""}>고정 사용</option>
+        </select>
+      </div>
+
+
+      <div class="detail-row">
+        <span id="editDateLabel">${isRecurring ? "시작일" : "날짜"}</span>
 
         <input
           type="date"
           id="editReservationDate"
           value="${target.date || ""}"
         >
+      </div>
+
+
+      <div id="editRecurringOptions" style="display:${isRecurring ? "block" : "none"};">
+
+        <div class="detail-row">
+          <span>반복 요일</span>
+          <div id="editWeekdayCheckboxes" class="weekday-checkboxes">
+            ${weekdayCheckboxes}
+          </div>
+        </div>
+
+        <div class="detail-row">
+          <span>반복 기간</span>
+          <select id="editRecurringMonths">
+            <option value="1" ${existingMonths === 1 ? "selected" : ""}>1개월</option>
+            <option value="3" ${existingMonths === 3 ? "selected" : ""}>3개월</option>
+            <option value="6" ${existingMonths === 6 ? "selected" : ""}>6개월</option>
+            <option value="custom" ${!isStandardMonths ? "selected" : ""}>직접입력</option>
+          </select>
+          <input
+            type="number"
+            id="editRecurringMonthsCustom"
+            min="1"
+            max="24"
+            value="${existingMonths}"
+            style="display:${isStandardMonths ? "none" : "block"};"
+          >
+        </div>
+
+        <p class="input-help">
+          💡 반복 요일이나 기간을 바꾸면 오늘 이후의 예약이 새 조건으로 다시 만들어져요. (지난 예약은 그대로 남아요)
+        </p>
+
       </div>
 
 
@@ -3879,6 +3967,50 @@ function editMyReservation(reservationId) {
           min="1"
           max="${centerInfo.capacity}"
           value="${target.people || 1}"
+        >
+      </div>
+
+
+      <div class="detail-row">
+        <span>예약자</span>
+
+        <input
+          type="text"
+          id="editReservationUserName"
+          value="${escapeHTML(target.user_name || "")}"
+        >
+      </div>
+
+
+      <div class="detail-row">
+        <span>부서</span>
+
+        <input
+          type="text"
+          id="editReservationDepartment"
+          value="${escapeHTML(target.department || "")}"
+        >
+      </div>
+
+
+      <div class="detail-row">
+        <span>센터(지역)</span>
+
+        <input
+          type="text"
+          id="editReservationRegion"
+          value="${escapeHTML(target.region || "")}"
+        >
+      </div>
+
+
+      <div class="detail-row">
+        <span>연락처</span>
+
+        <input
+          type="tel"
+          id="editReservationPhone"
+          value="${escapeHTML(target.phone || "")}"
         >
       </div>
 
@@ -3933,6 +4065,51 @@ function editMyReservation(reservationId) {
 
   }
 
+
+  // 센터를 바꾸면 공간 목록/운영시간을 새로 반영
+  document.getElementById("editReservationCenter").addEventListener("change", (e) => {
+
+    const newCenterInfo = centers[e.target.value];
+
+    const roomSelect = document.getElementById("editReservationRoom");
+    roomSelect.innerHTML = (roomsByCenter[e.target.value] || [])
+      .map(room => `<option value="${room}">${room}</option>`)
+      .join("");
+
+    if (newCenterInfo) {
+
+      const rebuilt = buildTimeOptions(
+        newCenterInfo,
+        document.getElementById("editReservationStart").value,
+        document.getElementById("editReservationEnd").value
+      );
+
+      document.getElementById("editReservationStart").innerHTML = rebuilt.startTimeOptions;
+      document.getElementById("editReservationEnd").innerHTML = rebuilt.endTimeOptions;
+
+      document.getElementById("editReservationPeople").max = newCenterInfo.capacity;
+
+    }
+
+  });
+
+  // 예약유형을 바꾸면 반복 옵션 표시 여부와 날짜 라벨을 전환
+  document.getElementById("editReservationType").addEventListener("change", (e) => {
+    const recurring = e.target.value === "recurring";
+
+    document.getElementById("editRecurringOptions").style.display =
+      recurring ? "block" : "none";
+
+    document.getElementById("editDateLabel").textContent =
+      recurring ? "시작일" : "날짜";
+  });
+
+  // 반복 기간을 "직접입력"으로 바꾸면 개월 수 입력칸을 표시
+  document.getElementById("editRecurringMonths").addEventListener("change", (e) => {
+    document.getElementById("editRecurringMonthsCustom").style.display =
+      e.target.value === "custom" ? "block" : "none";
+  });
+
 }
 
 
@@ -3980,40 +4157,76 @@ async function saveMyReservation(reservationId) {
   }
 
 
-  const date =
-    document
-      .getElementById("editReservationDate")
-      .value;
+  const center =
+    document.getElementById("editReservationCenter").value;
+
+  const room =
+    document.getElementById("editReservationRoom").value;
+
+  const isRecurring =
+    document.getElementById("editReservationType").value === "recurring";
+
+  const startDate =
+    document.getElementById("editReservationDate").value;
 
   const startTime =
-    document
-      .getElementById("editReservationStart")
-      .value;
+    document.getElementById("editReservationStart").value;
 
   const endTime =
-    document
-      .getElementById("editReservationEnd")
-      .value;
+    document.getElementById("editReservationEnd").value;
 
   const people =
-    Number(
-      document
-        .getElementById("editReservationPeople")
-        .value
-    );
+    Number(document.getElementById("editReservationPeople").value);
+
+  const userName =
+    document.getElementById("editReservationUserName").value.trim();
+
+  const department =
+    document.getElementById("editReservationDepartment").value.trim();
+
+  const region =
+    document.getElementById("editReservationRegion").value.trim();
+
+  const phone =
+    document.getElementById("editReservationPhone").value
+      .replace(/-/g, "")
+      .trim();
 
   const purpose =
-    document
-      .getElementById("editReservationPurpose")
-      .value
-      .trim();
+    document.getElementById("editReservationPurpose").value.trim();
+
+  const weekdays =
+    isRecurring
+      ? Array.from(
+          document.querySelectorAll("#editWeekdayCheckboxes input:checked")
+        ).map(el => Number(el.value))
+      : [];
+
+  const monthsSelect =
+    document.getElementById("editRecurringMonths");
+
+  const months =
+    isRecurring
+      ? (monthsSelect.value === "custom"
+          ? Math.max(1, Math.min(24, Number(document.getElementById("editRecurringMonthsCustom").value) || 1))
+          : Number(monthsSelect.value))
+      : 1;
 
 
   // =========================
   // 기본 입력 확인
   // =========================
 
-  if (!date) {
+  if (!center || !room) {
+
+    alert("센터와 공간을 선택해주세요.");
+
+    return;
+
+  }
+
+
+  if (!startDate) {
 
     alert("날짜를 선택해주세요.");
 
@@ -4057,8 +4270,23 @@ async function saveMyReservation(reservationId) {
   }
 
 
+  if (
+    !userName ||
+    !department ||
+    !region ||
+    !phone ||
+    !purpose
+  ) {
+
+    alert("예약자 정보를 모두 입력해주세요.");
+
+    return;
+
+  }
+
+
   const centerInfo =
-    centers[target.center];
+    centers[center];
 
 
   if (
@@ -4067,12 +4295,40 @@ async function saveMyReservation(reservationId) {
   ) {
 
     alert(
-      `${target.center}은 최대 ${centerInfo.capacity}명까지 이용할 수 있습니다.`
+      `${center}은 최대 ${centerInfo.capacity}명까지 이용할 수 있습니다.`
     );
 
     return;
 
   }
+
+
+  const dates =
+    isRecurring
+      ? generateRecurringDateList(startDate, months, weekdays)
+      : [startDate];
+
+
+  if (dates.length === 0) {
+
+    alert(
+      "생성할 예약 날짜가 없습니다. 반복 요일과 기간을 확인해주세요."
+    );
+
+    return;
+
+  }
+
+
+  const oldGroupId =
+    target.recurring_group_id;
+
+  // 이번 수정으로 대체될 기존 예약(오늘 이후 것만 캐시되어 있음)
+  const excludedIds =
+    (target.is_recurring && oldGroupId
+      ? myReservations.filter(item => item.recurring_group_id === oldGroupId)
+      : [target]
+    ).map(item => String(item.id));
 
 
   // =========================
@@ -4086,23 +4342,19 @@ async function saveMyReservation(reservationId) {
     await supabaseClient
       .from("Reservations")
       .select(
-        "id, start_time, end_time"
+        "id, date, start_time, end_time"
       )
       .eq(
         "center",
-        target.center
+        center
       )
       .eq(
         "room",
-        target.room
+        room
       )
-      .eq(
+      .in(
         "date",
-        date
-      )
-      .neq(
-        "id",
-        reservationId
+        dates
       );
 
 
@@ -4124,6 +4376,10 @@ async function saveMyReservation(reservationId) {
 
   const hasConflict =
     (conflictData || []).some(item => {
+
+      if (excludedIds.includes(String(item.id))) {
+        return false;
+      }
 
       const bookedStart =
         timeToMinutes(
@@ -4156,7 +4412,7 @@ async function saveMyReservation(reservationId) {
   if (hasConflict) {
 
     alert(
-      "선택한 날짜와 시간에 이미 예약이 있습니다."
+      "선택한 날짜와 시간 중 이미 예약된 것이 있습니다."
     );
 
     return;
@@ -4165,50 +4421,107 @@ async function saveMyReservation(reservationId) {
 
 
   // =========================
-  // Supabase 수정
+  // 기존 예약 삭제 (오늘 이후 것만)
   // =========================
 
+  const todayStr =
+    dateToString(new Date());
+
+  let deleteQuery =
+    supabaseClient
+      .from("Reservations")
+      .delete();
+
+  if (target.is_recurring && oldGroupId) {
+
+    deleteQuery =
+      deleteQuery
+        .eq("recurring_group_id", oldGroupId)
+        .gte("date", todayStr);
+
+  } else {
+
+    deleteQuery =
+      deleteQuery.eq("id", target.id);
+
+  }
+
+
+  const { error: deleteError } =
+    await deleteQuery;
+
+
+  if (deleteError) {
+
+    console.error(
+      "예약 수정(삭제) 오류:",
+      deleteError
+    );
+
+    alert("예약 수정에 실패했습니다.");
+
+    return;
+
+  }
+
+
+  // =========================
+  // 새 예약 생성
+  // =========================
+
+  const newGroupId =
+    isRecurring
+      ? crypto.randomUUID()
+      : null;
+
+  const rows =
+    dates.map(date => ({
+
+      center,
+      room,
+      date,
+
+      start_time: startTime,
+      end_time: endTime,
+
+      people,
+
+      user_name: userName,
+      department,
+      region,
+      phone,
+      purpose,
+
+      reservation_password: target.reservation_password,
+
+      is_recurring: isRecurring,
+      recurring_months: isRecurring ? months : null,
+      recurring_group_id: newGroupId,
+      recurring_weekdays: isRecurring ? weekdays : null
+
+    }));
+
+
   const {
-    data,
-    error
+    data: insertedRows,
+    error: insertError
   } =
     await supabaseClient
       .from("Reservations")
-      .update({
-
-        date:
-          date,
-
-        start_time:
-          startTime,
-
-        end_time:
-          endTime,
-
-        people:
-          people,
-
-        purpose:
-          purpose
-
-      })
-      .eq(
-        "id",
-        reservationId
-      )
-      .select()
-      .single();
+      .insert(rows)
+      .select();
 
 
-  if (error) {
+  if (insertError) {
 
     console.error(
-      "예약 수정 오류:",
-      error
+      "예약 수정(생성) 오류:",
+      insertError
     );
 
     alert(
-      "예약 수정에 실패했습니다."
+      "예약 수정에 실패했습니다.\n\n" +
+      JSON.stringify(insertError, null, 2)
     );
 
     return;
@@ -4220,20 +4533,13 @@ async function saveMyReservation(reservationId) {
   // 현재 조회 목록 갱신
   // =========================
 
-  const index =
-    myReservations.findIndex(
-      item =>
-        String(item.id) ===
-        String(reservationId)
+  myReservations =
+    myReservations.filter(
+      item => !excludedIds.includes(String(item.id))
     );
 
-
-  if (index !== -1) {
-
-    myReservations[index] =
-      data;
-
-  }
+  myReservations =
+    myReservations.concat(insertedRows || []);
 
 
   alert(
@@ -4241,10 +4547,18 @@ async function saveMyReservation(reservationId) {
   );
 
 
-  // 수정된 상세정보 다시 표시
-  renderMyReservationDetail(
-    data
-  );
+  const nextTarget =
+    (insertedRows || [])[0];
+
+  if (nextTarget) {
+
+    renderMyReservationDetail(nextTarget);
+
+  } else {
+
+    renderMyReservations(myReservations);
+
+  }
 
 }
 

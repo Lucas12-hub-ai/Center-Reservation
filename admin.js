@@ -325,6 +325,7 @@ function renderDetailView(r) {
   `;
 
   const editBtn = document.getElementById("modalEditBtn");
+  editBtn.style.display = "";
   editBtn.onclick = () => renderDetailEditForm(r);
 
   const recurringActions = document.getElementById("modalRecurringActions");
@@ -450,12 +451,38 @@ function renderDetailEditForm(r) {
         <button type="submit" id="inlineEditSaveBtn" class="filter-search">저장하기</button>
       </div>
     </form>
+
+    ${r.is_recurring && r.recurring_group_id ? `
+      <div class="modal-recurring-actions">
+        <p>이 예약은 고정(반복) 예약의 일부예요. 반복 기간을 바꾸면 같은 시리즈의 날짜가 새 기간에 맞춰 추가되거나 삭제돼요.</p>
+        <div class="form-row">
+          <div class="form-field">
+            <label>반복 기간</label>
+            <select id="inlineEditRecurringMonths">
+              <option value="1" ${r.recurring_months === 1 ? "selected" : ""}>1개월</option>
+              <option value="3" ${r.recurring_months === 3 ? "selected" : ""}>3개월</option>
+              <option value="6" ${r.recurring_months === 6 ? "selected" : ""}>6개월</option>
+              <option value="custom" ${![1, 3, 6].includes(r.recurring_months) ? "selected" : ""}>직접입력</option>
+            </select>
+          </div>
+          <div class="form-field">
+            <label>개월 수</label>
+            <input type="number" id="inlineEditRecurringMonthsCustom" min="1" max="24"
+              value="${r.recurring_months || 1}"
+              style="${[1, 3, 6].includes(r.recurring_months) ? "display:none;" : ""}">
+          </div>
+        </div>
+        <div class="form-actions">
+          <button type="button" id="applyRecurringMonthsBtn" class="action-btn">반복 기간 적용</button>
+        </div>
+      </div>
+    ` : ""}
   `;
- 
+
   // 수정 모드에서는 수정버튼/시리즈삭제 버튼 숨김
   document.getElementById("modalEditBtn").style.display = "none";
   document.getElementById("modalRecurringActions").style.display = "none";
- 
+
   // 센터를 바꾸면 그 센터의 공간 목록으로 갱신
   document.getElementById("inlineEditCenter").addEventListener("change", (e) => {
     const roomSelect = document.getElementById("inlineEditRoom");
@@ -463,6 +490,23 @@ function renderDetailEditForm(r) {
       .map(room => `<option value="${room}">${room}</option>`)
       .join("");
   });
+
+  if (r.is_recurring && r.recurring_group_id) {
+    const monthsSelect = document.getElementById("inlineEditRecurringMonths");
+    const monthsCustom = document.getElementById("inlineEditRecurringMonthsCustom");
+
+    monthsSelect.addEventListener("change", () => {
+      monthsCustom.style.display = monthsSelect.value === "custom" ? "block" : "none";
+    });
+
+    document.getElementById("applyRecurringMonthsBtn").addEventListener("click", () => {
+      const months = monthsSelect.value === "custom"
+        ? Math.max(1, Math.min(24, Number(monthsCustom.value) || 1))
+        : Number(monthsSelect.value);
+
+      applyRecurringMonthsChange(r, months);
+    });
+  }
  
   document.getElementById("inlineEditCancelBtn").addEventListener("click", () => {
     renderDetailView(r);
@@ -557,7 +601,195 @@ async function saveInlineEdit(id) {
     saveBtn.textContent = "저장하기";
   }
 }
- 
+
+// ==========================================
+// 고정(반복) 예약 - 반복 기간 변경
+// ==========================================
+
+function generateWeeklyDates(startDateStr, months, weekdays) {
+  const start = new Date(`${startDateStr}T00:00:00`);
+  const end = new Date(start);
+  end.setMonth(end.getMonth() + months);
+
+  const targetDays = weekdays.length > 0 ? weekdays : [start.getDay()];
+  const dates = [];
+  const current = new Date(start);
+
+  while (current < end) {
+    if (targetDays.includes(current.getDay())) {
+      dates.push(toDateString(current));
+    }
+    current.setDate(current.getDate() + 1);
+  }
+
+  return dates;
+}
+
+async function applyRecurringMonthsChange(r, newMonths) {
+  if (newMonths === r.recurring_months) {
+    alert("반복 기간이 변경되지 않았어요.");
+    return;
+  }
+
+  const seriesRows = allReservations.filter(
+    item => item.recurring_group_id === r.recurring_group_id
+  );
+
+  const startDate = seriesRows.map(item => item.date).sort()[0];
+
+  const weekdays = Array.isArray(r.recurring_weekdays) && r.recurring_weekdays.length > 0
+    ? r.recurring_weekdays
+    : [new Date(`${startDate}T00:00:00`).getDay()];
+
+  const newDates = generateWeeklyDates(startDate, newMonths, weekdays);
+
+  const existingDates = new Set(seriesRows.map(item => item.date));
+  const newDatesSet = new Set(newDates);
+
+  const datesToDelete = [...existingDates].filter(d => !newDatesSet.has(d));
+  const datesToAdd = newDates.filter(d => !existingDates.has(d));
+
+  const ok = confirm(
+    `반복 기간을 ${newMonths}개월로 변경하면\n` +
+    `${datesToDelete.length}건이 삭제되고, ${datesToAdd.length}건이 추가돼요.\n\n진행할까요?`
+  );
+
+  if (!ok) return;
+
+  try {
+    if (datesToDelete.length > 0) {
+      const dateFilter = `in.(${datesToDelete.map(d => `"${d}"`).join(",")})`;
+
+      const response = await fetch(
+        `${SUPABASE_URL}/rest/v1/Reservations?recurring_group_id=eq.${encodeURIComponent(r.recurring_group_id)}&date=${encodeURIComponent(dateFilter)}`,
+        {
+          method: "DELETE",
+          headers: {
+            "apikey": SUPABASE_PUBLISHABLE_KEY,
+            "Authorization": `Bearer ${SUPABASE_PUBLISHABLE_KEY}`
+          }
+        }
+      );
+
+      if (!response.ok) {
+        alert("반복 기간 축소에 실패했습니다.");
+        console.error("반복 기간 축소 실패:", await response.text());
+        return;
+      }
+    }
+
+    if (datesToAdd.length > 0) {
+      const template = seriesRows[0];
+      const rooms = [...new Set(seriesRows.map(item => item.room).filter(Boolean))];
+      const skipped = [];
+      const rows = [];
+
+      datesToAdd.forEach(date => {
+        rooms.forEach(room => {
+          const conflict = allReservations.some(item =>
+            item.recurring_group_id !== r.recurring_group_id &&
+            item.center === template.center &&
+            item.room === room &&
+            item.date === date &&
+            item.start_time < template.end_time &&
+            item.end_time > template.start_time
+          );
+
+          if (conflict) {
+            skipped.push(`${date} (${room})`);
+            return;
+          }
+
+          rows.push({
+            center: template.center,
+            room,
+            date,
+            start_time: template.start_time,
+            end_time: template.end_time,
+            people: template.people,
+            user_name: template.user_name,
+            department: template.department,
+            region: template.region,
+            phone: template.phone,
+            purpose: template.purpose,
+            reservation_password: template.reservation_password,
+            is_recurring: true,
+            recurring_months: newMonths,
+            recurring_group_id: r.recurring_group_id,
+            recurring_weekdays: weekdays
+          });
+        });
+      });
+
+      if (rows.length > 0) {
+        const response = await fetch(
+          `${SUPABASE_URL}/rest/v1/Reservations`,
+          {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+              "apikey": SUPABASE_PUBLISHABLE_KEY,
+              "Authorization": `Bearer ${SUPABASE_PUBLISHABLE_KEY}`,
+              "Prefer": "return=representation"
+            },
+            body: JSON.stringify(rows)
+          }
+        );
+
+        if (!response.ok) {
+          alert("반복 기간 연장에 실패했습니다.");
+          console.error("반복 기간 연장 실패:", await response.text());
+          return;
+        }
+      }
+
+      if (skipped.length > 0) {
+        alert("다음 날짜는 이미 다른 예약이 있어 추가하지 못했어요:\n" + skipped.join("\n"));
+      }
+    }
+
+    const monthsResponse = await fetch(
+      `${SUPABASE_URL}/rest/v1/Reservations?recurring_group_id=eq.${encodeURIComponent(r.recurring_group_id)}`,
+      {
+        method: "PATCH",
+        headers: {
+          "Content-Type": "application/json",
+          "apikey": SUPABASE_PUBLISHABLE_KEY,
+          "Authorization": `Bearer ${SUPABASE_PUBLISHABLE_KEY}`
+        },
+        body: JSON.stringify({ recurring_months: newMonths })
+      }
+    );
+
+    if (!monthsResponse.ok) {
+      console.error("반복 개월 수 갱신 실패:", await monthsResponse.text());
+    }
+
+    await fetchReservations();
+    applyFilters();
+    renderSummary();
+    renderTodayView();
+    renderCenterView();
+    renderWeeklyAdminView();
+    renderStatsView();
+
+    const updated = allReservations.find(item => String(item.id) === String(r.id))
+      || allReservations.find(item => item.recurring_group_id === r.recurring_group_id);
+
+    if (updated) {
+      renderDetailView(updated);
+    } else {
+      document.getElementById("detailModal").classList.remove("show");
+    }
+
+    alert("반복 기간이 변경되었습니다.");
+
+  } catch (error) {
+    console.error("반복 기간 변경 오류:", error);
+    alert("반복 기간 변경 중 문제가 발생했습니다.");
+  }
+}
+
 document.getElementById("closeModal").addEventListener("click", () => {
   document.getElementById("detailModal").classList.remove("show");
 });

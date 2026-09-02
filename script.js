@@ -2717,12 +2717,17 @@ document.getElementById(
 );
 
 document.getElementById(
+  "backToMyReservationForm"
+).addEventListener(
+  "click",
+  backToMyReservationForm
+);
+
+document.getElementById(
   "backToMyReservationList"
 ).addEventListener(
   "click",
-  () => {
-    showPage(myReservationListPage);
-  }
+  backToMyReservationList
 );
 
 // ==========================================

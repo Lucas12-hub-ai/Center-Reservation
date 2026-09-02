@@ -324,9 +324,7 @@ function renderDetailView(r) {
     <div class="modal-row"><span>신청일시</span><strong>${formatDateTime(r.created_at)}</strong></div>
   `;
 
-  const editBtn = document.getElementById("detailModal");
-  editBtn.style.display = "block";
-  editBtn.textContent = "예약수정";
+  const editBtn = document.getElementById("modalEditBtn");
   editBtn.onclick = () => renderDetailEditForm(r);
 
   const recurringActions = document.getElementById("modalRecurringActions");

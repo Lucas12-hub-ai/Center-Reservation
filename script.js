@@ -150,6 +150,214 @@ function showPage(page) {
 
 
 // ==========================================
+// 화면 안 알림 (토스트) / 확인창
+// ==========================================
+
+function showToast(message) {
+
+  let host =
+    document.getElementById("toastHost");
+
+  if (!host) {
+
+    host = document.createElement("div");
+    host.id = "toastHost";
+    host.className = "toast-host";
+    host.setAttribute("role", "status");
+    host.setAttribute("aria-live", "polite");
+    document.body.appendChild(host);
+
+  }
+
+  const toast =
+    document.createElement("div");
+
+  toast.className = "toast";
+  toast.textContent = String(message);
+
+  const close = () => {
+    toast.classList.add("hide");
+    setTimeout(() => toast.remove(), 250);
+  };
+
+  toast.addEventListener("click", close);
+
+  host.appendChild(toast);
+
+  // 긴 문장일수록 오래 보여주기
+  setTimeout(close, Math.min(8000, Math.max(2800, String(message).length * 70)));
+
+}
+
+
+function showConfirm(message, okText = "확인", cancelText = "취소") {
+
+  return new Promise(resolve => {
+
+    const overlay =
+      document.createElement("div");
+
+    overlay.className = "confirm-overlay";
+
+    overlay.innerHTML = `
+      <div class="confirm-box" role="dialog" aria-modal="true">
+        <p class="confirm-message"></p>
+        <div class="confirm-actions">
+          <button type="button" class="sub-button" data-answer="no"></button>
+          <button type="button" class="main-button" data-answer="yes"></button>
+        </div>
+      </div>`;
+
+    overlay.querySelector(".confirm-message").textContent = message;
+    overlay.querySelector('[data-answer="no"]').textContent = cancelText;
+    overlay.querySelector('[data-answer="yes"]').textContent = okText;
+
+    const finish = answer => {
+      overlay.remove();
+      resolve(answer);
+    };
+
+    overlay.addEventListener("click", event => {
+      if (event.target === overlay) finish(false);
+      const answer = event.target.dataset?.answer;
+      if (answer) finish(answer === "yes");
+    });
+
+    document.body.appendChild(overlay);
+
+    overlay.querySelector('[data-answer="yes"]').focus();
+
+  });
+
+}
+
+
+// ==========================================
+// 입력값 확인 (연락처 / 비밀번호)
+// ==========================================
+
+function isValidPhone(phone) {
+
+  return /^01[016789]\d{7,8}$/.test(
+    String(phone).replace(/\D/g, "")
+  );
+
+}
+
+
+function isValidPassword(password) {
+
+  return /^\d{4}$/.test(String(password));
+
+}
+
+
+function formatPhone(value) {
+
+  const digits =
+    String(value).replace(/\D/g, "").slice(0, 11);
+
+  if (digits.length < 4) return digits;
+
+  if (digits.length < 8) {
+    return `${digits.slice(0, 3)}-${digits.slice(3)}`;
+  }
+
+  if (digits.length === 10) {
+    return `${digits.slice(0, 3)}-${digits.slice(3, 6)}-${digits.slice(6)}`;
+  }
+
+  return `${digits.slice(0, 3)}-${digits.slice(3, 7)}-${digits.slice(7)}`;
+
+}
+
+
+// 연락처는 입력하면서 하이픈 자동 입력, 비밀번호는 숫자만
+document.addEventListener("input", event => {
+
+  const el = event.target;
+
+  if (el.matches('input[type="tel"]')) {
+    el.value = formatPhone(el.value);
+  }
+
+  if (el.matches("#reservationPassword")) {
+    el.value = el.value.replace(/\D/g, "").slice(0, 4);
+  }
+
+  // 입력을 고치면 그 칸의 오류 문구 지우기
+  clearFieldError(el.id);
+
+});
+
+
+function setFieldError(id, message) {
+
+  const input =
+    document.getElementById(id);
+
+  if (!input) return;
+
+  clearFieldError(id);
+
+  input.classList.add("has-error");
+
+  const error =
+    document.createElement("p");
+
+  error.className = "field-error";
+  error.dataset.for = id;
+  error.textContent = message;
+
+  input.insertAdjacentElement("afterend", error);
+
+}
+
+
+function clearFieldError(id) {
+
+  if (!id) return;
+
+  document.getElementById(id)?.classList.remove("has-error");
+
+  document
+    .querySelectorAll(`.field-error[data-for="${id}"]`)
+    .forEach(el => el.remove());
+
+}
+
+
+// ==========================================
+// 지난 시간 판단 (오늘 날짜의 이미 지난 시간은 예약 불가)
+// ==========================================
+
+function todayString() {
+
+  return dateToString(new Date());
+
+}
+
+
+function nowMinutes() {
+
+  const now = new Date();
+
+  return now.getHours() * 60 + now.getMinutes();
+
+}
+
+
+function isPastSlot(dateString, time) {
+
+  return (
+    dateString === todayString() &&
+    timeToMinutes(time) < nowMinutes()
+  );
+
+}
+
+
+// ==========================================
 // 시간 함수
 // ==========================================
 
@@ -949,6 +1157,8 @@ function renderTimeSlots() {
 
   timeSlotGrid.innerHTML = "";
 
+  timeSlotList.innerHTML = "";
+
 
   // 센터 → 이용공간 → 이용날짜 순서로 선택해야 시간 선택 가능
   const prerequisiteNotice =
@@ -971,6 +1181,8 @@ function renderTimeSlots() {
 
     timeSlotWrapperOuter.style.display =
       "none";
+
+    timeSlotListGuide.textContent = "";
 
     return;
 
@@ -1013,6 +1225,10 @@ function renderTimeSlots() {
     const booked =
       isBooked(time);
 
+    // 오늘 날짜가 포함돼 있으면 이미 지난 시간은 선택 불가
+    const past =
+      reservation.dates.some(date => isPastSlot(date, time));
+
     const button =
       document.createElement("button");
 
@@ -1022,7 +1238,7 @@ function renderTimeSlots() {
       "time-slot";
 
     button.title =
-      time;
+      past ? `${time} (지난 시간)` : time;
 
 
     if (minutes % 60 === 0) {
@@ -1033,10 +1249,10 @@ function renderTimeSlots() {
     }
 
 
-    if (booked) {
+    if (booked || past) {
 
       button.classList.add(
-        "booked"
+        booked ? "booked" : "past"
       );
 
       button.disabled = true;
@@ -1089,6 +1305,168 @@ function renderTimeSlots() {
     );
 
   });
+
+
+  renderTimeList(slots);
+
+}
+
+
+// ==========================================
+// 휴대폰용 시간 선택 (큰 버튼 목록)
+// 시작 시간 → 끝나는 시간 순서로 정확한 시각을 고름
+// ==========================================
+
+const timeSlotList =
+  document.getElementById("timeSlotList");
+
+const timeSlotListGuide =
+  document.getElementById("timeSlotListGuide");
+
+
+function isUnavailableStart(time) {
+
+  return (
+    isBooked(time) ||
+    reservation.dates.some(date => isPastSlot(date, time))
+  );
+
+}
+
+
+function renderTimeList(slots) {
+
+  const center =
+    centers[reservation.center];
+
+  const choosingEnd =
+    reservation.startTime && !reservation.endTime;
+
+  const start =
+    reservation.startTime ? timeToMinutes(reservation.startTime) : null;
+
+  const end =
+    reservation.endTime ? timeToMinutes(reservation.endTime) : null;
+
+
+  timeSlotListGuide.textContent =
+    !reservation.startTime
+      ? "① 시작 시간을 골라주세요."
+      : choosingEnd
+        ? `② ${reservation.startTime}부터, 끝나는 시간을 골라주세요.`
+        : `${reservation.startTime} ~ ${reservation.endTime} 선택됨 · 다른 시간을 누르면 새로 고를 수 있어요.`;
+
+
+  // 끝나는 시간은 다음 예약 시작 전까지만 가능
+  let endLimit =
+    timeToMinutes(center.close);
+
+  if (choosingEnd) {
+
+    bookedReservations.forEach(item => {
+
+      const bookedStart =
+        timeToMinutes(item.start_time);
+
+      if (bookedStart >= start + 30 && bookedStart < endLimit) {
+        endLimit = bookedStart;
+      }
+
+    });
+
+  }
+
+
+  // 시작 후보: 운영 시작 ~ 마감 30분 전 / 끝 후보: 여기에 마감 시각 추가
+  [...slots, center.close].forEach(time => {
+
+    const minutes =
+      timeToMinutes(time);
+
+    const button =
+      document.createElement("button");
+
+    button.type = "button";
+    button.className = "time-chip";
+    button.textContent = time;
+
+
+    let disabled;
+
+    if (choosingEnd) {
+
+      disabled =
+        minutes <= start || minutes > endLimit;
+
+    } else {
+
+      disabled =
+        time === center.close || isUnavailableStart(time);
+
+      if (isBooked(time)) button.classList.add("booked");
+
+    }
+
+    if (
+      (start !== null && minutes === start) ||
+      (end !== null && minutes === end)
+    ) {
+      button.classList.add("edge");
+    } else if (start !== null && end !== null && minutes > start && minutes < end) {
+      button.classList.add("in-range");
+    }
+
+    button.disabled = disabled;
+
+    button.addEventListener(
+      "click",
+      () => handleTimeListClick(time)
+    );
+
+    timeSlotList.appendChild(button);
+
+  });
+
+}
+
+
+function handleTimeListClick(time) {
+
+  const choosingEnd =
+    reservation.startTime && !reservation.endTime;
+
+  if (
+    choosingEnd &&
+    timeToMinutes(time) > timeToMinutes(reservation.startTime)
+  ) {
+
+    if (hasBookedBetween(reservation.startTime, time)) {
+
+      showToast("선택한 구간 중간에 이미 예약이 있어요.");
+
+      return;
+
+    }
+
+    reservation.endTime = time;
+
+  } else {
+
+    // 시작 시간을 새로 고름 (끝나는 시간은 다시 선택)
+    if (isUnavailableStart(time)) return;
+
+    reservation.startTime = time;
+    reservation.endTime = "";
+
+  }
+
+  renderTimeSlots();
+
+  updateDuration();
+
+  updateQuickTime();
+
+  validateReservation();
 
 }
 
@@ -1147,7 +1525,7 @@ function handleSlotClick(time) {
         )
       ) {
 
-        alert(
+        showToast(
           "선택한 구간 중간에 이미 예약이 있어요."
         );
 
@@ -1228,7 +1606,7 @@ document
 
         if (!reservation.startTime) {
 
-          alert(
+          showToast(
             "먼저 시작시간을 선택해주세요."
           );
 
@@ -1282,7 +1660,7 @@ document
           timeToMinutes(endTime) > close
         ) {
 
-          alert(
+          showToast(
             "센터 운영시간을 초과합니다."
           );
 
@@ -1298,7 +1676,7 @@ document
           )
         ) {
 
-          alert(
+          showToast(
             "선택한 시간 안에 이미 예약된 시간이 있습니다."
           );
 
@@ -1453,6 +1831,8 @@ function updateQuickTime() {
 // ==========================================
 
 let weekOffset = 0;
+
+let weeklySelectedIndex = null; // 휴대폰 주간현황에서 고른 요일 (null이면 오늘로)
 
 
 function getStartOfWeek(date) {
@@ -1645,6 +2025,67 @@ async function renderWeeklyReservation() {
     );
 
 
+  // 휴대폰: 요일 탭에서 고른 날짜 하나만 보여줌 (기본은 오늘, 없으면 첫날)
+  if (weeklySelectedIndex === null) {
+
+    const todayIndex =
+      dates.findIndex(date => dateToString(date) === todayString);
+
+    weeklySelectedIndex =
+      todayIndex === -1 ? 0 : todayIndex;
+
+  }
+
+  const tabs =
+    document.getElementById("weeklyTabs");
+
+  tabs.innerHTML = "";
+
+  dates.forEach((date, index) => {
+
+    const dateString =
+      dateToString(date);
+
+    const tab =
+      document.createElement("button");
+
+    tab.type = "button";
+
+    tab.className =
+      "week-tab" +
+      (index === 0 ? " sun" : "") +
+      (index === 6 ? " sat" : "") +
+      (dateString === todayString ? " today" : "") +
+      (index === weeklySelectedIndex ? " active" : "");
+
+    const count =
+      reservations.filter(item => item.date === dateString).length;
+
+    tab.innerHTML = `
+      <span class="day-name">${dayNames[index]}</span>
+      <span class="day-number">${date.getDate()}</span>
+      <span class="week-tab-count">${count ? `${count}건` : ""}</span>
+    `;
+
+    tab.addEventListener("click", () => {
+
+      weeklySelectedIndex = index;
+
+      tabs.querySelectorAll(".week-tab").forEach((el, i) =>
+        el.classList.toggle("active", i === index)
+      );
+
+      calendar.querySelectorAll(".week-day").forEach((el, i) =>
+        el.classList.toggle("active", i === index)
+      );
+
+    });
+
+    tabs.appendChild(tab);
+
+  });
+
+
   dates.forEach(
     (date, index) => {
 
@@ -1658,7 +2099,8 @@ async function renderWeeklyReservation() {
         );
 
       dayColumn.className =
-        "week-day";
+        "week-day" +
+        (index === weeklySelectedIndex ? " active" : "");
 
 
       const header =
@@ -1774,6 +2216,8 @@ document.getElementById(
 
     weekOffset--;
 
+    weeklySelectedIndex = null;
+
     await renderWeeklyReservation();
 
   }
@@ -1788,6 +2232,8 @@ document.getElementById(
 
     weekOffset++;
 
+    weeklySelectedIndex = null;
+
     await renderWeeklyReservation();
 
   }
@@ -1801,6 +2247,8 @@ document.getElementById(
   async () => {
 
     weekOffset = 0;
+
+    weeklySelectedIndex = null;
 
     await renderWeeklyReservation();
 
@@ -1869,6 +2317,8 @@ document
             ? "block"
             : "none";
 
+        updateRecurringPreview();
+
       }
     );
 
@@ -1895,6 +2345,8 @@ document
               '#weekdayCheckboxes input[type="checkbox"]:checked'
             )
           ).map(el => Number(el.value));
+
+        updateRecurringPreview();
 
       }
     );
@@ -1929,6 +2381,8 @@ document.getElementById(
 
     }
 
+    updateRecurringPreview();
+
   }
 );
 
@@ -1943,6 +2397,8 @@ document.getElementById(
       Math.max(1, Math.min(24, Number(event.target.value) || 1));
 
     reservation.recurringMonths = value;
+
+    updateRecurringPreview();
 
   }
 );
@@ -2043,7 +2499,7 @@ peopleCount.addEventListener(
       value =
         reservation.capacity;
 
-      alert(
+      showToast(
         `${reservation.center}은 최대 ${reservation.capacity}명까지 이용할 수 있습니다.`
       );
 
@@ -2084,6 +2540,34 @@ function validateReservation() {
     !complete;
 
   updateStepLocks();
+
+  updateQuickLine();
+
+  updateRecurringPreview();
+
+}
+
+
+// ==========================================
+// 휴대폰 하단 고정 바의 한 줄 요약
+// ==========================================
+
+function updateQuickLine() {
+
+  const line =
+    document.getElementById("quickLine");
+
+  if (!line) return;
+
+  const parts =
+    ["quickCenter", "quickRoom", "quickDate", "quickTime", "quickPeople"]
+      .map(id => document.getElementById(id).textContent.trim())
+      .filter(text => text && text !== "선택하기");
+
+  line.textContent =
+    reservation.center
+      ? parts.join(" · ")
+      : "센터를 선택해주세요";
 
 }
 
@@ -2180,73 +2664,39 @@ document.getElementById(
         "reservationPassword"
       ).value.trim();
 
-    if (!name) {
 
-      alert(
-        "예약자 이름을 입력해주세요."
-      );
+    // 잘못된 칸마다 바로 아래에 이유를 표시
+    const errors = [];
 
-      return;
+    if (!name) errors.push(["userName", "예약자 이름을 입력해주세요."]);
 
-    }
+    if (!department) errors.push(["department", "부서를 입력해주세요."]);
 
-
-    if (!department) {
-
-      alert(
-        "부서를 입력해주세요."
-      );
-
-      return;
-
-    }
-
-    if (!region) {
-
-      alert(
-        "지역을 입력해주세요."
-      );
-
-      return;
-
-    }
+    if (!region) errors.push(["region", "센터(지역)를 입력해주세요."]);
 
     if (!phone) {
-
-      alert(
-        "연락처를 입력해주세요."
-      );
-
-      return;
-
+      errors.push(["phone", "연락처를 입력해주세요."]);
+    } else if (!isValidPhone(phone)) {
+      errors.push(["phone", "010-1234-5678 형식의 휴대폰 번호를 입력해주세요."]);
     }
 
-
-    if (!purpose) {
-
-      alert(
-        "사용 목적을 입력해주세요."
-      );
-
-      return;
-
-    }
+    if (!purpose) errors.push(["purpose", "사용 목적을 입력해주세요."]);
 
     if (!reservationPassword) {
-
-      alert(
-        "예약 비밀번호를 입력해주세요."
-      );
-
-      return;
-
+      errors.push(["reservationPassword", "예약 비밀번호를 입력해주세요."]);
+    } else if (!isValidPassword(reservationPassword)) {
+      errors.push(["reservationPassword", "예약 비밀번호는 숫자 4자리로 입력해주세요."]);
     }
 
-    if (reservationPassword.length < 4) {
 
-      alert(
-        "예약 비밀번호는 최소 4자리 이상이어야 합니다."
-      );
+    ["userName", "department", "region", "phone", "purpose", "reservationPassword"]
+      .forEach(clearFieldError);
+
+    if (errors.length) {
+
+      errors.forEach(([id, message]) => setFieldError(id, message));
+
+      document.getElementById(errors[0][0]).focus();
 
       return;
 
@@ -2486,6 +2936,148 @@ function getRecurringDates() {
 
 
 // ==========================================
+// 겹치는 예약 확인 (여러 날짜 한 번에)
+// ==========================================
+
+async function findConflictDates(dates, rooms, startTime, endTime) {
+
+  const conflicts = new Set();
+
+  if (!dates.length || !rooms.length || !startTime || !endTime) {
+    return conflicts;
+  }
+
+  const sorted = [...dates].sort();
+
+  const { data, error } =
+    await supabaseClient
+      .from("Reservations")
+      .select("date, start_time, end_time")
+      .eq("center", reservation.center)
+      .in("room", rooms)
+      .gte("date", sorted[0])
+      .lte("date", sorted[sorted.length - 1]);
+
+  if (error) {
+    console.error("겹침 확인 오류:", error);
+    return conflicts;
+  }
+
+  const dateSet = new Set(dates);
+
+  const start = timeToMinutes(startTime);
+  const end = timeToMinutes(endTime);
+
+  (data || []).forEach(item => {
+
+    if (
+      dateSet.has(item.date) &&
+      start < timeToMinutes(item.end_time) &&
+      end > timeToMinutes(item.start_time)
+    ) {
+      conflicts.add(item.date);
+    }
+
+  });
+
+  return conflicts;
+
+}
+
+
+function shortDate(dateString) {
+
+  const d = new Date(`${dateString}T00:00:00`);
+
+  const names = ["일", "월", "화", "수", "목", "금", "토"];
+
+  return `${d.getMonth() + 1}/${d.getDate()}(${names[d.getDay()]})`;
+
+}
+
+
+// ==========================================
+// 고정예약 날짜 미리보기
+// ==========================================
+
+let recurringPreviewToken = 0;
+
+async function updateRecurringPreview() {
+
+  const box =
+    document.getElementById("recurringPreview");
+
+  if (!box) return;
+
+  if (!reservation.isRecurring) {
+
+    box.hidden = true;
+
+    return;
+
+  }
+
+  box.hidden = false;
+
+  if (!reservation.date) {
+
+    box.innerHTML =
+      `<p class="preview-empty">캘린더에서 시작 날짜를 고르면 예약될 날짜가 여기에 표시돼요.</p>`;
+
+    return;
+
+  }
+
+  const dates =
+    getRecurringDates();
+
+  const token = ++recurringPreviewToken;
+
+  const render = conflicts => {
+
+    if (token !== recurringPreviewToken) return;
+
+    const chips =
+      dates.map(date =>
+        `<span class="preview-chip${conflicts.has(date) ? " conflict" : ""}">${shortDate(date)}</span>`
+      ).join("");
+
+    const timeKnown =
+      reservation.startTime && reservation.endTime;
+
+    box.innerHTML = `
+      <p class="preview-title">총 <strong>${dates.length}회</strong> 예약돼요</p>
+      <div class="preview-chips">${chips}</div>
+      ${
+        conflicts.size
+          ? `<p class="preview-warn">빨간 날짜 ${conflicts.size}일은 이미 다른 예약이 있어요. 신청할 때 이 날짜를 빼고 예약할지 물어볼게요.</p>`
+          : timeKnown
+            ? `<p class="preview-ok">선택한 시간에 겹치는 예약이 없어요.</p>`
+            : `<p class="preview-empty">시간을 고르면 겹치는 날짜를 확인해 드려요.</p>`
+      }`;
+
+  };
+
+  render(new Set());
+
+  if (reservation.startTime && reservation.endTime) {
+
+    const conflicts =
+      await findConflictDates(
+        dates,
+        reservation.rooms,
+        reservation.startTime,
+        reservation.endTime
+      );
+
+    render(conflicts);
+
+  }
+
+}
+
+
+// ==========================================
 // 예약 신청
 // ==========================================
 
@@ -2523,8 +3115,74 @@ document.getElementById(
       }
 
 
-      const dates =
+      const restoreButton = () => {
+        button.disabled = false;
+        button.textContent = "예약 신청하기";
+      };
+
+
+      const allDates =
         getRecurringDates();
+
+
+      // 오늘 날짜의 이미 지난 시간은 예약 불가
+      if (allDates.some(date => isPastSlot(date, reservation.startTime))) {
+
+        showToast("이미 지난 시간이 포함돼 있어요. 시간을 다시 선택해주세요.");
+
+        restoreButton();
+
+        return;
+
+      }
+
+
+      // 신청 직전에 모든 날짜(고정예약은 반복되는 모든 날짜)의 겹침을 다시 확인
+      const conflicts =
+        await findConflictDates(
+          allDates,
+          reservation.rooms,
+          reservation.startTime,
+          reservation.endTime
+        );
+
+      let dates = allDates;
+
+      if (conflicts.size > 0) {
+
+        const remaining =
+          allDates.filter(date => !conflicts.has(date));
+
+        if (remaining.length === 0) {
+
+          showToast("선택한 날짜와 시간은 이미 다른 예약이 있어요. 시간을 다시 선택해주세요.");
+
+          restoreButton();
+
+          return;
+
+        }
+
+        const ok =
+          await showConfirm(
+            "이미 예약이 있는 날짜가 있어요.\n" +
+            [...conflicts].sort().map(shortDate).join(", ") +
+            `\n\n이 날짜를 빼고 나머지 ${remaining.length}일만 예약할까요?`,
+            "빼고 예약하기",
+            "돌아가기"
+          );
+
+        if (!ok) {
+
+          restoreButton();
+
+          return;
+
+        }
+
+        dates = remaining;
+
+      }
 
 
       // 날짜 × 공간(여러 개 선택 가능) 조합으로 저장
@@ -2612,13 +3270,11 @@ document.getElementById(
 
       if (error) {
 
-        alert(
-          "예약 저장에 실패했습니다.\n\n" +
-          JSON.stringify(
-            error,
-            null,
-            2
-          )
+        // 23P01: DB의 겹침 방지 규칙에 걸림 (그 사이 다른 사람이 예약)
+        showToast(
+          error.code === "23P01"
+            ? "방금 다른 분이 같은 시간을 예약했어요. 시간을 다시 선택해주세요."
+            : "예약 저장에 실패했습니다.\n\n" + (error.message || JSON.stringify(error))
         );
 
 
@@ -2702,7 +3358,7 @@ document.getElementById(
       );
 
 
-      alert(
+      showToast(
         "예약 처리 중 문제가 발생했습니다.\n\n" +
         JSON.stringify(
           error,
@@ -2845,7 +3501,7 @@ async function checkMyReservations() {
 
 if (!name || !phone || !password) {
 
-  alert(
+  showToast(
     "예약자 이름, 연락처, 예약 비밀번호를 입력해주세요."
   );
   return;}
@@ -2869,14 +3525,14 @@ const { data, error } =
     console.error(
       "예약 조회 오류:",
       error);
-    alert(
+    showToast(
       "예약 조회 중 오류가 발생했습니다."
     );
     return;
   }
 
   if (!data || data.length === 0) {
-    alert(
+    showToast(
       "예약 정보가 없습니다. 입력하신 정보를 확인해주세요."
     );
     return;
@@ -3562,7 +4218,7 @@ function openMyReservationDetail(reservationId) {
   );
 
   if (!reservation) {
-    alert("예약 정보를 찾을 수 없습니다.");
+    showToast("예약 정보를 찾을 수 없습니다.");
     return;
   }
 
@@ -3854,7 +4510,7 @@ function editMyReservation(reservationId) {
 
   if (!target) {
 
-    alert("예약 정보를 찾을 수 없습니다.");
+    showToast("예약 정보를 찾을 수 없습니다.");
 
     return;
 
@@ -3870,7 +4526,7 @@ function editMyReservation(reservationId) {
 
   if (!centerInfo) {
 
-    alert("센터 정보를 찾을 수 없습니다.");
+    showToast("센터 정보를 찾을 수 없습니다.");
 
     return;
 
@@ -4174,7 +4830,7 @@ function renderMyReservationDetailById(reservationId) {
 
   if (!target) {
 
-    alert("예약 정보를 찾을 수 없습니다.");
+    showToast("예약 정보를 찾을 수 없습니다.");
 
     return;
 
@@ -4198,7 +4854,7 @@ async function saveMyReservation(reservationId) {
 
   if (!target) {
 
-    alert("예약 정보를 찾을 수 없습니다.");
+    showToast("예약 정보를 찾을 수 없습니다.");
 
     return;
 
@@ -4267,7 +4923,7 @@ async function saveMyReservation(reservationId) {
 
   if (!center || !room) {
 
-    alert("센터와 공간을 선택해주세요.");
+    showToast("센터와 공간을 선택해주세요.");
 
     return;
 
@@ -4276,7 +4932,7 @@ async function saveMyReservation(reservationId) {
 
   if (!startDate) {
 
-    alert("날짜를 선택해주세요.");
+    showToast("날짜를 선택해주세요.");
 
     return;
 
@@ -4285,7 +4941,7 @@ async function saveMyReservation(reservationId) {
 
   if (!startTime || !endTime) {
 
-    alert("시작시간과 종료시간을 선택해주세요.");
+    showToast("시작시간과 종료시간을 선택해주세요.");
 
     return;
 
@@ -4297,7 +4953,7 @@ async function saveMyReservation(reservationId) {
     timeToMinutes(startTime)
   ) {
 
-    alert(
+    showToast(
       "종료시간은 시작시간보다 늦어야 합니다."
     );
 
@@ -4311,7 +4967,7 @@ async function saveMyReservation(reservationId) {
     people < 1
   ) {
 
-    alert("이용 인원을 확인해주세요.");
+    showToast("이용 인원을 확인해주세요.");
 
     return;
 
@@ -4326,7 +4982,25 @@ async function saveMyReservation(reservationId) {
     !purpose
   ) {
 
-    alert("예약자 정보를 모두 입력해주세요.");
+    showToast("예약자 정보를 모두 입력해주세요.");
+
+    return;
+
+  }
+
+
+  if (!isValidPhone(phone)) {
+
+    showToast("연락처를 010-1234-5678 형식으로 입력해주세요.");
+
+    return;
+
+  }
+
+
+  if (isPastSlot(startDate, startTime)) {
+
+    showToast("이미 지난 시간이에요. 시작시간을 다시 선택해주세요.");
 
     return;
 
@@ -4342,7 +5016,7 @@ async function saveMyReservation(reservationId) {
     people > centerInfo.capacity
   ) {
 
-    alert(
+    showToast(
       `${center}은 최대 ${centerInfo.capacity}명까지 이용할 수 있습니다.`
     );
 
@@ -4359,7 +5033,7 @@ async function saveMyReservation(reservationId) {
 
   if (dates.length === 0) {
 
-    alert(
+    showToast(
       "생성할 예약 날짜가 없습니다. 반복 요일과 기간을 확인해주세요."
     );
 
@@ -4413,7 +5087,7 @@ async function saveMyReservation(reservationId) {
       conflictError
     );
 
-    alert(
+    showToast(
       "예약 가능 여부를 확인하는 중 오류가 발생했습니다."
     );
 
@@ -4459,7 +5133,7 @@ async function saveMyReservation(reservationId) {
 
   if (hasConflict) {
 
-    alert(
+    showToast(
       "선택한 날짜와 시간 중 이미 예약된 것이 있습니다."
     );
 
@@ -4528,9 +5202,10 @@ async function saveMyReservation(reservationId) {
       insertError
     );
 
-    alert(
-      "예약 수정에 실패했습니다.\n\n" +
-      JSON.stringify(insertError, null, 2)
+    showToast(
+      insertError.code === "23P01"
+        ? "방금 다른 분이 같은 시간을 예약했어요. 시간을 다시 선택해주세요."
+        : "예약 수정에 실패했습니다.\n\n" + (insertError.message || JSON.stringify(insertError))
     );
 
     return;
@@ -4558,7 +5233,7 @@ async function saveMyReservation(reservationId) {
     myReservations.concat(insertedRows || []);
 
 
-  alert(
+  showToast(
     "예약 정보가 수정되었습니다."
   );
 
@@ -4593,7 +5268,7 @@ async function cancelMyReservation(reservationId) {
 
   if (!target) {
 
-    alert(
+    showToast(
       "예약 정보를 찾을 수 없습니다."
     );
 
@@ -4617,18 +5292,20 @@ async function cancelMyReservation(reservationId) {
   if (isRecurring) {
 
     choice =
-      confirm(
+      await showConfirm(
         "고정예약 전체를 취소할까요?\n\n" +
-        "확인을 누르면 이 고정예약에 포함된\n" +
-        "모든 날짜와 공간 예약이 전체 삭제됩니다.\n\n" +
-        "취소를 누르면 삭제하지 않습니다."
+        "이 고정예약에 포함된 모든 날짜의 예약이 함께 삭제됩니다.",
+        "전체 취소",
+        "돌아가기"
       );
 
   } else {
 
     choice =
-      confirm(
-        "이 예약을 취소할까요?"
+      await showConfirm(
+        "이 예약을 취소할까요?",
+        "예약 취소",
+        "돌아가기"
       );
 
   }
@@ -4670,7 +5347,7 @@ async function cancelMyReservation(reservationId) {
       error
     );
 
-    alert(
+    showToast(
       "예약 취소에 실패했습니다.\n\n" +
       error.message
     );
@@ -4701,7 +5378,7 @@ async function cancelMyReservation(reservationId) {
     );
 
 
-    alert(
+    showToast(
       "예약 삭제가 처리되지 않았습니다.\n\n" +
       "다시 조회한 뒤 시도해주세요."
     );
@@ -4742,13 +5419,13 @@ async function cancelMyReservation(reservationId) {
 
   if (isRecurring) {
 
-    alert(
+    showToast(
       `${deletedCount}건의 고정예약이 전체 취소되었습니다.`
     );
 
   } else {
 
-    alert(
+    showToast(
       "예약이 취소되었습니다."
     );
 

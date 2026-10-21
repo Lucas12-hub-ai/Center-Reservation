@@ -253,6 +253,8 @@ let bookedReservations = [];
 
 let myReservations = []; // 내 예약 조회용
 
+let myReservationAuth = null; // 내 예약 조회 시 입력한 이름·연락처·비밀번호
+
 // ==========================================
 // 센터 선택
 // ==========================================
@@ -2600,14 +2602,7 @@ document.getElementById(
       } =
         await supabaseClient
           .from("Reservations")
-          .insert(rows)
-          .select();
-
-
-      console.log(
-        "Supabase data:",
-        data
-      );
+          .insert(rows);
 
       console.log(
         "Supabase error:",
@@ -2860,15 +2855,15 @@ if (!name || !phone || !password) {
 // ==========================================
 const todayStr = dateToString(new Date());
 
+// 비밀번호 확인은 서버(get_my_reservations)에서 처리
 const { data, error } =
     await supabaseClient
-      .from("Reservations")
-      .select("*")
-      .eq("user_name", name)
-      .eq("phone", phone)
-      .eq("reservation_password", password)
-      .gte("date", todayStr)
-      .order("date", { ascending: true });
+      .rpc("get_my_reservations", {
+        p_name: name,
+        p_phone: phone,
+        p_password: password,
+        p_from: todayStr
+      });
 
   if (error) {
     console.error(
@@ -2892,8 +2887,10 @@ const { data, error } =
     data
   );
 
-  // 조회 결과 저장
+  // 조회 결과 저장 (수정·취소 시 본인 확인에 다시 사용)
   myReservations = data;
+
+  myReservationAuth = { name, phone, password };
 
   // 예약 정보 표시
   renderMyReservations(myReservations);
@@ -4472,53 +4469,11 @@ async function saveMyReservation(reservationId) {
 
 
   // =========================
-  // 기존 예약 삭제 (오늘 이후 것만)
+  // 기존 예약(오늘 이후) 교체 → 서버에서 본인 확인 후 한 번에 처리
   // =========================
 
   const todayStr =
     dateToString(new Date());
-
-  let deleteQuery =
-    supabaseClient
-      .from("Reservations")
-      .delete();
-
-  if (target.is_recurring && oldGroupId) {
-
-    deleteQuery =
-      deleteQuery
-        .eq("recurring_group_id", oldGroupId)
-        .gte("date", todayStr);
-
-  } else {
-
-    deleteQuery =
-      deleteQuery.eq("id", target.id);
-
-  }
-
-
-  const { error: deleteError } =
-    await deleteQuery;
-
-
-  if (deleteError) {
-
-    console.error(
-      "예약 수정(삭제) 오류:",
-      deleteError
-    );
-
-    alert("예약 수정에 실패했습니다.");
-
-    return;
-
-  }
-
-
-  // =========================
-  // 새 예약 생성
-  // =========================
 
   const newGroupId =
     isRecurring
@@ -4543,8 +4498,6 @@ async function saveMyReservation(reservationId) {
       phone,
       purpose,
 
-      reservation_password: target.reservation_password,
-
       is_recurring: isRecurring,
       recurring_months: isRecurring ? months : null,
       recurring_group_id: newGroupId,
@@ -4558,9 +4511,14 @@ async function saveMyReservation(reservationId) {
     error: insertError
   } =
     await supabaseClient
-      .from("Reservations")
-      .insert(rows)
-      .select();
+      .rpc("update_my_reservation", {
+        p_id: target.id,
+        p_name: myReservationAuth?.name,
+        p_phone: myReservationAuth?.phone,
+        p_password: myReservationAuth?.password,
+        p_from: todayStr,
+        p_rows: rows
+      });
 
 
   if (insertError) {
@@ -4583,6 +4541,13 @@ async function saveMyReservation(reservationId) {
   // =========================
   // 현재 조회 목록 갱신
   // =========================
+
+  // 이름·연락처를 바꿨다면 이후 수정·취소도 바뀐 정보로 본인 확인
+  myReservationAuth = {
+    ...myReservationAuth,
+    name: userName,
+    phone
+  };
 
   myReservations =
     myReservations.filter(
@@ -4678,41 +4643,20 @@ async function cancelMyReservation(reservationId) {
 
   // ==========================================
   // Supabase 삭제 요청
+  // (서버에서 본인 확인 후, 고정예약이면 그룹 전체 / 일회성이면 1건 삭제)
   // ==========================================
 
-  let deleteQuery =
-    supabaseClient
-      .from("Reservations")
-      .delete();
-
-
-  if (isRecurring) {
-
-    // 같은 고정예약 그룹 전체 삭제
-    deleteQuery =
-      deleteQuery.eq(
-        "recurring_group_id",
-        target.recurring_group_id
-      );
-
-  } else {
-
-    // 일회성 예약 1건만 삭제
-    deleteQuery =
-      deleteQuery.eq(
-        "id",
-        reservationId
-      );
-
-  }
-
-
   const {
-    data: deletedRows,
+    data: deletedCount,
     error
   } =
-    await deleteQuery
-      .select("id");
+    await supabaseClient
+      .rpc("cancel_my_reservation", {
+        p_id: target.id,
+        p_name: myReservationAuth?.name,
+        p_phone: myReservationAuth?.phone,
+        p_password: myReservationAuth?.password
+      });
 
 
   // ==========================================
@@ -4740,10 +4684,7 @@ async function cancelMyReservation(reservationId) {
   // 실제 삭제된 데이터 확인
   // ==========================================
 
-  if (
-    !deletedRows ||
-    deletedRows.length === 0
-  ) {
+  if (!deletedCount) {
 
     console.error(
       "삭제된 예약이 없습니다.",
@@ -4762,18 +4703,12 @@ async function cancelMyReservation(reservationId) {
 
     alert(
       "예약 삭제가 처리되지 않았습니다.\n\n" +
-      "Supabase의 삭제 권한(RLS) 또는 예약 조건을 확인해주세요."
+      "다시 조회한 뒤 시도해주세요."
     );
 
     return;
 
   }
-
-
-  console.log(
-    "삭제된 예약:",
-    deletedRows
-  );
 
 
   // ==========================================
@@ -4808,7 +4743,7 @@ async function cancelMyReservation(reservationId) {
   if (isRecurring) {
 
     alert(
-      `${deletedRows.length}건의 고정예약이 전체 취소되었습니다.`
+      `${deletedCount}건의 고정예약이 전체 취소되었습니다.`
     );
 
   } else {

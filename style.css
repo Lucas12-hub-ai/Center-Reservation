@@ -67,11 +67,6 @@ button {
   opacity: 0.7;
 }
 
-.header-title {
-  font-size: 16px;
-  color: #a68b4a;
-}
-
 .container {
   width: 100%;
   max-width: 900px;
@@ -384,6 +379,14 @@ button {
   color: #999;
 }
 
+.weekly-month {
+  font-size: 26px;
+  font-weight: 800;
+  letter-spacing: -0.5px;
+  color: #a68b4a;
+  white-space: nowrap;
+}
+
 .weekly-navigation {
   display: flex;
   align-items: center;
@@ -637,9 +640,41 @@ button {
 }
 
 .calendar-hint {
-  margin-top: 10px;
+  margin-top: 16px;
   font-size: 11px;
   color: #999;
+}
+
+/* 💡 안내 문구: 위 박스와 살짝 띄우기 */
+.time-notice {
+  margin-top: 14px;
+}
+
+.input-help {
+  margin-top: 8px;
+}
+
+
+/* =========================
+   단계별 선택 잠금
+========================= */
+
+.step-notice {
+  display: none;
+}
+
+.form-card.step-locked .step-notice {
+  display: block;
+}
+
+.form-card.step-locked .calendar,
+.form-card.step-locked .calendar-hint,
+.form-card.step-locked .selected-dates-chips,
+.form-card.step-locked .quick-time,
+.form-card.step-locked .duration-display,
+.form-card.step-locked .time-notice {
+  opacity: 0.4;
+  pointer-events: none;
 }
 
 .selected-dates-chips {

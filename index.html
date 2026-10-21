@@ -3,14 +3,44 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>센터/모임방 공간 예약 시스템</title>
+<title>센터 공간 예약</title>
+<meta name="description" content="큰 서교·작은 서교·합정역·명동센터의 강의실과 상담실을 예약할 수 있어요.">
+
+<!-- 카카오톡·SNS 링크 미리보기 -->
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="센터 공간 예약">
+<meta property="og:title" content="센터 공간 예약">
+<meta property="og:description" content="큰 서교·작은 서교·합정역·명동센터의 강의실과 상담실을 예약할 수 있어요.">
+<meta property="og:url" content="https://lucas12-hub-ai.github.io/Center-Reservation/">
+<meta property="og:image" content="https://lucas12-hub-ai.github.io/Center-Reservation/assets/og-image.png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta name="twitter:card" content="summary_large_image">
+
+<!-- 브라우저 탭 아이콘 -->
+<link rel="icon" type="image/svg+xml" href="assets/favicon.svg">
+<link rel="apple-touch-icon" href="assets/apple-touch-icon.png">
+<meta name="theme-color" content="#ffffff">
+
 <link rel="stylesheet" href="style.css">
 </head>
 
 <body>
 
 <header class="header">
-  <div class="logo" id="logoHome">CENTER RESERVATION</div>
+  <div class="logo" id="logoHome">
+    <span class="logo-mark" aria-hidden="true">
+      <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <rect x="3.5" y="5" width="17" height="15" rx="2" stroke="currentColor" stroke-width="1.8"/>
+        <path d="M3.5 9.5h17M8 3v4M16 3v4" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>
+        <path d="M9 14.5l2 2 4-4" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
+      </svg>
+    </span>
+    <span class="logo-text">
+      <span class="logo-ko">센터 공간 예약</span>
+      <span class="logo-en">CENTER RESERVATION</span>
+    </span>
+  </div>
   
   <div class="header-right">
     <button type="button" id="myReservationButton">
@@ -146,6 +176,8 @@
         </div>
 
       </div>
+
+      <div id="weeklyTabs" class="week-tabs"></div>
 
       <div id="weeklyCalendar" class="weekly-calendar"></div>
 
@@ -284,6 +316,13 @@
         </button>
 
       </div>
+
+
+      <!-- 휴대폰용 시간 선택 (큰 버튼 목록) -->
+
+      <p id="timeSlotListGuide" class="time-list-guide"></p>
+
+      <div id="timeSlotList" class="time-slot-list"></div>
 
 
       <!-- 빠른 시간 선택 -->
@@ -448,6 +487,8 @@
           캘린더에서 선택한 날짜를 시작일로, 체크한 요일마다 매주 반복 예약됩니다. (요일을 하나도 안 고르면 시작일의 요일로 자동 반복돼요)
         </p>
 
+        <div id="recurringPreview" class="recurring-preview" hidden></div>
+
       </div>
 
     </div>
@@ -543,11 +584,18 @@
     </div>
 
 
-    <button id="nextButton"
-            class="main-button"
-            disabled>
-      다음
-    </button>
+    <!-- 휴대폰에서는 화면 아래에 고정 -->
+    <div class="action-bar">
+
+      <p id="quickLine" class="quick-line">센터를 선택해주세요</p>
+
+      <button id="nextButton"
+              class="main-button"
+              disabled>
+        다음
+      </button>
+
+    </div>
 
   </section>
 

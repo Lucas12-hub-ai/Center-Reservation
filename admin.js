@@ -5,6 +5,56 @@
 const SUPABASE_URL = "https://ohnxhlbwzakwzhzhkhvt.supabase.co";
 const SUPABASE_PUBLISHABLE_KEY = "sb_publishable_v8DnBpF4GX4oABnGOfpRxA_QH6ruB5Q";
 
+// 관리자 전용 서버 함수 (관리자 코드 확인 후 DB 조회·수정·삭제)
+const ADMIN_API_URL = `${SUPABASE_URL}/functions/v1/admin-api`;
+
+const ADMIN_CODE_STORAGE_KEY = "centerAdminCode";
+
+function getAdminCode() {
+  try {
+    const saved = sessionStorage.getItem(ADMIN_CODE_STORAGE_KEY);
+    if (saved) return saved;
+  } catch (e) {}
+
+  const code = (prompt("관리자 코드를 입력해주세요.") || "").trim();
+
+  try {
+    if (code) sessionStorage.setItem(ADMIN_CODE_STORAGE_KEY, code);
+  } catch (e) {}
+
+  return code;
+}
+
+function clearAdminCode() {
+  try {
+    sessionStorage.removeItem(ADMIN_CODE_STORAGE_KEY);
+  } catch (e) {}
+}
+
+// 관리자 코드가 틀리면 다시 입력받아 재시도
+async function adminFetch(url, options = {}) {
+  for (let attempt = 0; attempt < 3; attempt++) {
+    const code = getAdminCode();
+
+    if (!code) break;
+
+    const response = await fetch(url, {
+      ...options,
+      headers: { ...(options.headers || {}), "x-admin-code": code }
+    });
+
+    if (response.status !== 401) return response;
+
+    clearAdminCode();
+    alert("관리자 코드가 올바르지 않습니다.");
+  }
+
+  return new Response(
+    JSON.stringify({ message: "관리자 코드가 필요합니다." }),
+    { status: 401, headers: { "Content-Type": "application/json" } }
+  );
+}
+
 // ==========================================
 // 센터 / 공간 목록 (필터 드롭다운용)
 // ==========================================
@@ -36,8 +86,8 @@ let selectedCenterCard = ""; // 센터별 현황 화면에서 선택된 센터
 
 async function fetchReservations() {
   try {
-    const response = await fetch(
-      `${SUPABASE_URL}/rest/v1/Reservations?select=*&order=date.desc,start_time.desc`,
+    const response = await adminFetch(
+      `${ADMIN_API_URL}/Reservations?select=*&order=date.desc,start_time.desc`,
       {
         headers: {
           "apikey": SUPABASE_PUBLISHABLE_KEY,
@@ -543,8 +593,8 @@ async function saveInlineEdit(id) {
   saveBtn.textContent = "저장 중...";
  
   try {
-    const response = await fetch(
-      `${SUPABASE_URL}/rest/v1/Reservations?id=eq.${id}`,
+    const response = await adminFetch(
+      `${ADMIN_API_URL}/Reservations?id=eq.${id}`,
       {
         method: "PATCH",
         headers: {
@@ -660,8 +710,8 @@ async function applyRecurringMonthsChange(r, newMonths) {
     if (datesToDelete.length > 0) {
       const dateFilter = `in.(${datesToDelete.map(d => `"${d}"`).join(",")})`;
 
-      const response = await fetch(
-        `${SUPABASE_URL}/rest/v1/Reservations?recurring_group_id=eq.${encodeURIComponent(r.recurring_group_id)}&date=${encodeURIComponent(dateFilter)}`,
+      const response = await adminFetch(
+        `${ADMIN_API_URL}/Reservations?recurring_group_id=eq.${encodeURIComponent(r.recurring_group_id)}&date=${encodeURIComponent(dateFilter)}`,
         {
           method: "DELETE",
           headers: {
@@ -712,7 +762,7 @@ async function applyRecurringMonthsChange(r, newMonths) {
             region: template.region,
             phone: template.phone,
             purpose: template.purpose,
-            reservation_password: template.reservation_password,
+            reservation_password_hash: template.reservation_password_hash,
             is_recurring: true,
             recurring_months: newMonths,
             recurring_group_id: r.recurring_group_id,
@@ -722,8 +772,8 @@ async function applyRecurringMonthsChange(r, newMonths) {
       });
 
       if (rows.length > 0) {
-        const response = await fetch(
-          `${SUPABASE_URL}/rest/v1/Reservations`,
+        const response = await adminFetch(
+          `${ADMIN_API_URL}/Reservations`,
           {
             method: "POST",
             headers: {
@@ -748,8 +798,8 @@ async function applyRecurringMonthsChange(r, newMonths) {
       }
     }
 
-    const monthsResponse = await fetch(
-      `${SUPABASE_URL}/rest/v1/Reservations?recurring_group_id=eq.${encodeURIComponent(r.recurring_group_id)}`,
+    const monthsResponse = await adminFetch(
+      `${ADMIN_API_URL}/Reservations?recurring_group_id=eq.${encodeURIComponent(r.recurring_group_id)}`,
       {
         method: "PATCH",
         headers: {
@@ -881,8 +931,8 @@ addForm.addEventListener("submit", async (e) => {
   submitBtn.textContent = "추가 중...";
 
   try {
-    const response = await fetch(
-      `${SUPABASE_URL}/rest/v1/Reservations`,
+    const response = await adminFetch(
+      `${ADMIN_API_URL}/Reservations`,
       {
         method: "POST",
         headers: {
@@ -941,8 +991,8 @@ async function deleteReservation(id) {
   if (!ok) return;
 
   try {
-    const response = await fetch(
-      `${SUPABASE_URL}/rest/v1/Reservations?id=eq.${id}`,
+    const response = await adminFetch(
+      `${ADMIN_API_URL}/Reservations?id=eq.${id}`,
       {
         method: "DELETE",
         headers: {
@@ -984,8 +1034,8 @@ async function deleteRecurringSeries(groupId, count) {
   if (!ok) return;
 
   try {
-    const response = await fetch(
-      `${SUPABASE_URL}/rest/v1/Reservations?recurring_group_id=eq.${encodeURIComponent(groupId)}`,
+    const response = await adminFetch(
+      `${ADMIN_API_URL}/Reservations?recurring_group_id=eq.${encodeURIComponent(groupId)}`,
       {
         method: "DELETE",
         headers: {

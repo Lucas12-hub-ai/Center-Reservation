@@ -376,22 +376,12 @@ function renderRooms() {
       "click",
       async () => {
 
-        const index =
-          reservation.rooms.indexOf(room);
+        // 공간은 하나만 선택 (다른 공간을 누르면 교체)
+        if (reservation.room === room) return;
 
-        if (index === -1) {
+        reservation.rooms = [room];
 
-          reservation.rooms.push(room);
-
-        } else {
-
-          reservation.rooms.splice(index, 1);
-
-        }
-
-        // 기존 코드와 호환을 위해 room(단일)은 첫번째 선택값으로 유지
-        reservation.room =
-          reservation.rooms[0] || "";
+        reservation.room = room;
 
         reservation.startTime = "";
         reservation.endTime = "";
@@ -399,11 +389,7 @@ function renderRooms() {
         document.getElementById(
           "quickRoom"
         ).textContent =
-          reservation.rooms.length === 0
-            ? "선택하기"
-            : reservation.rooms.length === 1
-              ? reservation.rooms[0]
-              : `${reservation.rooms[0]} 외 ${reservation.rooms.length - 1}개`;
+          room;
 
         renderRooms();
 
@@ -962,7 +948,21 @@ function renderTimeSlots() {
   timeSlotGrid.innerHTML = "";
 
 
-  if (!reservation.center) {
+  // 센터 → 이용공간 → 이용날짜 순서로 선택해야 시간 선택 가능
+  const prerequisiteNotice =
+    !reservation.center
+      ? "센터를 먼저 선택해주세요."
+      : reservation.rooms.length === 0
+        ? "이용공간을 먼저 선택해주세요."
+        : reservation.dates.length === 0
+          ? "이용날짜를 먼저 선택해주세요."
+          : "";
+
+
+  if (prerequisiteNotice) {
+
+    timeSlotNotice.textContent =
+      prerequisiteNotice;
 
     timeSlotNotice.style.display =
       "block";
@@ -1552,6 +1552,21 @@ async function renderWeeklyReservation() {
     `${dates[0].getFullYear()}년 ${dates[0].getMonth() + 1}월 ${dates[0].getDate()}일 ~ ${dates[6].getMonth() + 1}월 ${dates[6].getDate()}일`;
 
 
+  // 가운데 월 표시 (주가 두 달에 걸치면 "10월 · 11월")
+  const firstMonth =
+    dates[0].getMonth() + 1;
+
+  const lastMonth =
+    dates[6].getMonth() + 1;
+
+  document.getElementById(
+    "weeklyMonth"
+  ).textContent =
+    firstMonth === lastMonth
+      ? `${firstMonth}월`
+      : `${firstMonth}월 · ${lastMonth}월`;
+
+
   const { data, error } =
     await supabaseClient
       .from("Reservations")
@@ -2065,6 +2080,42 @@ function validateReservation() {
 
   nextButton.disabled =
     !complete;
+
+  updateStepLocks();
+
+}
+
+
+// ==========================================
+// 단계별 선택 잠금 (센터 → 공간 → 날짜 → 시간)
+// ==========================================
+
+function updateStepLocks() {
+
+  const dateLocked =
+    !reservation.center ||
+    reservation.rooms.length === 0;
+
+  const timeLocked =
+    dateLocked ||
+    reservation.dates.length === 0;
+
+
+  document
+    .getElementById("dateCard")
+    .classList.toggle("step-locked", dateLocked);
+
+  document
+    .getElementById("timeCard")
+    .classList.toggle("step-locked", timeLocked);
+
+
+  document.getElementById(
+    "dateStepNotice"
+  ).textContent =
+    !reservation.center
+      ? "센터를 먼저 선택해주세요."
+      : "이용공간을 먼저 선택해주세요.";
 
 }
 

@@ -13,7 +13,6 @@
   <div class="logo" id="logoHome">CENTER RESERVATION</div>
   
   <div class="header-right">
-    <div class="header-title">실시간 예약</div>
     <button type="button" id="myReservationButton">
       내 예약정보 확인
     </button>
@@ -138,6 +137,8 @@
           <p id="weeklyDateRange"></p>
         </div>
 
+        <div id="weeklyMonth" class="weekly-month"></div>
+
         <div class="weekly-navigation">
           <button id="prevWeek">‹</button>
           <button id="thisWeekButton">이번주</button>
@@ -160,7 +161,7 @@
          날짜
     ========================== -->
 
-    <div class="form-card">
+    <div id="dateCard" class="form-card step-locked">
 
       <div class="form-label">
 
@@ -177,6 +178,12 @@
         </div>
 
       </div>
+
+
+      <p id="dateStepNotice"
+         class="capacity-text step-notice">
+        센터를 먼저 선택해주세요.
+      </p>
 
 
       <div class="calendar">
@@ -223,7 +230,7 @@
          시간
     ========================== -->
 
-    <div class="form-card">
+    <div id="timeCard" class="form-card step-locked">
 
       <div class="form-label">
 

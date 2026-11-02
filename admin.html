@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>공간 예약 관리자</title>
-<link rel="stylesheet" href="admin.css">
+<link rel="stylesheet" href="admin.css?v=20261102">
 </head>
 <body>
 
@@ -311,6 +311,21 @@
       </div>
 
       <div class="list-card settings-card">
+        <strong>오래된 예약 정리</strong>
+        <p>보관 기간이 지난 예약을 CSV로 백업한 뒤 DB에서 삭제해요. 고정예약은 시리즈 전체가 끝난 경우에만 정리돼요.</p>
+        <div class="cleanup-row">
+          <label for="cleanupMonths">보관 기간</label>
+          <select id="cleanupMonths">
+            <option value="6">최근 6개월</option>
+            <option value="12" selected>최근 1년</option>
+            <option value="24">최근 2년</option>
+          </select>
+          <button type="button" id="cleanupBtn" class="ghost-btn">백업 후 정리</button>
+        </div>
+        <p id="cleanupInfo"></p>
+      </div>
+
+      <div class="list-card settings-card">
         <strong>연결된 데이터베이스</strong>
         <p>Supabase 프로젝트에 연결되어 실시간으로 예약 데이터를 불러옵니다. (Reservations 테이블)</p>
       </div>
@@ -421,6 +436,6 @@
   </div>
 </div>
 
-<script src="admin.js"></script>
+<script src="admin.js?v=20261102"></script>
 </body>
 </html>

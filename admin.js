@@ -195,7 +195,7 @@ const roomsByCenter = {
   "큰 서교센터": ["강의실1(좌)", "강의실2(우)", "상담실1", "상담실2"],
   "작은 서교센터": ["강의실", "상담실"],
   "명동센터": ["강의실", "상담실1", "상담실2"],
-  "합정역센터": ["강의실", "상담실"]
+  "합정역센터": ["강의실", "작은 상담실", "큰 상담실"]
 };
 
 const allRooms = [...new Set(Object.values(roomsByCenter).flat())];
@@ -214,30 +214,69 @@ let selectedCenterCard = ""; // 센터별 현황 화면에서 선택된 센터
 // 데이터 불러오기
 // ==========================================
 
+// Supabase는 한 번에 최대 1000행까지만 돌려주므로 나눠서 불러온다
+const FETCH_PAGE_SIZE = 1000;
+
 async function fetchReservations() {
   try {
-    const response = await adminFetch(
-      `${ADMIN_API_URL}/Reservations?select=*&order=date.desc,start_time.desc`,
-      {
-        headers: {
-          "apikey": SUPABASE_PUBLISHABLE_KEY,
-          "Authorization": `Bearer ${SUPABASE_PUBLISHABLE_KEY}`
-        }
-      }
-    );
+    const rows = [];
 
-    if (!response.ok) {
-      console.error("예약 목록 조회 실패:", await response.text());
-      allReservations = [];
-      return;
+    for (let offset = 0; ; offset += FETCH_PAGE_SIZE) {
+      const response = await adminFetch(
+        `${ADMIN_API_URL}/Reservations?select=*&order=date.desc,start_time.desc,id.asc&limit=${FETCH_PAGE_SIZE}&offset=${offset}`,
+        {
+          headers: {
+            "apikey": SUPABASE_PUBLISHABLE_KEY,
+            "Authorization": `Bearer ${SUPABASE_PUBLISHABLE_KEY}`
+          }
+        }
+      );
+
+      if (!response.ok) {
+        console.error("예약 목록 조회 실패:", await response.text());
+        allReservations = [];
+        return;
+      }
+
+      const page = await response.json();
+      rows.push(...page);
+
+      if (page.length < FETCH_PAGE_SIZE) break;
     }
 
-    allReservations = await response.json();
+    allReservations = rows;
 
   } catch (error) {
     console.error("예약 목록 조회 오류:", error);
     allReservations = [];
   }
+}
+
+// ==========================================
+// 화면 표시 / 오류 안내 유틸
+// ==========================================
+
+// 예약 값은 누구나 입력할 수 있으므로 화면에 넣기 전 항상 글자로만 바꾼다
+function esc(value) {
+  if (value === null || value === undefined) return "";
+  return String(value)
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&#039;");
+}
+
+// DB가 거절한 이유를 관리자가 이해할 수 있는 문장으로
+async function describeSaveError(response) {
+  let body = {};
+  try { body = await response.clone().json(); } catch (e) {}
+  console.error("저장 실패:", response.status, body);
+
+  if (body.code === "23P01") return "같은 공간에 시간이 겹치는 예약이 이미 있어요. 주간 현황에서 빈 시간을 확인해주세요.";
+  if (body.code === "22023" && body.message) return body.message;
+  if (response.status === 401) return "관리자 코드를 다시 입력해주세요.";
+  return "잠시 후 다시 시도해주세요." + (body.message ? `\n(${body.message})` : "");
 }
 
 // ==========================================
@@ -409,25 +448,25 @@ function renderTable() {
   pageItems.forEach((r, index) => {
     const tr = document.createElement("tr");
     const typeLabel = r.is_recurring
-      ? `<span class="type-badge recurring">고정 ${r.recurring_months || ""}개월</span>`
+      ? `<span class="type-badge recurring">고정 ${esc(r.recurring_months)}개월</span>`
       : `<span class="type-badge single">일회성</span>`;
     tr.innerHTML = `
       <td>${filteredReservations.length - (start + index)}</td>
       <td>${formatDateLabel(r.date)}</td>
-      <td>${r.start_time || ""} ~ ${r.end_time || ""}</td>
-      <td>${r.center || ""}</td>
-      <td>${r.room || ""}</td>
+      <td>${esc(r.start_time)} ~ ${esc(r.end_time)}</td>
+      <td>${esc(r.center)}</td>
+      <td>${esc(r.room)}</td>
       <td>${typeLabel}</td>
-      <td>${r.people || ""}</td>
-      <td>${r.user_name || ""}</td>
-      <td>${r.department || ""}</td>
-      <td>${r.region || ""}</td>
-      <td>${r.phone || ""}</td>
-      <td>${r.purpose || ""}</td>
+      <td>${esc(r.people)}</td>
+      <td>${esc(r.user_name)}</td>
+      <td>${esc(r.department)}</td>
+      <td>${esc(r.region)}</td>
+      <td>${esc(r.phone)}</td>
+      <td>${esc(r.purpose)}</td>
       <td>${formatDateTime(r.created_at)}</td>
       <td>
-        <button class="action-btn detail" data-id="${r.id}">상세</button>
-        <button class="action-btn delete" data-id="${r.id}">삭제</button>
+        <button class="action-btn detail" data-id="${esc(r.id)}">상세</button>
+        <button class="action-btn delete" data-id="${esc(r.id)}">삭제</button>
       </td>
     `;
     tbody.appendChild(tr);
@@ -490,17 +529,17 @@ function renderPagination() {
 function renderDetailView(r) {
   const modalBody = document.getElementById("modalBody");
   modalBody.innerHTML = `
-    <div class="modal-row"><span>센터</span><strong>${r.center || ""}</strong></div>
-    <div class="modal-row"><span>공간</span><strong>${r.room || ""}</strong></div>
+    <div class="modal-row"><span>센터</span><strong>${esc(r.center)}</strong></div>
+    <div class="modal-row"><span>공간</span><strong>${esc(r.room)}</strong></div>
     <div class="modal-row"><span>날짜</span><strong>${formatDateLabel(r.date)}</strong></div>
-    <div class="modal-row"><span>시간</span><strong>${r.start_time} ~ ${r.end_time}</strong></div>
-    <div class="modal-row"><span>예약유형</span><strong>${r.is_recurring ? `고정 사용 · ${r.recurring_months}개월` : "일회성 사용"}</strong></div>
-    <div class="modal-row"><span>인원</span><strong>${r.people}명</strong></div>
-    <div class="modal-row"><span>예약자</span><strong>${r.user_name || ""}</strong></div>
-    <div class="modal-row"><span>부서</span><strong>${r.department || ""}</strong></div>
-    <div class="modal-row"><span>센터(지역)</span><strong>${r.region || ""}</strong></div>
-    <div class="modal-row"><span>연락처</span><strong>${r.phone || ""}</strong></div>
-    <div class="modal-row"><span>목적</span><strong>${r.purpose || ""}</strong></div>
+    <div class="modal-row"><span>시간</span><strong>${esc(r.start_time)} ~ ${esc(r.end_time)}</strong></div>
+    <div class="modal-row"><span>예약유형</span><strong>${r.is_recurring ? `고정 사용 · ${esc(r.recurring_months)}개월` : "일회성 사용"}</strong></div>
+    <div class="modal-row"><span>인원</span><strong>${esc(r.people)}명</strong></div>
+    <div class="modal-row"><span>예약자</span><strong>${esc(r.user_name)}</strong></div>
+    <div class="modal-row"><span>부서</span><strong>${esc(r.department)}</strong></div>
+    <div class="modal-row"><span>센터(지역)</span><strong>${esc(r.region)}</strong></div>
+    <div class="modal-row"><span>연락처</span><strong>${esc(r.phone)}</strong></div>
+    <div class="modal-row"><span>목적</span><strong>${esc(r.purpose)}</strong></div>
     <div class="modal-row"><span>신청일시</span><strong>${formatDateTime(r.created_at)}</strong></div>
   `;
 
@@ -580,51 +619,51 @@ function renderDetailEditForm(r) {
       <div class="form-row">
         <div class="form-field">
           <label>날짜<em>*</em></label>
-          <input type="date" id="inlineEditDate" value="${r.date}" required>
+          <input type="date" id="inlineEditDate" value="${esc(r.date)}" required>
         </div>
         <div class="form-field">
           <label>인원<em>*</em></label>
-          <input type="number" id="inlineEditPeople" min="1" value="${r.people}" required>
+          <input type="number" id="inlineEditPeople" min="1" value="${esc(r.people)}" required>
         </div>
       </div>
  
       <div class="form-row">
         <div class="form-field">
           <label>시작시간<em>*</em></label>
-          <input type="time" id="inlineEditStartTime" step="1800" value="${r.start_time}" required>
+          <input type="time" id="inlineEditStartTime" step="1800" value="${esc(r.start_time)}" required>
         </div>
         <div class="form-field">
           <label>종료시간<em>*</em></label>
-          <input type="time" id="inlineEditEndTime" step="1800" value="${r.end_time}" required>
+          <input type="time" id="inlineEditEndTime" step="1800" value="${esc(r.end_time)}" required>
         </div>
       </div>
  
       <div class="form-row">
         <div class="form-field">
           <label>예약자<em>*</em></label>
-          <input type="text" id="inlineEditUserName" value="${r.user_name || ""}" required>
+          <input type="text" id="inlineEditUserName" value="${esc(r.user_name)}" required>
         </div>
         <div class="form-field">
           <label>부서<em>*</em></label>
-          <input type="text" id="inlineEditDepartment" value="${r.department || ""}" required>
+          <input type="text" id="inlineEditDepartment" value="${esc(r.department)}" required>
         </div>
         <div class="form-field">
           <label>센터(지역)<em>*</em></label>
-          <input type="text" id="inlineEditRegion" value="${r.region || ""}" required>
+          <input type="text" id="inlineEditRegion" value="${esc(r.region)}" required>
         </div>
       </div>
  
       <div class="form-row">
         <div class="form-field full">
           <label>연락처<em>*</em></label>
-          <input type="tel" id="inlineEditPhone" value="${r.phone || ""}" required>
+          <input type="tel" id="inlineEditPhone" value="${esc(r.phone)}" required>
         </div>
       </div>
  
       <div class="form-row">
         <div class="form-field full">
           <label>목적<em>*</em></label>
-          <textarea id="inlineEditPurpose" rows="3" required>${r.purpose || ""}</textarea>
+          <textarea id="inlineEditPurpose" rows="3" required>${esc(r.purpose)}</textarea>
         </div>
       </div>
  
@@ -650,7 +689,7 @@ function renderDetailEditForm(r) {
           <div class="form-field">
             <label>개월 수</label>
             <input type="number" id="inlineEditRecurringMonthsCustom" min="1" max="24"
-              value="${r.recurring_months || 1}"
+              value="${esc(r.recurring_months || 1)}"
               style="${[1, 3, 6].includes(r.recurring_months) ? "display:none;" : ""}">
           </div>
         </div>
@@ -749,12 +788,8 @@ async function saveInlineEdit(id) {
       }
     );
  
-    const result = await response.json();
- 
     if (!response.ok) {
-      console.error("예약 수정 실패:", result);
-      showAlert("예약 수정에 실패했습니다.\n\n" + JSON.stringify(result, null, 2) +
-        "\n\n(Supabase에 update 정책/권한이 설정되어 있는지 확인해주세요)");
+      showAlert("예약 수정에 실패했습니다.\n\n" + await describeSaveError(response));
       saveBtn.disabled = false;
       saveBtn.textContent = "저장하기";
       return;
@@ -919,8 +954,7 @@ async function applyRecurringMonthsChange(r, newMonths) {
         );
 
         if (!response.ok) {
-          showAlert("반복 기간 연장에 실패했습니다.");
-          console.error("반복 기간 연장 실패:", await response.text());
+          showAlert("반복 기간 연장에 실패했습니다.\n\n" + await describeSaveError(response));
           return;
         }
       }
@@ -1087,11 +1121,8 @@ addForm.addEventListener("submit", async (e) => {
       }
     );
 
-    const result = await response.json();
-
     if (!response.ok) {
-      console.error("예약 추가 실패:", result);
-      showAlert("예약 추가에 실패했습니다.\n\n" + JSON.stringify(result, null, 2));
+      showAlert("예약 추가에 실패했습니다.\n\n" + await describeSaveError(response));
       return;
     }
 
@@ -1228,10 +1259,10 @@ async function deleteRecurringSeries(groupId, count) {
 // 엑셀(CSV) 다운로드
 // ==========================================
 
-function exportCSV() {
-  const headers = ["날짜", "시간", "센터", "공간", "예약유형", "인원", "예약자", "부서", "연락처", "목적", "신청일시"];
+function exportCSV(reservations = filteredReservations, fileName = `예약목록_${toDateString(new Date())}.csv`) {
+  const headers = ["날짜", "시간", "센터", "공간", "예약유형", "인원", "예약자", "부서", "지역", "연락처", "목적", "신청일시"];
 
-  const rows = filteredReservations.map(r => [
+  const rows = reservations.map(r => [
     r.date,
     `${r.start_time} ~ ${r.end_time}`,
     r.center,
@@ -1255,11 +1286,129 @@ function exportCSV() {
 
   const a = document.createElement("a");
   a.href = url;
-  a.download = `예약목록_${toDateString(new Date())}.csv`;
+  a.download = fileName;
   a.click();
 
   URL.revokeObjectURL(url);
 }
+
+// ==========================================
+// 오래된 예약 정리 (설정 화면)
+// ==========================================
+
+// 기준일 이전에 "완전히 끝난" 예약만 대상으로 한다.
+// 고정예약은 시리즈의 마지막 날짜까지 기준일 이전일 때만 포함한다.
+// (시리즈 일부만 지우면 반복 기간 변경 시 시작일이 달라지기 때문)
+function getCleanupCutoff(months) {
+  const d = new Date();
+  d.setMonth(d.getMonth() - months);
+  return toDateString(d);
+}
+
+function getCleanupTargets(cutoff) {
+  const seriesLastDate = {};
+
+  allReservations.forEach(r => {
+    if (!r.recurring_group_id) return;
+    const last = seriesLastDate[r.recurring_group_id];
+    if (!last || r.date > last) seriesLastDate[r.recurring_group_id] = r.date;
+  });
+
+  return allReservations.filter(r => {
+    if (r.date >= cutoff) return false;
+    if (r.recurring_group_id) return seriesLastDate[r.recurring_group_id] < cutoff;
+    return true;
+  });
+}
+
+// 지우는 건수만큼 텔레그램 취소 알림이 나가므로, 알림 일시중지 기능이 생기기 전까지 잠가 둔다
+const CLEANUP_ENABLED = false;
+
+function renderCleanupInfo() {
+  const months = Number(document.getElementById("cleanupMonths").value);
+  const cutoff = getCleanupCutoff(months);
+  const targets = getCleanupTargets(cutoff);
+
+  document.getElementById("cleanupInfo").innerHTML =
+    `<b>${cutoff}</b> 이전에 끝난 예약 <b>${targets.length}건</b>이 정리 대상이에요. (전체 ${allReservations.length}건)` +
+    (CLEANUP_ENABLED ? "" : "<br>텔레그램 알림 일시중지 기능이 생기면 정리할 수 있어요.");
+
+  document.getElementById("cleanupBtn").disabled = !CLEANUP_ENABLED || targets.length === 0;
+}
+
+async function cleanupOldReservations() {
+  if (!CLEANUP_ENABLED) return;
+
+  const months = Number(document.getElementById("cleanupMonths").value);
+  const cutoff = getCleanupCutoff(months);
+  const targets = getCleanupTargets(cutoff);
+
+  if (targets.length === 0) {
+    showAlert("정리할 예약이 없어요.");
+    return;
+  }
+
+  const ok = await showConfirm(
+    `${cutoff} 이전에 끝난 예약 ${targets.length}건을 정리합니다.\n\n` +
+    `먼저 백업 파일(CSV)이 다운로드되고, 그 다음 DB에서 삭제돼요.\n삭제하면 되돌릴 수 없습니다. 진행할까요?`
+  );
+  if (!ok) return;
+
+  exportCSV(targets, `예약백업_${cutoff}이전_${toDateString(new Date())}.csv`);
+
+  const backedUp = await showConfirm(
+    "백업 파일이 다운로드됐는지 확인해주세요.\n\n파일을 확인했다면 [확인]을 눌러 삭제를 진행하세요."
+  );
+  if (!backedUp) return;
+
+  const btn = document.getElementById("cleanupBtn");
+  btn.disabled = true;
+
+  // URL 길이 제한을 피하려고 100건씩 나눠 삭제
+  const ids = targets.map(r => r.id);
+  const deletedIds = new Set();
+
+  try {
+    for (let i = 0; i < ids.length; i += 100) {
+      const chunk = ids.slice(i, i + 100);
+
+      const response = await adminFetch(
+        `${ADMIN_API_URL}/Reservations?id=in.(${chunk.join(",")})`,
+        {
+          method: "DELETE",
+          headers: {
+            "apikey": SUPABASE_PUBLISHABLE_KEY,
+            "Authorization": `Bearer ${SUPABASE_PUBLISHABLE_KEY}`
+          }
+        }
+      );
+
+      if (!response.ok) {
+        console.error("오래된 예약 정리 실패:", await response.text());
+        showAlert(`삭제 중 오류가 발생했어요. (${deletedIds.size}건 삭제 후 중단)`);
+        break;
+      }
+
+      chunk.forEach(id => deletedIds.add(String(id)));
+    }
+  } catch (error) {
+    console.error("오래된 예약 정리 오류:", error);
+    showAlert(`삭제 중 문제가 발생했어요. (${deletedIds.size}건 삭제 후 중단)`);
+  }
+
+  allReservations = allReservations.filter(r => !deletedIds.has(String(r.id)));
+
+  applyFilters();
+  renderSummary();
+  renderCleanupInfo();
+
+  if (deletedIds.size === ids.length) {
+    showAlert(`총 ${deletedIds.size}건을 정리했어요.`);
+  }
+}
+
+document.getElementById("cleanupMonths").addEventListener("change", renderCleanupInfo);
+document.getElementById("cleanupBtn").addEventListener("click", cleanupOldReservations);
 
 // ==========================================
 // 오늘 예약 화면
@@ -1284,19 +1433,19 @@ function renderTodayView() {
     const tr = document.createElement("tr");
     tr.innerHTML = `
       <td>${index + 1}</td>
-      <td>${r.start_time} ~ ${r.end_time}</td>
-      <td>${r.center || ""}</td>
-      <td>${r.room || ""}</td>
-      <td>${r.people || ""}</td>
-      <td>${r.user_name || ""}</td>
-      <td>${r.department || ""}</td>
-      <td>${r.region || ""}</td>
-      <td>${r.phone || ""}</td>
-      <td>${r.purpose || ""}</td>
+      <td>${esc(r.start_time)} ~ ${esc(r.end_time)}</td>
+      <td>${esc(r.center)}</td>
+      <td>${esc(r.room)}</td>
+      <td>${esc(r.people)}</td>
+      <td>${esc(r.user_name)}</td>
+      <td>${esc(r.department)}</td>
+      <td>${esc(r.region)}</td>
+      <td>${esc(r.phone)}</td>
+      <td>${esc(r.purpose)}</td>
       <td>
-        <button class="action-btn detail" data-id="${r.id}">상세</button>
-        <button class="action-btn edit" data-id="${r.id}">수정</button>
-        <button class="action-btn delete" data-id="${r.id}">삭제</button>
+        <button class="action-btn detail" data-id="${esc(r.id)}">상세</button>
+        <button class="action-btn edit" data-id="${esc(r.id)}">수정</button>
+        <button class="action-btn delete" data-id="${esc(r.id)}">삭제</button>
       </td>
     `;
     tbody.appendChild(tr);
@@ -1383,13 +1532,13 @@ function renderCenterView() {
     tr.innerHTML = `
       <td>${index + 1}</td>
       <td>${formatDateLabel(r.date)}</td>
-      <td>${r.start_time} ~ ${r.end_time}</td>
-      <td>${r.center || ""}</td>
-      <td>${r.room || ""}</td>
-      <td>${r.people || ""}</td>
-      <td>${r.user_name || ""}</td>
-      <td>${r.phone || ""}</td>
-      <td>${r.purpose || ""}</td>
+      <td>${esc(r.start_time)} ~ ${esc(r.end_time)}</td>
+      <td>${esc(r.center)}</td>
+      <td>${esc(r.room)}</td>
+      <td>${esc(r.people)}</td>
+      <td>${esc(r.user_name)}</td>
+      <td>${esc(r.phone)}</td>
+      <td>${esc(r.purpose)}</td>
     `;
     tbody.appendChild(tr);
   });
@@ -1515,9 +1664,9 @@ function renderWeeklyAdminView() {
       const card = document.createElement("div");
       card.className = "week-admin-reservation";
       card.innerHTML = `
-        <div class="week-admin-reservation-time">${r.start_time} ~ ${r.end_time}</div>
-        <div class="week-admin-reservation-name">${r.center} · ${r.room}</div>
-        <div class="week-admin-reservation-meta">${r.user_name || ""} / ${r.department || ""}</div>
+        <div class="week-admin-reservation-time">${esc(r.start_time)} ~ ${esc(r.end_time)}</div>
+        <div class="week-admin-reservation-name">${esc(r.center)} · ${esc(r.room)}</div>
+        <div class="week-admin-reservation-meta">${esc(r.user_name)} / ${esc(r.department)}</div>
       `;
       body.appendChild(card);
     });
@@ -1644,6 +1793,7 @@ document.querySelectorAll(".nav-item").forEach(btn => {
     if (btn.dataset.view === "weekly") renderWeeklyAdminView();
     if (btn.dataset.view === "stats") renderStatsView();
     if (btn.dataset.view === "inquiries") loadInquiries();
+    if (btn.dataset.view === "settings") renderCleanupInfo();
   });
 });
 
@@ -1659,7 +1809,7 @@ document.getElementById("refreshBtn").addEventListener("click", async () => {
   renderSummary();
   renderWeeklyAdminView();
 });
-document.getElementById("exportBtn").addEventListener("click", exportCSV);
+document.getElementById("exportBtn").addEventListener("click", () => exportCSV());
 
 document.getElementById("pageSizeSelect").addEventListener("change", (e) => {
   pageSize = Number(e.target.value);

@@ -490,6 +490,12 @@ button { cursor: pointer; }
 
 .settings-card p { margin-top: 8px; color: #666; font-size: 13px; line-height: 1.6; }
 
+.cleanup-row { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; margin-top: 12px; }
+.cleanup-row label { font-size: 13px; font-weight: 700; color: #555; }
+.cleanup-row select { height: 36px; border: 1px solid #ddd; border-radius: 8px; padding: 0 10px; font-size: 13px; }
+.cleanup-row .ghost-btn { color: #dc2626; border-color: #fca5a5; }
+.cleanup-row .ghost-btn:disabled { color: #aaa; border-color: #ddd; cursor: not-allowed; }
+
 /* =========================
    MODAL
 ========================= */

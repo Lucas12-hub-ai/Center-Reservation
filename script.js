@@ -153,39 +153,49 @@ function showPage(page) {
 // 화면 안 알림 (토스트) / 확인창
 // ==========================================
 
+// 안내 메시지: 화면 가운데 창으로 띄우고 [확인]을 눌러 닫기
 function showToast(message) {
 
-  let host =
-    document.getElementById("toastHost");
+  return new Promise(resolve => {
 
-  if (!host) {
+    const overlay =
+      document.createElement("div");
 
-    host = document.createElement("div");
-    host.id = "toastHost";
-    host.className = "toast-host";
-    host.setAttribute("role", "status");
-    host.setAttribute("aria-live", "polite");
-    document.body.appendChild(host);
+    overlay.className = "confirm-overlay";
 
-  }
+    overlay.innerHTML = `
+      <div class="confirm-box" role="alertdialog" aria-modal="true">
+        <p class="confirm-message notice-message"></p>
+        <div class="confirm-actions single">
+          <button type="button" class="main-button" data-answer="ok">확인</button>
+        </div>
+      </div>`;
 
-  const toast =
-    document.createElement("div");
+    overlay.querySelector(".confirm-message").textContent = String(message);
 
-  toast.className = "toast";
-  toast.textContent = String(message);
+    const finish = () => {
+      document.removeEventListener("keydown", onKey);
+      overlay.remove();
+      resolve();
+    };
 
-  const close = () => {
-    toast.classList.add("hide");
-    setTimeout(() => toast.remove(), 250);
-  };
+    const onKey = event => {
+      if (event.key === "Escape" || event.key === "Enter") {
+        event.preventDefault();
+        finish();
+      }
+    };
 
-  toast.addEventListener("click", close);
+    overlay.addEventListener("click", event => {
+      if (event.target === overlay || event.target.dataset?.answer) finish();
+    });
 
-  host.appendChild(toast);
+    document.addEventListener("keydown", onKey);
+    document.body.appendChild(overlay);
 
-  // 긴 문장일수록 오래 보여주기
-  setTimeout(close, Math.min(8000, Math.max(2800, String(message).length * 70)));
+    overlay.querySelector('[data-answer="ok"]').focus();
+
+  });
 
 }
 
@@ -5257,6 +5267,20 @@ async function saveMyReservation(reservationId) {
 // 내 예약 - 예약 취소
 // ==========================================
 
+// 아직 시작하지 않은 예약인지 (서버 cancel_my_reservation 과 같은 기준)
+function isUpcomingReservation(r) {
+
+  const today = todayString();
+
+  return (
+    r.date > today ||
+    (r.date === today &&
+      timeToMinutes(r.start_time) > nowMinutes())
+  );
+
+}
+
+
 async function cancelMyReservation(reservationId) {
 
   const target =
@@ -5291,11 +5315,31 @@ async function cancelMyReservation(reservationId) {
 
   if (isRecurring) {
 
+    const upcomingCount =
+      myReservations.filter(
+        item =>
+          item.recurring_group_id ===
+            target.recurring_group_id &&
+          isUpcomingReservation(item)
+      ).length;
+
+    if (!upcomingCount) {
+
+      showToast(
+        "이 고정예약은 남은 일정이 없습니다.\n\n" +
+        "이미 지난 일정은 기록으로 남아 취소할 수 없습니다."
+      );
+
+      return;
+
+    }
+
     choice =
       await showConfirm(
-        "고정예약 전체를 취소할까요?\n\n" +
-        "이 고정예약에 포함된 모든 날짜의 예약이 함께 삭제됩니다.",
-        "전체 취소",
+        "고정예약의 남은 일정을 취소할까요?\n\n" +
+        `오늘 이후 남은 ${upcomingCount}건이 취소됩니다.\n` +
+        "이미 지난 일정은 기록으로 그대로 남습니다.",
+        "남은 일정 취소",
         "돌아가기"
       );
 
@@ -5320,7 +5364,7 @@ async function cancelMyReservation(reservationId) {
 
   // ==========================================
   // Supabase 삭제 요청
-  // (서버에서 본인 확인 후, 고정예약이면 그룹 전체 / 일회성이면 1건 삭제)
+  // (서버에서 본인 확인 후, 고정예약이면 그룹 중 아직 시작 안 한 일정만 / 일회성이면 1건 삭제)
   // ==========================================
 
   const {
@@ -5398,7 +5442,8 @@ async function cancelMyReservation(reservationId) {
       myReservations.filter(
         item =>
           item.recurring_group_id !==
-          target.recurring_group_id
+            target.recurring_group_id ||
+          !isUpcomingReservation(item)
       );
 
   } else {
@@ -5420,7 +5465,8 @@ async function cancelMyReservation(reservationId) {
   if (isRecurring) {
 
     showToast(
-      `${deletedCount}건의 고정예약이 전체 취소되었습니다.`
+      `고정예약의 남은 일정 ${deletedCount}건이 취소되었습니다.\n` +
+      "지난 일정은 기록으로 남아 있습니다."
     );
 
   } else {
@@ -5481,3 +5527,129 @@ updateDuration();
 updateQuickTime();
 
 validateReservation();
+
+
+// ==========================================
+// 문의하기
+// ==========================================
+
+(function setupInquiry() {
+
+  const modal = document.getElementById("inquiryModal");
+  const form = document.getElementById("inquiryForm");
+  const openButton = document.getElementById("inquiryButton");
+
+  if (!modal || !form || !openButton) return;
+
+  const typeEl = document.getElementById("inquiryType");
+  const deptEl = document.getElementById("inquiryDepartment");
+  const nameEl = document.getElementById("inquiryName");
+  const phoneEl = document.getElementById("inquiryPhone");
+  const contentEl = document.getElementById("inquiryContent");
+  const countEl = document.getElementById("inquiryCount");
+  const submitEl = document.getElementById("inquirySubmit");
+
+  const fields = [typeEl, deptEl, nameEl, phoneEl, contentEl];
+
+  const isDirty = () =>
+    fields.some(el => el.value.trim() !== "");
+
+  function openInquiry() {
+    modal.hidden = false;
+    document.body.style.overflow = "hidden";
+    typeEl.focus();
+  }
+
+  function closeInquiry(reset = false) {
+    modal.hidden = true;
+    document.body.style.overflow = "";
+    if (reset) {
+      form.reset();
+      countEl.textContent = "0";
+      fields.forEach(el => el.classList.remove("has-error"));
+    }
+  }
+
+  async function askClose() {
+    if (!isDirty()) {
+      closeInquiry(true);
+      return;
+    }
+    const ok = await showConfirm(
+      "작성 중인 문의가 있어요.\n창을 닫으면 입력한 내용이 사라집니다.",
+      "닫기",
+      "계속 작성"
+    );
+    if (ok) closeInquiry(true);
+  }
+
+  openButton.addEventListener("click", openInquiry);
+
+  modal.addEventListener("click", event => {
+    if (event.target === modal || event.target.closest("[data-inquiry-close]")) {
+      askClose();
+    }
+  });
+
+  document.addEventListener("keydown", event => {
+    // 다른 확인창이 위에 떠 있으면 그쪽이 먼저 처리
+    if (event.key === "Escape" && !modal.hidden && !document.querySelector(".confirm-overlay")) {
+      askClose();
+    }
+  });
+
+  contentEl.addEventListener("input", () => {
+    countEl.textContent = String(contentEl.value.length);
+  });
+
+  fields.forEach(el =>
+    el.addEventListener("input", () => el.classList.remove("has-error"))
+  );
+
+  form.addEventListener("submit", async event => {
+
+    event.preventDefault();
+
+    const missing = [];
+    if (!typeEl.value) missing.push([typeEl, "문의유형"]);
+    if (!deptEl.value) missing.push([deptEl, "부서"]);
+    if (!contentEl.value.trim()) missing.push([contentEl, "문의내용"]);
+
+    if (missing.length) {
+      missing.forEach(([el]) => el.classList.add("has-error"));
+      await showToast(`${missing.map(([, label]) => label).join(", ")}을(를) 입력해주세요.`);
+      missing[0][0].focus();
+      return;
+    }
+
+    submitEl.disabled = true;
+    submitEl.textContent = "보내는 중...";
+
+    const { error } = await supabaseClient.rpc("submit_inquiry", {
+      p_type: typeEl.value,
+      p_department: deptEl.value,
+      p_name: nameEl.value.trim(),
+      p_phone: phoneEl.value.trim(),
+      p_content: contentEl.value.trim()
+    });
+
+    submitEl.disabled = false;
+    submitEl.textContent = "보내기";
+
+    if (error) {
+      console.error("문의 접수 오류:", error);
+      showToast("문의 접수에 실패했습니다.\n\n" + (error.message || "잠시 후 다시 시도해주세요."));
+      return;
+    }
+
+    closeInquiry(true);
+
+    showToast(
+      "소중한 의견 감사합니다! 🙏\n\n" +
+      "문의가 정상적으로 접수되었어요.\n" +
+      "확인 후 빠르게 도움드릴게요."
+    );
+
+  });
+
+})();

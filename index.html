@@ -3,18 +3,52 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>센터/모임방 공간 예약 시스템</title>
-<link rel="stylesheet" href="style.css">
+<title>센터 공간 예약</title>
+<meta name="description" content="큰 서교·작은 서교·합정역·명동센터의 강의실과 상담실을 예약할 수 있어요.">
+
+<!-- 카카오톡·SNS 링크 미리보기 -->
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="센터 공간 예약">
+<meta property="og:title" content="센터 공간 예약">
+<meta property="og:description" content="큰 서교·작은 서교·합정역·명동센터의 강의실과 상담실을 예약할 수 있어요.">
+<meta property="og:url" content="https://lucas12-hub-ai.github.io/Center-Reservation/">
+<meta property="og:image" content="https://lucas12-hub-ai.github.io/Center-Reservation/assets/og-image.png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta name="twitter:card" content="summary_large_image">
+
+<!-- 브라우저 탭 아이콘 -->
+<link rel="icon" type="image/svg+xml" href="assets/favicon.svg">
+<link rel="apple-touch-icon" href="assets/apple-touch-icon.png">
+<meta name="theme-color" content="#ffffff">
+
+<link rel="stylesheet" href="style.css?v=20261109">
 </head>
 
 <body>
 
 <header class="header">
-  <div class="logo" id="logoHome">CENTER RESERVATION</div>
+  <div class="logo" id="logoHome">
+    <span class="logo-mark" aria-hidden="true">
+      <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <rect x="3.5" y="5" width="17" height="15" rx="2" stroke="currentColor" stroke-width="1.8"/>
+        <path d="M3.5 9.5h17M8 3v4M16 3v4" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>
+        <path d="M9 14.5l2 2 4-4" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
+      </svg>
+    </span>
+    <span class="logo-text">
+      <span class="logo-ko">센터 공간 예약</span>
+      <span class="logo-en">CENTER RESERVATION</span>
+    </span>
+  </div>
   
   <div class="header-right">
     <button type="button" id="myReservationButton">
       내 예약정보 확인
+    </button>
+    <span class="header-divider" aria-hidden="true"></span>
+    <button type="button" id="inquiryButton">
+      문의
     </button>
   </div>
 </header>
@@ -36,9 +70,20 @@
     </div>
 
     <!-- 센터 -->
-    <div class="section-title">
-      <strong>센터명</strong>
-      <small>이용하실 센터를 선택해주세요.</small>
+    <div class="form-card select-card">
+
+    <div class="form-label">
+      <div class="label-icon">
+        <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <path d="M4 21V5a1 1 0 0 1 1-1h6a1 1 0 0 1 1 1v16" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/>
+          <path d="M12 10h6a1 1 0 0 1 1 1v10" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/>
+          <path d="M3 21h18" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/>
+        </svg>
+      </div>
+      <div>
+        <strong>센터명</strong>
+        <small>이용하실 센터를 선택해주세요.</small>
+      </div>
     </div>
 
     <div class="center-select-grid">
@@ -109,12 +154,25 @@
 
     </div>
 
+    </div>
+
 
     <!-- 공간 -->
-    <div id="roomSection" class="room-section" style="display:none;">
+    <div id="roomSection" class="form-card select-card room-section" style="display:none;">
 
-      <strong>이용공간</strong>
-      <small>이용하실 강의실 또는 상담실을 선택해주세요.</small>
+      <div class="form-label">
+        <div class="label-icon">
+          <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <path d="M5 21V4.5A1.5 1.5 0 0 1 6.5 3h11A1.5 1.5 0 0 1 19 4.5V21" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/>
+            <path d="M3 21h18" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/>
+            <path d="M14.5 12h.01" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"/>
+          </svg>
+        </div>
+        <div>
+          <strong>이용공간</strong>
+          <small>이용하실 강의실 또는 상담실을 선택해주세요.</small>
+        </div>
+      </div>
 
       <div id="roomGrid" class="room-select-grid"></div>
 
@@ -146,6 +204,8 @@
         </div>
 
       </div>
+
+      <div id="weeklyTabs" class="week-tabs"></div>
 
       <div id="weeklyCalendar" class="weekly-calendar"></div>
 
@@ -284,6 +344,13 @@
         </button>
 
       </div>
+
+
+      <!-- 휴대폰용 시간 선택 (큰 버튼 목록) -->
+
+      <p id="timeSlotListGuide" class="time-list-guide"></p>
+
+      <div id="timeSlotList" class="time-slot-list"></div>
 
 
       <!-- 빠른 시간 선택 -->
@@ -448,6 +515,8 @@
           캘린더에서 선택한 날짜를 시작일로, 체크한 요일마다 매주 반복 예약됩니다. (요일을 하나도 안 고르면 시작일의 요일로 자동 반복돼요)
         </p>
 
+        <div id="recurringPreview" class="recurring-preview" hidden></div>
+
       </div>
 
     </div>
@@ -543,11 +612,18 @@
     </div>
 
 
-    <button id="nextButton"
-            class="main-button"
-            disabled>
-      다음
-    </button>
+    <!-- 휴대폰에서는 화면 아래에 고정 -->
+    <div class="action-bar">
+
+      <p id="quickLine" class="quick-line">센터를 선택해주세요</p>
+
+      <button id="nextButton"
+              class="main-button"
+              disabled>
+        다음
+      </button>
+
+    </div>
 
   </section>
 
@@ -949,8 +1025,69 @@ id="myReservationButton" -> id="myReservationPage"
 </main>
 
 
+<!-- =========================
+     문의하기 창
+========================== -->
+<div id="inquiryModal" class="inquiry-overlay" hidden>
+  <form id="inquiryForm" class="inquiry-box" role="dialog" aria-modal="true" aria-labelledby="inquiryTitle" novalidate>
+
+    <div class="inquiry-head">
+      <div>
+        <strong id="inquiryTitle">문의하기</strong>
+        <small>궁금한 점이나 불편한 점을 남겨주세요.</small>
+      </div>
+      <button type="button" class="inquiry-close" data-inquiry-close aria-label="닫기">×</button>
+    </div>
+
+    <div class="input-group">
+      <label for="inquiryType">문의유형<em>*</em></label>
+      <select id="inquiryType" required>
+        <option value="">선택해주세요</option>
+        <option value="웹사이트 기능">웹사이트 기능</option>
+        <option value="예약/예약취소">예약/예약취소</option>
+      </select>
+    </div>
+
+    <div class="input-group">
+      <label for="inquiryDepartment">부서<em>*</em></label>
+      <select id="inquiryDepartment" required>
+        <option value="">선택해주세요</option>
+        <option value="신학부">신학부</option>
+        <option value="청년회">청년회</option>
+        <option value="교역">교역</option>
+        <option value="기타">기타</option>
+      </select>
+    </div>
+
+    <div class="inquiry-row">
+      <div class="input-group">
+        <label for="inquiryName">이름 <span class="optional">(선택)</span></label>
+        <input id="inquiryName" type="text" maxlength="30" placeholder="익명 가능">
+      </div>
+      <div class="input-group">
+        <label for="inquiryPhone">연락처 <span class="optional">(선택)</span></label>
+        <input id="inquiryPhone" type="tel" maxlength="20" inputmode="numeric" placeholder="답변 받으실 번호">
+      </div>
+    </div>
+
+    <div class="input-group">
+      <label for="inquiryContent">문의내용<em>*</em></label>
+      <textarea id="inquiryContent" rows="6" maxlength="2000" placeholder="문의하실 내용을 자세히 적어주세요." required></textarea>
+      <small class="inquiry-count"><span id="inquiryCount">0</span> / 2000</small>
+    </div>
+
+    <p class="inquiry-note">이름·연락처를 남기지 않으면 익명으로 접수되며, 답변을 받으실 수 없어요.</p>
+
+    <div class="confirm-actions">
+      <button type="button" class="sub-button" data-inquiry-close>취소</button>
+      <button type="submit" id="inquirySubmit" class="main-button">보내기</button>
+    </div>
+
+  </form>
+</div>
+
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-<script src="script.js"></script>
+<script src="script.js?v=20261109"></script>
 
 </body>
 </html>

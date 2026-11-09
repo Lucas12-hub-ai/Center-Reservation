@@ -512,6 +512,86 @@ button { cursor: pointer; }
 
 .modal-overlay.show { display: flex; }
 
+/* 가운데 안내창 / 확인창 */
+.center-dialog-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,.45);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 16px;
+  z-index: 2000;
+}
+
+.center-dialog {
+  background: white;
+  border-radius: 14px;
+  width: min(380px, 100%);
+  padding: 24px 22px 18px;
+  box-shadow: 0 12px 32px rgba(0,0,0,.2);
+  animation: center-dialog-in .15s ease-out;
+}
+
+.center-dialog-message {
+  margin: 0 0 20px;
+  font-size: 15px;
+  line-height: 1.6;
+  white-space: pre-line;
+  word-break: keep-all;
+  text-align: center;
+  color: #222;
+}
+
+.center-dialog-actions {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+}
+
+.center-dialog-actions.single { grid-template-columns: 1fr; }
+
+.center-dialog-error {
+  margin: -10px 0 12px;
+  font-size: 13px;
+  color: #d93025;
+  text-align: center;
+}
+
+.center-dialog-input {
+  display: block;
+  width: 100%;
+  box-sizing: border-box;
+  height: 46px;
+  padding: 0 14px;
+  margin-bottom: 16px;
+  border: 1px solid #ddd;
+  border-radius: 10px;
+  font-size: 16px;
+}
+
+.center-dialog-input:focus {
+  outline: none;
+  border-color: #222;
+}
+
+.center-dialog-actions button {
+  height: 44px;
+  border-radius: 10px;
+  font-size: 15px;
+  font-weight: 600;
+  cursor: pointer;
+  border: none;
+}
+
+.center-dialog-ok { background: #222; color: white; }
+.center-dialog-cancel { background: #f0f0f0; color: #444; }
+
+@keyframes center-dialog-in {
+  from { opacity: 0; transform: scale(.96); }
+  to { opacity: 1; transform: none; }
+}
+
 .modal-box {
   background: white;
   border-radius: 14px;
@@ -673,3 +753,48 @@ button { cursor: pointer; }
   .center-card-grid { grid-template-columns: repeat(2, 1fr); }
   .form-row { flex-direction: column; gap: 14px; }
 }
+
+/* =========================
+   문의
+========================= */
+
+.nav-badge {
+  margin-left: auto;
+  min-width: 20px;
+  height: 20px;
+  padding: 0 6px;
+  border-radius: 999px;
+  background: #ef4444;
+  color: white;
+  font-size: 11px;
+  font-weight: 700;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.nav-badge[hidden] { display: none; }
+
+.inquiry-table .inquiry-content {
+  min-width: 260px;
+  max-width: 420px;
+  white-space: pre-wrap;
+  word-break: break-word;
+  text-align: left;
+  line-height: 1.5;
+}
+
+.inquiry-status {
+  display: inline-block;
+  font-size: 11px;
+  font-weight: 700;
+  padding: 3px 8px;
+  border-radius: 5px;
+}
+
+.inquiry-status.pending { background: #fef3c7; color: #b45309; }
+.inquiry-status.done { background: #dcfce7; color: #15803d; }
+
+.inquiry-done td { color: #9ca3af; }
+
+.muted { color: #bbb; }

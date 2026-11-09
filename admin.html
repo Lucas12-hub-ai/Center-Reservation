@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>공간 예약 관리자</title>
-<link rel="stylesheet" href="admin.css?v=20261102">
+<link rel="stylesheet" href="admin.css?v=20261109">
 </head>
 <body>
 
@@ -32,6 +32,10 @@
       </button>
       <button class="nav-item" data-view="stats">
         <span class="nav-icon">▲</span> 통계
+      </button>
+      <button class="nav-item" data-view="inquiries">
+        <span class="nav-icon">✉</span> 문의
+        <span id="inquiryBadge" class="nav-badge" hidden>0</span>
       </button>
       <button class="nav-item" data-view="settings">
         <span class="nav-icon">⚙</span> 설정
@@ -295,6 +299,56 @@
       </div>
     </section>
 
+    <!-- ============ 문의 ============ -->
+    <section id="view-inquiries" class="admin-view">
+      <div class="admin-header">
+        <div>
+          <h1>문의</h1>
+          <p>사이트의 '문의'로 접수된 내용이에요. 확인 후 처리완료로 바꿔주세요.</p>
+        </div>
+      </div>
+
+      <div class="filter-card">
+        <div class="filter-group">
+          <label>상태</label>
+          <select id="inquiryFilterStatus">
+            <option value="">전체</option>
+            <option value="접수" selected>접수 (미처리)</option>
+            <option value="처리완료">처리완료</option>
+          </select>
+        </div>
+        <div class="filter-group">
+          <label>문의유형</label>
+          <select id="inquiryFilterType">
+            <option value="">전체</option>
+            <option value="웹사이트 기능">웹사이트 기능</option>
+            <option value="예약/예약취소">예약/예약취소</option>
+          </select>
+        </div>
+        <div class="filter-group">
+          <label>&nbsp;</label>
+          <button type="button" id="inquiryReload" class="filter-reset">새로고침</button>
+        </div>
+      </div>
+
+      <div class="list-card">
+        <div class="list-header">
+          <strong id="inquiryListTitle">문의 목록</strong>
+        </div>
+        <div class="table-wrapper">
+          <table class="admin-table inquiry-table">
+            <thead>
+              <tr>
+                <th>접수일시</th><th>유형</th><th>부서</th><th>이름</th><th>연락처</th>
+                <th>문의내용</th><th>상태</th><th>관리</th>
+              </tr>
+            </thead>
+            <tbody id="inquiryTableBody"></tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+
     <!-- ============ 설정 ============ -->
     <section id="view-settings" class="admin-view">
       <div class="admin-header">
@@ -347,7 +401,7 @@
       <p id="modalRecurringInfo"></p>
       <div class="modal-recurring-buttons">
         <button id="deleteThisOnlyBtn" class="ghost-btn">이 날짜만 삭제</button>
-        <button id="deleteSeriesBtn" class="action-btn delete">전체 시리즈 삭제</button>
+        <button id="deleteSeriesBtn" class="action-btn delete">남은 일정 삭제</button>
       </div>
     </div>
   </div>
@@ -436,6 +490,6 @@
   </div>
 </div>
 
-<script src="admin.js?v=20261102"></script>
+<script src="admin.js?v=20261109"></script>
 </body>
 </html>

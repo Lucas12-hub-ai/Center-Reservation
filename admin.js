@@ -10,19 +10,143 @@ const ADMIN_API_URL = `${SUPABASE_URL}/functions/v1/admin-api`;
 
 const ADMIN_CODE_STORAGE_KEY = "centerAdminCode";
 
-function getAdminCode() {
+// ==========================================
+// 화면 가운데 안내창 / 확인창 (브라우저 기본 alert·confirm 대신)
+// ==========================================
+
+function openCenterDialog(message, buttons) {
+  return new Promise(resolve => {
+    const overlay = document.createElement("div");
+    overlay.className = "center-dialog-overlay";
+    overlay.innerHTML = `
+      <div class="center-dialog" role="dialog" aria-modal="true">
+        <p class="center-dialog-message"></p>
+        <div class="center-dialog-actions"></div>
+      </div>`;
+
+    overlay.querySelector(".center-dialog-message").textContent = String(message);
+
+    const actions = overlay.querySelector(".center-dialog-actions");
+    actions.classList.toggle("single", buttons.length === 1);
+
+    const finish = value => {
+      document.removeEventListener("keydown", onKey);
+      overlay.remove();
+      resolve(value);
+    };
+
+    const onKey = event => {
+      if (event.key === "Escape") finish(buttons.length === 1);
+      if (event.key === "Enter") { event.preventDefault(); finish(true); }
+    };
+
+    buttons.forEach(({ text, value, primary }) => {
+      const btn = document.createElement("button");
+      btn.type = "button";
+      btn.textContent = text;
+      btn.className = primary ? "center-dialog-ok" : "center-dialog-cancel";
+      btn.addEventListener("click", () => finish(value));
+      actions.appendChild(btn);
+    });
+
+    overlay.addEventListener("click", event => {
+      if (event.target === overlay) finish(buttons.length === 1);
+    });
+
+    document.addEventListener("keydown", onKey);
+    document.body.appendChild(overlay);
+    actions.querySelector(".center-dialog-ok").focus();
+  });
+}
+
+function showAlert(message) {
+  return openCenterDialog(message, [{ text: "확인", value: true, primary: true }]);
+}
+
+function showConfirm(message, okText = "확인", cancelText = "취소") {
+  return openCenterDialog(message, [
+    { text: cancelText, value: false },
+    { text: okText, value: true, primary: true }
+  ]);
+}
+
+// 관리자 코드 입력창 (화면 가운데)
+function promptAdminCode(errorMessage = "") {
+  return new Promise(resolve => {
+    const overlay = document.createElement("div");
+    overlay.className = "center-dialog-overlay";
+    overlay.innerHTML = `
+      <form class="center-dialog" role="dialog" aria-modal="true" autocomplete="off">
+        <p class="center-dialog-message">관리자 코드를 입력해주세요.</p>
+        <p class="center-dialog-error"></p>
+        <input type="password" class="center-dialog-input" placeholder="관리자 코드" aria-label="관리자 코드">
+        <div class="center-dialog-actions">
+          <button type="button" class="center-dialog-cancel">취소</button>
+          <button type="submit" class="center-dialog-ok">확인</button>
+        </div>
+      </form>`;
+
+    const form = overlay.querySelector("form");
+    const input = overlay.querySelector("input");
+    const error = overlay.querySelector(".center-dialog-error");
+
+    error.textContent = errorMessage;
+    error.style.display = errorMessage ? "" : "none";
+
+    const finish = value => {
+      document.removeEventListener("keydown", onKey);
+      overlay.remove();
+      resolve(value);
+    };
+
+    const onKey = event => {
+      if (event.key === "Escape") finish("");
+    };
+
+    form.addEventListener("submit", event => {
+      event.preventDefault();
+      const code = input.value.trim();
+      if (!code) {
+        error.textContent = "관리자 코드를 입력해주세요.";
+        error.style.display = "";
+        input.focus();
+        return;
+      }
+      finish(code);
+    });
+
+    overlay.querySelector(".center-dialog-cancel").addEventListener("click", () => finish(""));
+
+    document.addEventListener("keydown", onKey);
+    document.body.appendChild(overlay);
+    input.focus();
+  });
+}
+
+// 여러 요청이 동시에 코드를 필요로 해도 입력창은 하나만 띄우기
+let adminCodePromise = null;
+let adminCodeWrong = false;
+
+async function getAdminCode() {
   try {
     const saved = sessionStorage.getItem(ADMIN_CODE_STORAGE_KEY);
     if (saved) return saved;
   } catch (e) {}
 
-  const code = (prompt("관리자 코드를 입력해주세요.") || "").trim();
+  if (!adminCodePromise) {
+    const errorMessage = adminCodeWrong ? "관리자 코드가 올바르지 않습니다. 다시 입력해주세요." : "";
+    adminCodeWrong = false;
 
-  try {
-    if (code) sessionStorage.setItem(ADMIN_CODE_STORAGE_KEY, code);
-  } catch (e) {}
+    adminCodePromise = promptAdminCode(errorMessage).then(code => {
+      try {
+        if (code) sessionStorage.setItem(ADMIN_CODE_STORAGE_KEY, code);
+      } catch (e) {}
+      adminCodePromise = null;
+      return code;
+    });
+  }
 
-  return code;
+  return adminCodePromise;
 }
 
 function clearAdminCode() {
@@ -34,7 +158,7 @@ function clearAdminCode() {
 // 관리자 코드가 틀리면 다시 입력받아 재시도
 async function adminFetch(url, options = {}) {
   for (let attempt = 0; attempt < 3; attempt++) {
-    const code = getAdminCode();
+    const code = await getAdminCode();
 
     if (!code) break;
 
@@ -45,8 +169,14 @@ async function adminFetch(url, options = {}) {
 
     if (response.status !== 401) return response;
 
-    clearAdminCode();
-    alert("관리자 코드가 올바르지 않습니다.");
+    // 같은 틀린 코드로 보낸 다른 요청이 이미 지웠다면 중복 안내하지 않기
+    let saved = null;
+    try { saved = sessionStorage.getItem(ADMIN_CODE_STORAGE_KEY); } catch (e) {}
+
+    if (saved === code) {
+      clearAdminCode();
+      adminCodeWrong = true;
+    }
   }
 
   return new Response(
@@ -420,10 +550,12 @@ function renderDetailView(r) {
   const recurringActions = document.getElementById("modalRecurringActions");
 
   if (r.is_recurring && r.recurring_group_id) {
-    const seriesCount = allReservations.filter(item => item.recurring_group_id === r.recurring_group_id).length;
+    const series = allReservations.filter(item => item.recurring_group_id === r.recurring_group_id);
+    const seriesCount = series.length;
+    const upcomingCount = series.filter(isUpcomingReservation).length;
 
     document.getElementById("modalRecurringInfo").textContent =
-      `이 예약은 고정(반복) 예약의 일부예요. 같은 시리즈로 총 ${seriesCount}건이 등록되어 있어요.`;
+      `이 예약은 고정(반복) 예약의 일부예요. 같은 시리즈로 총 ${seriesCount}건 중 남은 일정 ${upcomingCount}건이 있어요.`;
 
     recurringActions.style.display = "block";
 
@@ -434,7 +566,7 @@ function renderDetailView(r) {
 
     document.getElementById("deleteSeriesBtn").onclick = () => {
       document.getElementById("detailModal").classList.remove("show");
-      deleteRecurringSeries(r.recurring_group_id, seriesCount);
+      deleteRecurringSeries(r.recurring_group_id, upcomingCount);
     };
 
   } else {
@@ -620,12 +752,12 @@ async function saveInlineEdit(id) {
   const phone = document.getElementById("inlineEditPhone").value.trim();
   const purpose = document.getElementById("inlineEditPurpose").value.trim();
  
-  if (!center || !room) { alert("센터와 공간을 선택해주세요."); return; }
-  if (!date) { alert("날짜를 선택해주세요."); return; }
-  if (!startTime || !endTime) { alert("시작시간과 종료시간을 입력해주세요."); return; }
-  if (startTime >= endTime) { alert("종료시간은 시작시간보다 늦어야 해요."); return; }
-  if (!people || people < 1) { alert("인원을 확인해주세요."); return; }
-  if (!userName || !department || !region || !phone || !purpose) { alert("예약자 정보를 모두 입력해주세요."); return; }
+  if (!center || !room) { showAlert("센터와 공간을 선택해주세요."); return; }
+  if (!date) { showAlert("날짜를 선택해주세요."); return; }
+  if (!startTime || !endTime) { showAlert("시작시간과 종료시간을 입력해주세요."); return; }
+  if (startTime >= endTime) { showAlert("종료시간은 시작시간보다 늦어야 해요."); return; }
+  if (!people || people < 1) { showAlert("인원을 확인해주세요."); return; }
+  if (!userName || !department || !region || !phone || !purpose) { showAlert("예약자 정보를 모두 입력해주세요."); return; }
  
   const saveBtn = document.getElementById("inlineEditSaveBtn");
   saveBtn.disabled = true;
@@ -657,7 +789,7 @@ async function saveInlineEdit(id) {
     );
  
     if (!response.ok) {
-      alert("예약 수정에 실패했습니다.\n\n" + await describeSaveError(response));
+      showAlert("예약 수정에 실패했습니다.\n\n" + await describeSaveError(response));
       saveBtn.disabled = false;
       saveBtn.textContent = "저장하기";
       return;
@@ -681,7 +813,7 @@ async function saveInlineEdit(id) {
  
   } catch (error) {
     console.error("예약 수정 오류:", error);
-    alert("예약 수정 중 문제가 발생했습니다.");
+    showAlert("예약 수정 중 문제가 발생했습니다.");
     saveBtn.disabled = false;
     saveBtn.textContent = "저장하기";
   }
@@ -712,7 +844,7 @@ function generateWeeklyDates(startDateStr, months, weekdays) {
 
 async function applyRecurringMonthsChange(r, newMonths) {
   if (newMonths === r.recurring_months) {
-    alert("반복 기간이 변경되지 않았어요.");
+    showAlert("반복 기간이 변경되지 않았어요.");
     return;
   }
 
@@ -734,7 +866,7 @@ async function applyRecurringMonthsChange(r, newMonths) {
   const datesToDelete = [...existingDates].filter(d => !newDatesSet.has(d));
   const datesToAdd = newDates.filter(d => !existingDates.has(d));
 
-  const ok = confirm(
+  const ok = await showConfirm(
     `반복 기간을 ${newMonths}개월로 변경하면\n` +
     `${datesToDelete.length}건이 삭제되고, ${datesToAdd.length}건이 추가돼요.\n\n진행할까요?`
   );
@@ -757,7 +889,7 @@ async function applyRecurringMonthsChange(r, newMonths) {
       );
 
       if (!response.ok) {
-        alert("반복 기간 축소에 실패했습니다.");
+        showAlert("반복 기간 축소에 실패했습니다.");
         console.error("반복 기간 축소 실패:", await response.text());
         return;
       }
@@ -822,13 +954,13 @@ async function applyRecurringMonthsChange(r, newMonths) {
         );
 
         if (!response.ok) {
-          alert("반복 기간 연장에 실패했습니다.\n\n" + await describeSaveError(response));
+          showAlert("반복 기간 연장에 실패했습니다.\n\n" + await describeSaveError(response));
           return;
         }
       }
 
       if (skipped.length > 0) {
-        alert("다음 날짜는 이미 다른 예약이 있어 추가하지 못했어요:\n" + skipped.join("\n"));
+        showAlert("다음 날짜는 이미 다른 예약이 있어 추가하지 못했어요:\n" + skipped.join("\n"));
       }
     }
 
@@ -866,11 +998,11 @@ async function applyRecurringMonthsChange(r, newMonths) {
       document.getElementById("detailModal").classList.remove("show");
     }
 
-    alert("반복 기간이 변경되었습니다.");
+    showAlert("반복 기간이 변경되었습니다.");
 
   } catch (error) {
     console.error("반복 기간 변경 오류:", error);
-    alert("반복 기간 변경 중 문제가 발생했습니다.");
+    showAlert("반복 기간 변경 중 문제가 발생했습니다.");
   }
 }
 
@@ -953,12 +1085,12 @@ addForm.addEventListener("submit", async (e) => {
   const phone = document.getElementById("addPhone").value.trim();
   const purpose = document.getElementById("addPurpose").value.trim();
 
-  if (!center || !room) { alert("센터와 공간을 선택해주세요."); return; }
-  if (!date) { alert("날짜를 선택해주세요."); return; }
-  if (!startTime || !endTime) { alert("시작시간과 종료시간을 입력해주세요."); return; }
-  if (startTime >= endTime) { alert("종료시간은 시작시간보다 늦어야 해요."); return; }
-  if (!people || people < 1) { alert("인원을 확인해주세요."); return; }
-  if (!userName || !department || !region || !phone || !purpose) { alert("예약자 정보를 모두 입력해주세요."); return; }
+  if (!center || !room) { showAlert("센터와 공간을 선택해주세요."); return; }
+  if (!date) { showAlert("날짜를 선택해주세요."); return; }
+  if (!startTime || !endTime) { showAlert("시작시간과 종료시간을 입력해주세요."); return; }
+  if (startTime >= endTime) { showAlert("종료시간은 시작시간보다 늦어야 해요."); return; }
+  if (!people || people < 1) { showAlert("인원을 확인해주세요."); return; }
+  if (!userName || !department || !region || !phone || !purpose) { showAlert("예약자 정보를 모두 입력해주세요."); return; }
 
   const submitBtn = document.getElementById("submitAddBtn");
   submitBtn.disabled = true;
@@ -990,7 +1122,7 @@ addForm.addEventListener("submit", async (e) => {
     );
 
     if (!response.ok) {
-      alert("예약 추가에 실패했습니다.\n\n" + await describeSaveError(response));
+      showAlert("예약 추가에 실패했습니다.\n\n" + await describeSaveError(response));
       return;
     }
 
@@ -1006,7 +1138,7 @@ addForm.addEventListener("submit", async (e) => {
 
   } catch (error) {
     console.error("예약 추가 오류:", error);
-    alert("예약 추가 중 문제가 발생했습니다.");
+    showAlert("예약 추가 중 문제가 발생했습니다.");
   } finally {
     submitBtn.disabled = false;
     submitBtn.textContent = "추가하기";
@@ -1018,7 +1150,7 @@ addForm.addEventListener("submit", async (e) => {
 // ==========================================
 
 async function deleteReservation(id) {
-  const ok = confirm("이 예약을 정말 삭제하시겠습니까?\n삭제하면 되돌릴 수 없습니다.");
+  const ok = await showConfirm("이 예약을 정말 삭제하시겠습니까?\n삭제하면 되돌릴 수 없습니다.");
   if (!ok) return;
 
   try {
@@ -1034,7 +1166,7 @@ async function deleteReservation(id) {
     );
 
     if (!response.ok) {
-      alert("삭제에 실패했습니다. (Supabase에 delete 정책이 설정되어 있는지 확인해주세요)");
+      showAlert("삭제에 실패했습니다. (Supabase에 delete 정책이 설정되어 있는지 확인해주세요)");
       console.error("삭제 실패:", await response.text());
       return;
     }
@@ -1050,39 +1182,63 @@ async function deleteReservation(id) {
 
   } catch (error) {
     console.error("삭제 오류:", error);
-    alert("삭제 중 문제가 발생했습니다.");
+    showAlert("삭제 중 문제가 발생했습니다.");
   }
 }
 
 // ==========================================
-// 고정(반복) 예약 - 전체 시리즈 삭제
+// 고정(반복) 예약 - 남은 일정 삭제
+// (이미 지난 일정은 기록으로 남기고, 아직 시작하지 않은 일정만 삭제)
 // ==========================================
 
+function nowHHMM() {
+  const now = new Date();
+  return `${String(now.getHours()).padStart(2, "0")}:${String(now.getMinutes()).padStart(2, "0")}`;
+}
+
+function isUpcomingReservation(r) {
+  const todayStr = toDateString(new Date());
+  return r.date > todayStr || (r.date === todayStr && (r.start_time || "") > nowHHMM());
+}
+
 async function deleteRecurringSeries(groupId, count) {
-  const ok = confirm(
-    `이 고정예약 시리즈는 총 ${count}건이에요.\n전체 ${count}건을 모두 삭제하시겠습니까?\n삭제하면 되돌릴 수 없습니다.`
+  if (!count) {
+    showAlert("이 고정예약은 남은 일정이 없어요.\n이미 지난 일정은 기록으로 남겨둡니다.");
+    return;
+  }
+
+  const ok = await showConfirm(
+    `이 고정예약의 남은 일정 ${count}건을 삭제하시겠습니까?\n이미 지난 일정은 기록으로 그대로 남습니다.\n삭제하면 되돌릴 수 없습니다.`
   );
   if (!ok) return;
 
+  const todayStr = toDateString(new Date());
+  const upcomingFilter = `(date.gt.${todayStr},and(date.eq.${todayStr},start_time.gt.${nowHHMM()}))`;
+
   try {
     const response = await adminFetch(
-      `${ADMIN_API_URL}/Reservations?recurring_group_id=eq.${encodeURIComponent(groupId)}`,
+      `${ADMIN_API_URL}/Reservations?recurring_group_id=eq.${encodeURIComponent(groupId)}&or=${encodeURIComponent(upcomingFilter)}`,
       {
         method: "DELETE",
         headers: {
           "apikey": SUPABASE_PUBLISHABLE_KEY,
-          "Authorization": `Bearer ${SUPABASE_PUBLISHABLE_KEY}`
+          "Authorization": `Bearer ${SUPABASE_PUBLISHABLE_KEY}`,
+          "Prefer": "return=representation"
         }
       }
     );
 
     if (!response.ok) {
-      alert("삭제에 실패했습니다.");
-      console.error("전체 시리즈 삭제 실패:", await response.text());
+      showAlert("삭제에 실패했습니다.");
+      console.error("남은 일정 삭제 실패:", await response.text());
       return;
     }
 
-    allReservations = allReservations.filter(r => r.recurring_group_id !== groupId);
+    const deleted = await response.json();
+    const deletedIds = new Set(deleted.map(r => String(r.id)));
+    count = deleted.length;
+
+    allReservations = allReservations.filter(r => !deletedIds.has(String(r.id)));
 
     applyFilters();
     renderSummary();
@@ -1091,11 +1247,11 @@ async function deleteRecurringSeries(groupId, count) {
     renderWeeklyAdminView();
     renderStatsView();
 
-    alert(`총 ${count}건이 모두 삭제됐어요.`);
+    showAlert(`남은 일정 ${count}건이 삭제됐어요. 지난 일정은 기록으로 남아 있어요.`);
 
   } catch (error) {
-    console.error("전체 시리즈 삭제 오류:", error);
-    alert("삭제 중 문제가 발생했습니다.");
+    console.error("남은 일정 삭제 오류:", error);
+    showAlert("삭제 중 문제가 발생했습니다.");
   }
 }
 
@@ -1188,11 +1344,11 @@ async function cleanupOldReservations() {
   const targets = getCleanupTargets(cutoff);
 
   if (targets.length === 0) {
-    alert("정리할 예약이 없어요.");
+    showAlert("정리할 예약이 없어요.");
     return;
   }
 
-  const ok = confirm(
+  const ok = await showConfirm(
     `${cutoff} 이전에 끝난 예약 ${targets.length}건을 정리합니다.\n\n` +
     `먼저 백업 파일(CSV)이 다운로드되고, 그 다음 DB에서 삭제돼요.\n삭제하면 되돌릴 수 없습니다. 진행할까요?`
   );
@@ -1200,7 +1356,7 @@ async function cleanupOldReservations() {
 
   exportCSV(targets, `예약백업_${cutoff}이전_${toDateString(new Date())}.csv`);
 
-  const backedUp = confirm(
+  const backedUp = await showConfirm(
     "백업 파일이 다운로드됐는지 확인해주세요.\n\n파일을 확인했다면 [확인]을 눌러 삭제를 진행하세요."
   );
   if (!backedUp) return;
@@ -1229,7 +1385,7 @@ async function cleanupOldReservations() {
 
       if (!response.ok) {
         console.error("오래된 예약 정리 실패:", await response.text());
-        alert(`삭제 중 오류가 발생했어요. (${deletedIds.size}건 삭제 후 중단)`);
+        showAlert(`삭제 중 오류가 발생했어요. (${deletedIds.size}건 삭제 후 중단)`);
         break;
       }
 
@@ -1237,7 +1393,7 @@ async function cleanupOldReservations() {
     }
   } catch (error) {
     console.error("오래된 예약 정리 오류:", error);
-    alert(`삭제 중 문제가 발생했어요. (${deletedIds.size}건 삭제 후 중단)`);
+    showAlert(`삭제 중 문제가 발생했어요. (${deletedIds.size}건 삭제 후 중단)`);
   }
 
   allReservations = allReservations.filter(r => !deletedIds.has(String(r.id)));
@@ -1247,7 +1403,7 @@ async function cleanupOldReservations() {
   renderCleanupInfo();
 
   if (deletedIds.size === ids.length) {
-    alert(`총 ${deletedIds.size}건을 정리했어요.`);
+    showAlert(`총 ${deletedIds.size}건을 정리했어요.`);
   }
 }
 
@@ -1636,6 +1792,7 @@ document.querySelectorAll(".nav-item").forEach(btn => {
     if (btn.dataset.view === "byCenter") renderCenterView();
     if (btn.dataset.view === "weekly") renderWeeklyAdminView();
     if (btn.dataset.view === "stats") renderStatsView();
+    if (btn.dataset.view === "inquiries") loadInquiries();
     if (btn.dataset.view === "settings") renderCleanupInfo();
   });
 });
@@ -1676,3 +1833,161 @@ async function init() {
 }
 
 init();
+
+
+// ==========================================
+// 문의 (사이트 '문의'로 접수된 내용)
+// ==========================================
+
+let allInquiries = [];
+
+function escapeHtml(value) {
+  return String(value ?? "")
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&#39;");
+}
+
+function updateInquiryBadge() {
+  const badge = document.getElementById("inquiryBadge");
+  if (!badge) return;
+  const pending = allInquiries.filter(q => q.status === "접수").length;
+  badge.textContent = String(pending);
+  badge.hidden = pending === 0;
+}
+
+async function loadInquiries() {
+  try {
+    const response = await adminFetch(
+      `${ADMIN_API_URL}/Inquiries?select=*&order=created_at.desc`,
+      {
+        headers: {
+          "apikey": SUPABASE_PUBLISHABLE_KEY,
+          "Authorization": `Bearer ${SUPABASE_PUBLISHABLE_KEY}`
+        }
+      }
+    );
+
+    if (!response.ok) {
+      console.error("문의 불러오기 실패:", await response.text());
+      return;
+    }
+
+    allInquiries = await response.json();
+    updateInquiryBadge();
+    renderInquiries();
+
+  } catch (error) {
+    console.error("문의 불러오기 오류:", error);
+  }
+}
+
+function renderInquiries() {
+  const tbody = document.getElementById("inquiryTableBody");
+  if (!tbody) return;
+
+  const status = document.getElementById("inquiryFilterStatus").value;
+  const type = document.getElementById("inquiryFilterType").value;
+
+  const rows = allInquiries.filter(q =>
+    (!status || q.status === status) && (!type || q.inquiry_type === type)
+  );
+
+  document.getElementById("inquiryListTitle").textContent = `문의 목록 (총 ${rows.length}건)`;
+
+  if (rows.length === 0) {
+    tbody.innerHTML = `<tr class="empty-row"><td colspan="8">조건에 맞는 문의가 없습니다.</td></tr>`;
+    return;
+  }
+
+  tbody.innerHTML = rows.map(q => {
+    const done = q.status === "처리완료";
+    return `
+      <tr class="${done ? "inquiry-done" : ""}">
+        <td>${escapeHtml(formatDateTime(q.created_at))}</td>
+        <td><span class="type-badge ${q.inquiry_type === "웹사이트 기능" ? "single" : "recurring"}">${escapeHtml(q.inquiry_type)}</span></td>
+        <td>${escapeHtml(q.department)}</td>
+        <td>${q.name ? escapeHtml(q.name) : '<span class="muted">익명</span>'}</td>
+        <td>${q.phone ? escapeHtml(q.phone) : '<span class="muted">-</span>'}</td>
+        <td class="inquiry-content">${escapeHtml(q.content)}</td>
+        <td><span class="inquiry-status ${done ? "done" : "pending"}">${escapeHtml(q.status)}</span></td>
+        <td>
+          <button class="action-btn detail" data-inquiry-toggle="${q.id}">${done ? "접수로 되돌리기" : "처리완료"}</button>
+          <button class="action-btn delete" data-inquiry-delete="${q.id}">삭제</button>
+        </td>
+      </tr>`;
+  }).join("");
+}
+
+async function setInquiryStatus(id) {
+  const q = allInquiries.find(item => String(item.id) === String(id));
+  if (!q) return;
+
+  const next = q.status === "처리완료" ? "접수" : "처리완료";
+
+  const response = await adminFetch(
+    `${ADMIN_API_URL}/Inquiries?id=eq.${encodeURIComponent(id)}`,
+    {
+      method: "PATCH",
+      headers: {
+        "apikey": SUPABASE_PUBLISHABLE_KEY,
+        "Authorization": `Bearer ${SUPABASE_PUBLISHABLE_KEY}`,
+        "Content-Type": "application/json"
+      },
+      body: JSON.stringify({ status: next })
+    }
+  );
+
+  if (!response.ok) {
+    showAlert("상태 변경에 실패했습니다.");
+    console.error("문의 상태 변경 실패:", await response.text());
+    return;
+  }
+
+  q.status = next;
+  updateInquiryBadge();
+  renderInquiries();
+}
+
+async function deleteInquiry(id) {
+  const ok = await showConfirm("이 문의를 삭제하시겠습니까?\n삭제하면 되돌릴 수 없습니다.", "삭제", "취소");
+  if (!ok) return;
+
+  const response = await adminFetch(
+    `${ADMIN_API_URL}/Inquiries?id=eq.${encodeURIComponent(id)}`,
+    {
+      method: "DELETE",
+      headers: {
+        "apikey": SUPABASE_PUBLISHABLE_KEY,
+        "Authorization": `Bearer ${SUPABASE_PUBLISHABLE_KEY}`
+      }
+    }
+  );
+
+  if (!response.ok) {
+    showAlert("삭제에 실패했습니다.");
+    console.error("문의 삭제 실패:", await response.text());
+    return;
+  }
+
+  allInquiries = allInquiries.filter(item => String(item.id) !== String(id));
+  updateInquiryBadge();
+  renderInquiries();
+}
+
+document.getElementById("inquiryTableBody")?.addEventListener("click", event => {
+  const toggle = event.target.closest("[data-inquiry-toggle]");
+  if (toggle) setInquiryStatus(toggle.dataset.inquiryToggle);
+
+  const del = event.target.closest("[data-inquiry-delete]");
+  if (del) deleteInquiry(del.dataset.inquiryDelete);
+});
+
+document.getElementById("inquiryFilterStatus")?.addEventListener("change", renderInquiries);
+document.getElementById("inquiryFilterType")?.addEventListener("change", renderInquiries);
+document.getElementById("inquiryReload")?.addEventListener("click", loadInquiries);
+
+// 처음 열 때 미처리 문의 개수(사이드바 배지)를 보여주기 위해 한 번 불러오기
+loadInquiries();

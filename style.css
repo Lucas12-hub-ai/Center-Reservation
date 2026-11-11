@@ -1352,12 +1352,20 @@ button {
     min-height: auto;
   }
 
-  .hero-text {
-    max-width: 100%;
+  .hero-card {
+    min-height: 150px;
   }
 
+  .hero-text {
+    max-width: 68%;
+  }
+
+  /* 모바일에서도 사진을 오른쪽에 은은하게 — 글자 쪽으로 더 길게 페이드 */
   .hero-photo {
-    display: none;
+    left: 30%;
+    -webkit-mask-image: linear-gradient(to left, black 35%, transparent 100%);
+    mask-image: linear-gradient(to left, black 35%, transparent 100%);
+    opacity: 0.75;
   }
 
   /* 센터 4곳을 2×2로 한 화면에 */

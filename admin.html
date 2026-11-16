@@ -3,49 +3,86 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="theme-color" content="#1c2642">
 <title>공간 예약 관리자</title>
-<link rel="stylesheet" href="admin.css?v=20261109">
+<link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable-dynamic-subset.min.css">
+<link rel="stylesheet" href="admin.css?v=20261116">
 </head>
 <body>
 
 <div class="admin-layout">
 
+  <button type="button" class="sidebar-backdrop" id="sidebarBackdrop" tabindex="-1" aria-label="메뉴 닫기" hidden></button>
+
   <!-- 사이드바 -->
-  <aside class="sidebar">
+  <aside class="sidebar" id="adminSidebar">
     <div class="sidebar-logo">
-      <span class="logo-icon">▦</span>
-      공간 예약 관리자
+      <span class="logo-mark" aria-hidden="true">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+          <rect x="3.5" y="5" width="17" height="15" rx="2"/>
+          <path d="M3.5 9.5h17M8 3.5v3M16 3.5v3"/>
+          <path d="M8.5 14.2l2.1 2.1 4.4-4.6"/>
+        </svg>
+      </span>
+      <span class="logo-text">공간 예약 관리자</span>
+      <button type="button" class="sidebar-close" id="sidebarClose" aria-label="메뉴 닫기">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true">
+          <path d="M6 6l12 12M18 6L6 18"/>
+        </svg>
+      </button>
     </div>
 
-    <nav class="sidebar-nav">
-      <button class="nav-item active" data-view="dashboard">
-        <span class="nav-icon">⌂</span> 예약 관리
+    <nav class="sidebar-nav" aria-label="관리자 메뉴">
+      <button type="button" class="nav-item active" data-view="dashboard" aria-current="page">
+        <span class="nav-icon" aria-hidden="true">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 10.5 12 4l8 6.5V20a1 1 0 0 1-1 1h-5.2v-6.2H10.2V21H5a1 1 0 0 1-1-1v-9.5z"/></svg>
+        </span>
+        <span class="nav-label">예약 관리</span>
       </button>
-      <button class="nav-item" data-view="today">
-        <span class="nav-icon">▤</span> 오늘 예약
+      <button type="button" class="nav-item" data-view="today">
+        <span class="nav-icon" aria-hidden="true">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="5" width="16" height="15" rx="2"/><path d="M8 3.5v3M16 3.5v3M4 9.5h16"/><path d="M9 14.5h.01M12 14.5h.01M15 14.5h.01"/></svg>
+        </span>
+        <span class="nav-label">오늘 예약</span>
       </button>
-      <button class="nav-item" data-view="byCenter">
-        <span class="nav-icon">▥</span> 센터별 예약 현황
+      <button type="button" class="nav-item" data-view="byCenter">
+        <span class="nav-icon" aria-hidden="true">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 20.5V6.2A1.2 1.2 0 0 1 5.2 5h5.1a1.2 1.2 0 0 1 1.2 1.2V20.5"/><path d="M11.5 10.2h6.3A1.2 1.2 0 0 1 19 11.4v9.1"/><path d="M3 20.5h18M7.2 8.6h1.6M7.2 12h1.6M7.2 15.4h1.6M14.2 13.2h1.6M14.2 16.4h1.6"/></svg>
+        </span>
+        <span class="nav-label">센터별 예약 현황</span>
       </button>
-      <button class="nav-item" data-view="weekly">
-        <span class="nav-icon">▦</span> 주간 예약 현황
+      <button type="button" class="nav-item" data-view="weekly">
+        <span class="nav-icon" aria-hidden="true">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3.5" y="5" width="17" height="15" rx="2"/><path d="M3.5 9.5h17M8 3.5v3M16 3.5v3M8 13h8M8 16.5h5"/></svg>
+        </span>
+        <span class="nav-label">주간 예약 현황</span>
       </button>
-      <button class="nav-item" data-view="stats">
-        <span class="nav-icon">▲</span> 통계
+      <button type="button" class="nav-item" data-view="stats">
+        <span class="nav-icon" aria-hidden="true">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M5 19.5V11M10 19.5V7M15 19.5v-5M20 19.5V4.5"/></svg>
+        </span>
+        <span class="nav-label">통계</span>
       </button>
-      <button class="nav-item" data-view="inquiries">
-        <span class="nav-icon">✉</span> 문의
+      <button type="button" class="nav-item" data-view="inquiries">
+        <span class="nav-icon" aria-hidden="true">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3.5" y="5.5" width="17" height="13" rx="2"/><path d="m4.5 7 7.5 6L19.5 7"/></svg>
+        </span>
+        <span class="nav-label">문의</span>
         <span id="inquiryBadge" class="nav-badge" hidden>0</span>
       </button>
-      <button class="nav-item" data-view="settings">
-        <span class="nav-icon">⚙</span> 설정
+      <button type="button" class="nav-item" data-view="settings">
+        <span class="nav-icon" aria-hidden="true">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12.2 2h-.4a2 2 0 0 0-2 2v.2a2 2 0 0 1-1 1.7l-.4.3a2 2 0 0 1-2 0l-.2-.1a2 2 0 0 0-2.7.7l-.2.4a2 2 0 0 0 .7 2.7l.2.1a2 2 0 0 1 1 1.7v.5a2 2 0 0 1-1 1.8l-.2.1a2 2 0 0 0-.7 2.7l.2.4a2 2 0 0 0 2.7.7l.2-.1a2 2 0 0 1 2 0l.4.3a2 2 0 0 1 1 1.7V20a2 2 0 0 0 2 2h.4a2 2 0 0 0 2-2v-.2a2 2 0 0 1 1-1.7l.4-.3a2 2 0 0 1 2 0l.2.1a2 2 0 0 0 2.7-.7l.2-.4a2 2 0 0 0-.7-2.7l-.2-.1a2 2 0 0 1-1-1.8v-.5a2 2 0 0 1 1-1.7l.2-.1a2 2 0 0 0 .7-2.7l-.2-.4a2 2 0 0 0-2.7-.7l-.2.1a2 2 0 0 1-2 0l-.4-.3a2 2 0 0 1-1-1.7V4a2 2 0 0 0-2-2z"/><circle cx="12" cy="12" r="3"/></svg>
+        </span>
+        <span class="nav-label">설정</span>
       </button>
     </nav>
 
     <div class="sidebar-footer">
       <div class="admin-account">
-        <span class="account-icon">●</span>
-        <div>
+        <span class="account-avatar" aria-hidden="true">관</span>
+        <div class="account-meta">
           <strong>관리자 계정</strong>
           <small>admin@example.com</small>
         </div>
@@ -55,6 +92,15 @@
 
   <!-- 메인 -->
   <main class="admin-main">
+
+    <div class="mobile-bar">
+      <button type="button" class="sidebar-toggle" id="sidebarToggle" aria-controls="adminSidebar" aria-expanded="false" aria-label="메뉴 열기">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true">
+          <path d="M4 7h16M4 12h16M4 17h16"/>
+        </svg>
+      </button>
+      <strong class="mobile-bar-title">공간 예약 관리자</strong>
+    </div>
 
     <!-- ============ 예약 관리 ============ -->
     <section id="view-dashboard" class="admin-view active">
@@ -68,7 +114,9 @@
 
       <div class="summary-grid">
         <div class="summary-card">
-          <div class="summary-icon blue">📅</div>
+          <div class="summary-icon blue" aria-hidden="true">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="5" width="16" height="15" rx="2"/><path d="M8 3.5v3M16 3.5v3M4 9.5h16"/></svg>
+          </div>
           <div>
             <span>오늘 예약</span>
             <strong id="statToday">0건</strong>
@@ -76,7 +124,9 @@
           </div>
         </div>
         <div class="summary-card">
-          <div class="summary-icon green">🗓</div>
+          <div class="summary-icon green" aria-hidden="true">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3.5" y="5" width="17" height="15" rx="2"/><path d="M3.5 9.5h17M8 3.5v3M16 3.5v3M8 14h3"/></svg>
+          </div>
           <div>
             <span>이번 주 예약</span>
             <strong id="statWeek">0건</strong>
@@ -84,7 +134,9 @@
           </div>
         </div>
         <div class="summary-card">
-          <div class="summary-icon purple">👥</div>
+          <div class="summary-icon purple" aria-hidden="true">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M8.5 11.2a2.7 2.7 0 1 0 0-5.4 2.7 2.7 0 0 0 0 5.4zM3.8 18.8c.4-2.4 2.3-3.8 4.7-3.8s4.3 1.4 4.7 3.8"/><path d="M15.2 6.2a2.4 2.4 0 0 1 0 4.6M16.2 15c1.6.3 2.8 1.3 3.2 3.8"/></svg>
+          </div>
           <div>
             <span>이번 달 예약</span>
             <strong id="statMonth">0건</strong>
@@ -92,7 +144,9 @@
           </div>
         </div>
         <div class="summary-card">
-          <div class="summary-icon orange">🏛</div>
+          <div class="summary-icon orange" aria-hidden="true">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 20.5h16M6 20.5V8.2L12 4.5l6 3.7v12.3"/><path d="M10 20.5v-4.2h4v4.2M9.2 10.8h.01M12 10.8h.01M14.8 10.8h.01"/></svg>
+          </div>
           <div>
             <span>전체 예약</span>
             <strong id="statTotal">0건</strong>
@@ -103,31 +157,31 @@
 
       <div class="filter-card">
         <div class="filter-group">
-          <label>날짜</label>
+          <label for="filterDate">날짜</label>
           <input type="date" id="filterDate">
         </div>
         <div class="filter-group">
-          <label>센터</label>
+          <label for="filterCenter">센터</label>
           <select id="filterCenter">
             <option value="">전체 센터</option>
           </select>
         </div>
         <div class="filter-group">
-          <label>공간</label>
+          <label for="filterRoom">공간</label>
           <select id="filterRoom">
             <option value="">전체 공간</option>
           </select>
         </div>
         <div class="filter-group">
-          <label>예약자</label>
+          <label for="filterName">예약자</label>
           <input type="text" id="filterName" placeholder="예약자 이름 검색">
         </div>
         <div class="filter-group">
-          <label>목적</label>
+          <label for="filterPurpose">목적</label>
           <input type="text" id="filterPurpose" placeholder="목적 검색">
         </div>
         <div class="filter-group">
-          <label>예약유형</label>
+          <label for="filterType">예약유형</label>
           <select id="filterType">
             <option value="">전체</option>
             <option value="single">일회성</option>
@@ -135,8 +189,8 @@
           </select>
         </div>
         <div class="filter-buttons">
-          <button id="searchBtn" class="filter-search">🔍 검색</button>
-          <button id="resetBtn" class="filter-reset">↺ 초기화</button>
+          <button type="button" id="searchBtn" class="filter-search">검색</button>
+          <button type="button" id="resetBtn" class="filter-reset">초기화</button>
         </div>
       </div>
 
@@ -144,9 +198,9 @@
         <div class="list-header">
           <strong id="listTitle">예약 목록 (총 0건)</strong>
           <div class="list-actions">
-            <button id="addReservationBtn" class="primary-btn">+ 예약 추가</button>
-            <button id="refreshBtn" class="ghost-btn">↻ 새로고침</button>
-            <button id="exportBtn" class="ghost-btn">⬇ 엑셀 다운로드</button>
+            <button type="button" id="addReservationBtn" class="primary-btn">예약 추가</button>
+            <button type="button" id="refreshBtn" class="ghost-btn">새로고침</button>
+            <button type="button" id="exportBtn" class="ghost-btn">엑셀 다운로드</button>
           </div>
         </div>
 
@@ -167,7 +221,7 @@
                 <th>연락처</th>
                 <th>목적</th>
                 <th>신청일시</th>
-                <th>관리</th>
+                <th class="col-actions">관리</th>
               </tr>
             </thead>
             <tbody id="tableBody"></tbody>
@@ -176,7 +230,7 @@
 
         <div class="table-footer">
           <div id="pagination" class="pagination"></div>
-          <select id="pageSizeSelect">
+          <select id="pageSizeSelect" aria-label="페이지당 표시 개수">
             <option value="10">10개씩 보기</option>
             <option value="20">20개씩 보기</option>
             <option value="50">50개씩 보기</option>
@@ -201,7 +255,7 @@
             <thead>
               <tr>
                 <th>번호</th><th>시간</th><th>센터</th><th>공간</th><th>인원</th>
-                <th>예약자</th><th>부서</th><th>센터(지역)</th><th>연락처</th><th>목적</th><th>관리</th>
+                <th>예약자</th><th>부서</th><th>센터(지역)</th><th>연락처</th><th>목적</th><th class="col-actions">관리</th>
               </tr>
             </thead>
             <tbody id="todayTableBody"></tbody>
@@ -250,13 +304,13 @@
 
       <div class="filter-card">
         <div class="filter-group">
-          <label>센터</label>
+          <label for="weeklyFilterCenter">센터</label>
           <select id="weeklyFilterCenter">
             <option value="">전체 센터</option>
           </select>
         </div>
         <div class="filter-group">
-          <label>공간</label>
+          <label for="weeklyFilterRoom">공간</label>
           <select id="weeklyFilterRoom">
             <option value="">전체 공간</option>
           </select>
@@ -267,9 +321,9 @@
         <div class="weekly-admin-header">
           <strong id="weeklyAdminRange"></strong>
           <div class="weekly-navigation">
-            <button id="weeklyPrev">‹</button>
-            <button id="weeklyThisWeek">이번주</button>
-            <button id="weeklyNext">›</button>
+            <button type="button" id="weeklyPrev" aria-label="이전 주">‹</button>
+            <button type="button" id="weeklyThisWeek">이번주</button>
+            <button type="button" id="weeklyNext" aria-label="다음 주">›</button>
           </div>
         </div>
 
@@ -310,7 +364,7 @@
 
       <div class="filter-card">
         <div class="filter-group">
-          <label>상태</label>
+          <label for="inquiryFilterStatus">상태</label>
           <select id="inquiryFilterStatus">
             <option value="">전체</option>
             <option value="접수" selected>접수 (미처리)</option>
@@ -318,7 +372,7 @@
           </select>
         </div>
         <div class="filter-group">
-          <label>문의유형</label>
+          <label for="inquiryFilterType">문의유형</label>
           <select id="inquiryFilterType">
             <option value="">전체</option>
             <option value="웹사이트 기능">웹사이트 기능</option>
@@ -326,8 +380,8 @@
           </select>
         </div>
         <div class="filter-group">
-          <label>&nbsp;</label>
-          <button type="button" id="inquiryReload" class="filter-reset">새로고침</button>
+          <label for="inquiryReload" aria-hidden="true">&nbsp;</label>
+          <button type="button" id="inquiryReload" class="filter-reset" aria-label="문의 목록 새로고침">새로고침</button>
         </div>
       </div>
 
@@ -340,7 +394,7 @@
             <thead>
               <tr>
                 <th>접수일시</th><th>유형</th><th>부서</th><th>이름</th><th>연락처</th>
-                <th>문의내용</th><th>상태</th><th>관리</th>
+                <th>문의내용</th><th>상태</th><th class="col-actions">관리</th>
               </tr>
             </thead>
             <tbody id="inquiryTableBody"></tbody>
@@ -361,7 +415,7 @@
       <div class="list-card settings-card">
         <strong>접근 권한</strong>
         <p>예약 데이터는 <b>관리자 코드</b>를 입력해야 불러올 수 있어요. 코드는 이 브라우저 탭을 닫을 때까지만 기억돼요.</p>
-        <p><button type="button" onclick="clearAdminCode(); location.reload();">관리자 코드 다시 입력</button></p>
+        <p><button type="button" class="ghost-btn" onclick="clearAdminCode(); location.reload();">관리자 코드 다시 입력</button></p>
       </div>
 
       <div class="list-card settings-card">
@@ -390,18 +444,20 @@
 
 <!-- 상세보기 모달 -->
 <div id="detailModal" class="modal-overlay">
-  <div class="modal-box">
+  <div class="modal-box" role="dialog" aria-modal="true" aria-labelledby="detailModalTitle">
     <div class="modal-header">
-      <strong>예약 상세정보</strong>
-      <button id="closeModal" class="modal-close">✕</button>
+      <strong id="detailModalTitle">예약 상세정보</strong>
+      <button type="button" id="closeModal" class="modal-close" aria-label="닫기">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg>
+      </button>
     </div>
     <div id="modalBody" class="modal-body"></div>
-    <button id="modalEditBtn" class="action-btn">예약수정</button>
+    <button type="button" id="modalEditBtn" class="action-btn">예약수정</button>
     <div id="modalRecurringActions" class="modal-recurring-actions" style="display:none;">
       <p id="modalRecurringInfo"></p>
       <div class="modal-recurring-buttons">
-        <button id="deleteThisOnlyBtn" class="ghost-btn">이 날짜만 삭제</button>
-        <button id="deleteSeriesBtn" class="action-btn delete">남은 일정 삭제</button>
+        <button type="button" id="deleteThisOnlyBtn" class="ghost-btn">이 날짜만 삭제</button>
+        <button type="button" id="deleteSeriesBtn" class="action-btn delete">남은 일정 삭제</button>
       </div>
     </div>
   </div>
@@ -409,22 +465,24 @@
 
 <!-- 예약 추가 모달 -->
 <div id="addModal" class="modal-overlay">
-  <div class="modal-box">
+  <div class="modal-box" role="dialog" aria-modal="true" aria-labelledby="addModalTitle">
     <div class="modal-header">
-      <strong>예약 직접 추가</strong>
-      <button id="closeAddModal" class="modal-close">✕</button>
+      <strong id="addModalTitle">예약 직접 추가</strong>
+      <button type="button" id="closeAddModal" class="modal-close" aria-label="닫기">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg>
+      </button>
     </div>
 
     <form id="addForm" class="add-form">
       <div class="form-row">
         <div class="form-field">
-          <label>센터<em>*</em></label>
+          <label for="addCenter">센터<em>*</em></label>
           <select id="addCenter" required>
             <option value="">선택해주세요</option>
           </select>
         </div>
         <div class="form-field">
-          <label>공간<em>*</em></label>
+          <label for="addRoom">공간<em>*</em></label>
           <select id="addRoom" required>
             <option value="">센터를 먼저 선택해주세요</option>
           </select>
@@ -433,51 +491,51 @@
 
       <div class="form-row">
         <div class="form-field">
-          <label>날짜<em>*</em></label>
+          <label for="addDate">날짜<em>*</em></label>
           <input type="date" id="addDate" required>
         </div>
         <div class="form-field">
-          <label>인원<em>*</em></label>
+          <label for="addPeople">인원<em>*</em></label>
           <input type="number" id="addPeople" min="1" value="2" required>
         </div>
       </div>
 
       <div class="form-row">
         <div class="form-field">
-          <label>시작시간<em>*</em></label>
+          <label for="addStartTime">시작시간<em>*</em></label>
           <input type="time" id="addStartTime" step="1800" required>
         </div>
         <div class="form-field">
-          <label>종료시간<em>*</em></label>
+          <label for="addEndTime">종료시간<em>*</em></label>
           <input type="time" id="addEndTime" step="1800" required>
         </div>
       </div>
 
       <div class="form-row">
         <div class="form-field">
-          <label>예약자<em>*</em></label>
+          <label for="addUserName">예약자<em>*</em></label>
           <input type="text" id="addUserName" placeholder="이름" required>
         </div>
         <div class="form-field">
-          <label>부서<em>*</em></label>
+          <label for="addDepartment">부서<em>*</em></label>
           <input type="text" id="addDepartment" placeholder="부서명" required>
         </div>
         <div class="form-field">
-          <label>센터(지역)<em>*</em></label>
+          <label for="addRegion">센터(지역)<em>*</em></label>
           <input type="text" id="addRegion" placeholder="센터(지역)명" required>
         </div>
       </div>
 
       <div class="form-row">
         <div class="form-field full">
-          <label>연락처<em>*</em></label>
+          <label for="addPhone">연락처<em>*</em></label>
           <input type="tel" id="addPhone" placeholder="010-0000-0000" required>
         </div>
       </div>
 
       <div class="form-row">
         <div class="form-field full">
-          <label>목적<em>*</em></label>
+          <label for="addPurpose">목적<em>*</em></label>
           <textarea id="addPurpose" rows="3" placeholder="사용 목적" required></textarea>
         </div>
       </div>
@@ -490,6 +548,6 @@
   </div>
 </div>
 
-<script src="admin.js?v=20261109"></script>
+<script src="admin.js?v=20261116"></script>
 </body>
 </html>

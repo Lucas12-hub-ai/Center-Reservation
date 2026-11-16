@@ -267,6 +267,12 @@ function esc(value) {
     .replace(/'/g, "&#039;");
 }
 
+// 모바일에서는 표 대신 카드형 행으로 보이도록 칸 이름을 함께 넣는다
+function labeledCell(label, content, className) {
+  const classAttr = className ? ` class="${className}"` : "";
+  return `<td${classAttr} data-label="${label}"><span class="cell-label">${label}</span><span class="cell-value">${content}</span></td>`;
+}
+
 // DB가 거절한 이유를 관리자가 이해할 수 있는 문장으로
 async function describeSaveError(response) {
   let body = {};
@@ -434,7 +440,7 @@ function renderTable() {
   document.getElementById("listTitle").textContent = `예약 목록 (총 ${filteredReservations.length}건)`;
 
   if (filteredReservations.length === 0) {
-    tbody.innerHTML = `<tr class="empty-row"><td colspan="13">조건에 맞는 예약이 없습니다.</td></tr>`;
+    tbody.innerHTML = `<tr class="empty-row"><td colspan="14">조건에 맞는 예약이 없습니다.</td></tr>`;
     renderPagination();
     return;
   }
@@ -451,23 +457,20 @@ function renderTable() {
       ? `<span class="type-badge recurring">고정 ${esc(r.recurring_months)}개월</span>`
       : `<span class="type-badge single">일회성</span>`;
     tr.innerHTML = `
-      <td>${filteredReservations.length - (start + index)}</td>
-      <td>${formatDateLabel(r.date)}</td>
-      <td>${esc(r.start_time)} ~ ${esc(r.end_time)}</td>
-      <td>${esc(r.center)}</td>
-      <td>${esc(r.room)}</td>
-      <td>${typeLabel}</td>
-      <td>${esc(r.people)}</td>
-      <td>${esc(r.user_name)}</td>
-      <td>${esc(r.department)}</td>
-      <td>${esc(r.region)}</td>
-      <td>${esc(r.phone)}</td>
-      <td>${esc(r.purpose)}</td>
-      <td>${formatDateTime(r.created_at)}</td>
-      <td>
-        <button class="action-btn detail" data-id="${esc(r.id)}">상세</button>
-        <button class="action-btn delete" data-id="${esc(r.id)}">삭제</button>
-      </td>
+      ${labeledCell("번호", filteredReservations.length - (start + index))}
+      ${labeledCell("날짜", formatDateLabel(r.date))}
+      ${labeledCell("시간", `${esc(r.start_time)} ~ ${esc(r.end_time)}`)}
+      ${labeledCell("센터", esc(r.center))}
+      ${labeledCell("공간", esc(r.room))}
+      ${labeledCell("유형", typeLabel)}
+      ${labeledCell("인원", esc(r.people))}
+      ${labeledCell("예약자", esc(r.user_name))}
+      ${labeledCell("부서", esc(r.department))}
+      ${labeledCell("센터(지역)", esc(r.region))}
+      ${labeledCell("연락처", esc(r.phone))}
+      ${labeledCell("목적", esc(r.purpose))}
+      ${labeledCell("신청일시", formatDateTime(r.created_at))}
+      ${labeledCell("관리", `<span class="row-actions"><button class="action-btn detail" data-id="${esc(r.id)}">상세</button><button class="action-btn delete" data-id="${esc(r.id)}">삭제</button></span>`)}
     `;
     tbody.appendChild(tr);
   });
@@ -1425,28 +1428,24 @@ function renderTodayView() {
   tbody.innerHTML = "";
 
   if (rows.length === 0) {
-    tbody.innerHTML = `<tr class="empty-row"><td colspan="10">오늘 예약이 없습니다.</td></tr>`;
+    tbody.innerHTML = `<tr class="empty-row"><td colspan="11">오늘 예약이 없습니다.</td></tr>`;
     return;
   }
 
   rows.forEach((r, index) => {
     const tr = document.createElement("tr");
     tr.innerHTML = `
-      <td>${index + 1}</td>
-      <td>${esc(r.start_time)} ~ ${esc(r.end_time)}</td>
-      <td>${esc(r.center)}</td>
-      <td>${esc(r.room)}</td>
-      <td>${esc(r.people)}</td>
-      <td>${esc(r.user_name)}</td>
-      <td>${esc(r.department)}</td>
-      <td>${esc(r.region)}</td>
-      <td>${esc(r.phone)}</td>
-      <td>${esc(r.purpose)}</td>
-      <td>
-        <button class="action-btn detail" data-id="${esc(r.id)}">상세</button>
-        <button class="action-btn edit" data-id="${esc(r.id)}">수정</button>
-        <button class="action-btn delete" data-id="${esc(r.id)}">삭제</button>
-      </td>
+      ${labeledCell("번호", index + 1)}
+      ${labeledCell("시간", `${esc(r.start_time)} ~ ${esc(r.end_time)}`)}
+      ${labeledCell("센터", esc(r.center))}
+      ${labeledCell("공간", esc(r.room))}
+      ${labeledCell("인원", esc(r.people))}
+      ${labeledCell("예약자", esc(r.user_name))}
+      ${labeledCell("부서", esc(r.department))}
+      ${labeledCell("센터(지역)", esc(r.region))}
+      ${labeledCell("연락처", esc(r.phone))}
+      ${labeledCell("목적", esc(r.purpose))}
+      ${labeledCell("관리", `<span class="row-actions"><button class="action-btn detail" data-id="${esc(r.id)}">상세</button><button class="action-btn edit" data-id="${esc(r.id)}">수정</button><button class="action-btn delete" data-id="${esc(r.id)}">삭제</button></span>`)}
     `;
     tbody.appendChild(tr);
   });
@@ -1494,8 +1493,10 @@ function renderCenterView() {
   centers.forEach(center => {
     const count = allReservations.filter(r => r.center === center).length;
 
-    const card = document.createElement("div");
+    const card = document.createElement("button");
+    card.type = "button";
     card.className = "center-stat-card";
+    card.setAttribute("aria-pressed", selectedCenterCard === center ? "true" : "false");
     if (selectedCenterCard === center) card.classList.add("active");
 
     card.innerHTML = `
@@ -1530,15 +1531,15 @@ function renderCenterView() {
   rows.forEach((r, index) => {
     const tr = document.createElement("tr");
     tr.innerHTML = `
-      <td>${index + 1}</td>
-      <td>${formatDateLabel(r.date)}</td>
-      <td>${esc(r.start_time)} ~ ${esc(r.end_time)}</td>
-      <td>${esc(r.center)}</td>
-      <td>${esc(r.room)}</td>
-      <td>${esc(r.people)}</td>
-      <td>${esc(r.user_name)}</td>
-      <td>${esc(r.phone)}</td>
-      <td>${esc(r.purpose)}</td>
+      ${labeledCell("번호", index + 1)}
+      ${labeledCell("날짜", formatDateLabel(r.date))}
+      ${labeledCell("시간", `${esc(r.start_time)} ~ ${esc(r.end_time)}`)}
+      ${labeledCell("센터", esc(r.center))}
+      ${labeledCell("공간", esc(r.room))}
+      ${labeledCell("인원", esc(r.people))}
+      ${labeledCell("예약자", esc(r.user_name))}
+      ${labeledCell("연락처", esc(r.phone))}
+      ${labeledCell("목적", esc(r.purpose))}
     `;
     tbody.appendChild(tr);
   });
@@ -1724,18 +1725,20 @@ function renderStatsView() {
 
   const topCenter = Object.entries(centerCounts).sort((a, b) => b[1] - a[1])[0];
 
+  const icon = (paths) => `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${paths}</svg>`;
+
   const statsCards = document.getElementById("statsCards");
   statsCards.innerHTML = `
     <div class="summary-card">
-      <div class="summary-icon blue">📦</div>
+      <div class="summary-icon blue">${icon('<path d="M4 8.5h16v11H4z"/><path d="M4 8.5 12 4l8 4.5"/>')}</div>
       <div><span>전체 예약</span><strong>${total}건</strong></div>
     </div>
     <div class="summary-card">
-      <div class="summary-icon green">⏱</div>
+      <div class="summary-icon green">${icon('<circle cx="12" cy="12" r="8"/><path d="M12 8v4.5l3 2"/>')}</div>
       <div><span>평균 이용시간</span><strong>${avgLabel}</strong></div>
     </div>
     <div class="summary-card">
-      <div class="summary-icon purple">⭐</div>
+      <div class="summary-icon purple">${icon('<path d="m12 4.5 1.9 4.2 4.6.5-3.4 3.1.9 4.5L12 14.6 7.9 16.8l.9-4.5L5.4 9.2l4.6-.5z"/>')}</div>
       <div><span>가장 인기있는 센터</span><strong>${topCenter && topCenter[1] > 0 ? topCenter[0] : "-"}</strong></div>
     </div>
   `;
@@ -1782,8 +1785,12 @@ function renderStatsView() {
 
 document.querySelectorAll(".nav-item").forEach(btn => {
   btn.addEventListener("click", () => {
-    document.querySelectorAll(".nav-item").forEach(b => b.classList.remove("active"));
+    document.querySelectorAll(".nav-item").forEach(b => {
+      b.classList.remove("active");
+      b.removeAttribute("aria-current");
+    });
     btn.classList.add("active");
+    btn.setAttribute("aria-current", "page");
 
     document.querySelectorAll(".admin-view").forEach(v => v.classList.remove("active"));
     document.getElementById(`view-${btn.dataset.view}`).classList.add("active");
@@ -1794,6 +1801,8 @@ document.querySelectorAll(".nav-item").forEach(btn => {
     if (btn.dataset.view === "stats") renderStatsView();
     if (btn.dataset.view === "inquiries") loadInquiries();
     if (btn.dataset.view === "settings") renderCleanupInfo();
+
+    window.scrollTo(0, 0);
   });
 });
 
@@ -1906,17 +1915,14 @@ function renderInquiries() {
     const done = q.status === "처리완료";
     return `
       <tr class="${done ? "inquiry-done" : ""}">
-        <td>${escapeHtml(formatDateTime(q.created_at))}</td>
-        <td><span class="type-badge ${q.inquiry_type === "웹사이트 기능" ? "single" : "recurring"}">${escapeHtml(q.inquiry_type)}</span></td>
-        <td>${escapeHtml(q.department)}</td>
-        <td>${q.name ? escapeHtml(q.name) : '<span class="muted">익명</span>'}</td>
-        <td>${q.phone ? escapeHtml(q.phone) : '<span class="muted">-</span>'}</td>
-        <td class="inquiry-content">${escapeHtml(q.content)}</td>
-        <td><span class="inquiry-status ${done ? "done" : "pending"}">${escapeHtml(q.status)}</span></td>
-        <td>
-          <button class="action-btn detail" data-inquiry-toggle="${q.id}">${done ? "접수로 되돌리기" : "처리완료"}</button>
-          <button class="action-btn delete" data-inquiry-delete="${q.id}">삭제</button>
-        </td>
+        ${labeledCell("접수일시", escapeHtml(formatDateTime(q.created_at)))}
+        ${labeledCell("유형", `<span class="type-badge ${q.inquiry_type === "웹사이트 기능" ? "single" : "recurring"}">${escapeHtml(q.inquiry_type)}</span>`)}
+        ${labeledCell("부서", escapeHtml(q.department))}
+        ${labeledCell("이름", q.name ? escapeHtml(q.name) : '<span class="muted">익명</span>')}
+        ${labeledCell("연락처", q.phone ? escapeHtml(q.phone) : '<span class="muted">-</span>')}
+        ${labeledCell("문의내용", escapeHtml(q.content), "inquiry-content")}
+        ${labeledCell("상태", `<span class="inquiry-status ${done ? "done" : "pending"}">${escapeHtml(q.status)}</span>`)}
+        ${labeledCell("관리", `<span class="row-actions"><button class="action-btn detail" data-inquiry-toggle="${q.id}">${done ? "접수로 되돌리기" : "처리완료"}</button><button class="action-btn delete" data-inquiry-delete="${q.id}">삭제</button></span>`)}
       </tr>`;
   }).join("");
 }
@@ -1991,3 +1997,89 @@ document.getElementById("inquiryReload")?.addEventListener("click", loadInquirie
 
 // 처음 열 때 미처리 문의 개수(사이드바 배지)를 보여주기 위해 한 번 불러오기
 loadInquiries();
+
+// ==========================================
+// 모바일 사이드바 (햄버거 / 서랍)
+// ==========================================
+
+function initMobileNav() {
+  const layout = document.querySelector(".admin-layout");
+  const sidebar = document.getElementById("adminSidebar");
+  const toggle = document.getElementById("sidebarToggle");
+  const backdrop = document.getElementById("sidebarBackdrop");
+  const closeBtn = document.getElementById("sidebarClose");
+  const main = document.querySelector(".admin-main");
+  if (!layout || !sidebar || !toggle || !backdrop || !main) return;
+
+  const mobileQuery = window.matchMedia("(max-width: 900px)");
+
+  function sync() {
+    const open = layout.classList.contains("sidebar-open");
+    const mobile = mobileQuery.matches;
+
+    toggle.setAttribute("aria-expanded", open ? "true" : "false");
+    toggle.setAttribute("aria-label", open ? "메뉴 닫기" : "메뉴 열기");
+    document.body.classList.toggle("sidebar-lock", open && mobile);
+    backdrop.hidden = !(open && mobile);
+
+    if (mobile && open) {
+      main.setAttribute("inert", "");
+      sidebar.removeAttribute("inert");
+      sidebar.removeAttribute("aria-hidden");
+    } else if (mobile) {
+      main.removeAttribute("inert");
+      sidebar.setAttribute("inert", "");
+      sidebar.setAttribute("aria-hidden", "true");
+    } else {
+      main.removeAttribute("inert");
+      sidebar.removeAttribute("inert");
+      sidebar.removeAttribute("aria-hidden");
+      layout.classList.remove("sidebar-open");
+      document.body.classList.remove("sidebar-lock");
+      backdrop.hidden = true;
+    }
+  }
+
+  function setOpen(open) {
+    layout.classList.toggle("sidebar-open", open);
+    sync();
+  }
+
+  toggle.addEventListener("click", () => {
+    const open = !layout.classList.contains("sidebar-open");
+    setOpen(open);
+    if (open) (closeBtn || sidebar.querySelector(".nav-item"))?.focus();
+  });
+
+  function closeAndRestore() {
+    if (!layout.classList.contains("sidebar-open")) return;
+    setOpen(false);
+    if (mobileQuery.matches) toggle.focus();
+  }
+
+  closeBtn?.addEventListener("click", closeAndRestore);
+  backdrop.addEventListener("click", closeAndRestore);
+
+  sidebar.querySelectorAll(".nav-item").forEach(btn => {
+    btn.addEventListener("click", () => {
+      if (mobileQuery.matches) {
+        setOpen(false);
+        toggle.focus();
+      }
+    });
+  });
+
+  document.addEventListener("keydown", event => {
+    if (event.key === "Escape") closeAndRestore();
+  });
+
+  if (typeof mobileQuery.addEventListener === "function") {
+    mobileQuery.addEventListener("change", sync);
+  } else if (typeof mobileQuery.addListener === "function") {
+    mobileQuery.addListener(sync);
+  }
+
+  sync();
+}
+
+initMobileNav();

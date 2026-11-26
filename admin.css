@@ -456,14 +456,48 @@ button { cursor: pointer; }
 .week-admin-empty { color: #ccc; font-size: 11px; text-align: center; padding-top: 35px; }
 
 .week-admin-reservation {
-  background: #f7f9fc;
-  border-left: 3px solid #2563eb;
+  --dept-bg: #f5f5f4;
+  --dept-line: #a8a29e;
+  --dept-text: #57534e;
+  display: block;
+  width: 100%;
+  text-align: left;
+  font: inherit;
+  color: inherit;
+  cursor: pointer;
+  background: var(--dept-bg);
+  border: 1px solid transparent;
+  border-left: 4px solid var(--dept-line);
   border-radius: 7px;
   padding: 8px;
   margin-bottom: 7px;
+  transition: box-shadow .15s, border-color .15s;
 }
 
-.week-admin-reservation-time { font-size: 10px; font-weight: 800; color: #2563eb; margin-bottom: 4px; }
+.week-admin-reservation:hover,
+.week-admin-reservation:focus-visible {
+  border-color: var(--dept-line);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, .08);
+  outline: none;
+}
+
+/* 부서별 색 (admin.js DEPT_COLORS 와 key 이름을 맞춤) */
+.dept-theology { --dept-bg: #f3efff; --dept-line: #7c3aed; --dept-text: #6d28d9; }
+.dept-youth    { --dept-bg: #ecfdf3; --dept-line: #16a34a; --dept-text: #15803d; }
+.dept-other    { --dept-bg: #f5f5f4; --dept-line: #a8a29e; --dept-text: #57534e; }
+
+.week-admin-recurring { font-size: 10px; }
+
+.dept-legend { display: flex; flex-wrap: wrap; gap: 12px; font-size: 12px; color: #666; }
+.dept-legend-item { display: inline-flex; align-items: center; gap: 5px; }
+.dept-dot { width: 10px; height: 10px; border-radius: 3px; background: var(--dept-line); display: inline-block; }
+
+.modal-main-actions { display: flex; gap: 8px; margin-top: 12px; }
+.modal-main-actions .action-btn { flex: 1; height: 40px; }
+
+.series-row td { background: #fbfaff; }
+
+.week-admin-reservation-time { font-size: 10px; font-weight: 800; color: var(--dept-text); margin-bottom: 4px; }
 .week-admin-reservation-name { font-size: 12px; font-weight: 800; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .week-admin-reservation-meta { margin-top: 2px; font-size: 10px; color: #888; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 

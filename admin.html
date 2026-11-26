@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>공간 예약 관리자</title>
-<link rel="stylesheet" href="admin.css?v=20261109">
+<link rel="stylesheet" href="admin.css?v=20261126">
 </head>
 <body>
 
@@ -18,17 +18,17 @@
     </div>
 
     <nav class="sidebar-nav">
-      <button class="nav-item active" data-view="dashboard">
-        <span class="nav-icon">⌂</span> 예약 관리
+      <button class="nav-item active" data-view="weekly">
+        <span class="nav-icon">▦</span> 주간 예약 현황
+      </button>
+      <button class="nav-item" data-view="dashboard">
+        <span class="nav-icon">⌂</span> 예약 목록
       </button>
       <button class="nav-item" data-view="today">
         <span class="nav-icon">▤</span> 오늘 예약
       </button>
       <button class="nav-item" data-view="byCenter">
         <span class="nav-icon">▥</span> 센터별 예약 현황
-      </button>
-      <button class="nav-item" data-view="weekly">
-        <span class="nav-icon">▦</span> 주간 예약 현황
       </button>
       <button class="nav-item" data-view="stats">
         <span class="nav-icon">▲</span> 통계
@@ -57,12 +57,12 @@
   <main class="admin-main">
 
     <!-- ============ 예약 관리 ============ -->
-    <section id="view-dashboard" class="admin-view active">
+    <section id="view-dashboard" class="admin-view">
 
       <div class="admin-header">
         <div>
-          <h1>예약 관리</h1>
-          <p>전체 예약 현황을 확인하고 관리할 수 있습니다.</p>
+          <h1>예약 목록</h1>
+          <p>예약자·목적으로 검색할 수 있어요. 고정예약은 한 줄로 묶어서 보여줘요.</p>
         </div>
       </div>
 
@@ -240,11 +240,11 @@
     </section>
 
     <!-- ============ 주간 예약 현황 ============ -->
-    <section id="view-weekly" class="admin-view">
+    <section id="view-weekly" class="admin-view active">
       <div class="admin-header">
         <div>
           <h1>주간 예약 현황</h1>
-          <p>센터·공간을 선택하면 일~토 스케줄표로 볼 수 있어요.</p>
+          <p>예약을 누르면 상세보기·수정·삭제를 할 수 있어요.</p>
         </div>
       </div>
 
@@ -266,6 +266,7 @@
       <div class="list-card weekly-admin-card">
         <div class="weekly-admin-header">
           <strong id="weeklyAdminRange"></strong>
+          <div id="weeklyLegend" class="dept-legend"></div>
           <div class="weekly-navigation">
             <button id="weeklyPrev">‹</button>
             <button id="weeklyThisWeek">이번주</button>
@@ -396,7 +397,10 @@
       <button id="closeModal" class="modal-close">✕</button>
     </div>
     <div id="modalBody" class="modal-body"></div>
-    <button id="modalEditBtn" class="action-btn">예약수정</button>
+    <div class="modal-main-actions">
+      <button id="modalEditBtn" class="action-btn">예약수정</button>
+      <button id="modalDeleteBtn" class="action-btn delete" style="display:none;">예약삭제</button>
+    </div>
     <div id="modalRecurringActions" class="modal-recurring-actions" style="display:none;">
       <p id="modalRecurringInfo"></p>
       <div class="modal-recurring-buttons">
@@ -490,6 +494,6 @@
   </div>
 </div>
 
-<script src="admin.js?v=20261109"></script>
+<script src="admin.js?v=20261126"></script>
 </body>
 </html>

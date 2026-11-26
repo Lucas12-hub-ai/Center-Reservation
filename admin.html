@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>공간 예약 관리자</title>
-<link rel="stylesheet" href="admin.css?v=20261126">
+<link rel="stylesheet" href="admin.css?v=20261126b">
 </head>
 <body>
 
@@ -244,11 +244,22 @@
       <div class="admin-header">
         <div>
           <h1>주간 예약 현황</h1>
-          <p>예약을 누르면 상세보기·수정·삭제를 할 수 있어요.</p>
+          <p>예약을 누르면 상세보기·수정·삭제를 할 수 있어요. 월간에서는 날짜를 누르면 그날 예약이 오른쪽에 나와요.</p>
         </div>
       </div>
 
       <div class="filter-card">
+        <div class="filter-group">
+          <label>보기</label>
+          <div id="calModeToggle" class="mode-toggle" role="group" aria-label="보기 방식">
+            <button type="button" data-mode="week" aria-pressed="true">주간</button>
+            <button type="button" data-mode="month" aria-pressed="false">월간</button>
+          </div>
+        </div>
+        <div class="filter-group">
+          <label for="calJumpDate">날짜로 이동</label>
+          <input type="date" id="calJumpDate">
+        </div>
         <div class="filter-group">
           <label>센터</label>
           <select id="weeklyFilterCenter">
@@ -275,6 +286,14 @@
         </div>
 
         <div id="weeklyAdminCalendar" class="weekly-admin-calendar"></div>
+
+        <div id="monthlyAdminView" class="monthly-admin" hidden>
+          <div id="monthlyAdminGrid" class="month-grid"></div>
+          <aside class="month-day-panel" aria-live="polite">
+            <strong id="monthDayTitle"></strong>
+            <div id="monthDayList" class="month-day-list"></div>
+          </aside>
+        </div>
       </div>
     </section>
 
@@ -494,6 +513,6 @@
   </div>
 </div>
 
-<script src="admin.js?v=20261126"></script>
+<script src="admin.js?v=20261126b"></script>
 </body>
 </html>

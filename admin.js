@@ -1648,7 +1648,6 @@ function renderCenterView() {
 // 주간 예약 현황 (관리자)
 // ==========================================
 
-let weeklyAdminOffset = 0;
 
 function initWeeklyFilterOptions() {
   const centerSelect = document.getElementById("weeklyFilterCenter");
@@ -1690,14 +1689,26 @@ function updateWeeklyRoomOptions() {
   }
 }
 
-function getWeeklyAdminDates() {
-  const base = new Date();
-  base.setDate(base.getDate() + weeklyAdminOffset * 7);
+// 보기 상태: 주간 / 월간, 기준 날짜, 월간에서 선택한 날, '날짜로 이동'으로 고른 날
+let calMode = "week";
+let calAnchor = startOfDay(new Date());
+let calSelected = toDateString(new Date());
+let calJumped = "";
 
-  const day = base.getDay();
-  const start = new Date(base);
-  start.setDate(base.getDate() - day);
-  start.setHours(0, 0, 0, 0);
+function startOfDay(d) {
+  const x = new Date(d);
+  x.setHours(0, 0, 0, 0);
+  return x;
+}
+
+function parseDateStr(s) {
+  const [y, m, d] = String(s).split("-").map(Number);
+  return new Date(y, m - 1, d);
+}
+
+function getWeeklyAdminDates() {
+  const start = startOfDay(calAnchor);
+  start.setDate(start.getDate() - start.getDay());
 
   const dates = [];
   for (let i = 0; i < 7; i++) {
@@ -1708,7 +1719,57 @@ function getWeeklyAdminDates() {
   return dates;
 }
 
+// 센터·공간 필터를 적용한 기간 내 예약
+function getCalendarRows(startStr, endStr) {
+  const center = document.getElementById("weeklyFilterCenter").value;
+  const room = document.getElementById("weeklyFilterRoom").value;
+
+  return allReservations.filter(r => {
+    if (r.date < startStr || r.date > endStr) return false;
+    if (center && r.center !== center) return false;
+    if (room && r.room !== room) return false;
+    return true;
+  });
+}
+
+function rowsOnDate(rows, dateStr) {
+  return rows
+    .filter(r => r.date === dateStr)
+    .sort((a, b) => (a.start_time || "").localeCompare(b.start_time || ""));
+}
+
+// 예약 카드 (주간 표 · 월간 오른쪽 목록 공용) — 누르면 상세 창
+function makeReservationCard(r) {
+  const card = document.createElement("button");
+  card.type = "button";
+  card.className = `week-admin-reservation dept-${deptColorKey(r.department)}`;
+  card.title = "눌러서 상세보기·수정·삭제";
+  card.innerHTML = `
+    <div class="week-admin-reservation-time">${esc(r.start_time)} ~ ${esc(r.end_time)}${r.is_recurring ? ` <span class="week-admin-recurring" title="고정예약">🔁</span>` : ""}</div>
+    <div class="week-admin-reservation-name">${esc(r.center)} · ${esc(r.room)}</div>
+    <div class="week-admin-reservation-meta">${esc(r.user_name)} / ${esc(r.department)}</div>
+  `;
+  card.addEventListener("click", () => renderDetailView(r));
+  return card;
+}
+
 function renderWeeklyAdminView() {
+  const isMonth = calMode === "month";
+
+  document.querySelectorAll("#calModeToggle button").forEach(b => {
+    b.setAttribute("aria-pressed", b.dataset.mode === calMode ? "true" : "false");
+  });
+  document.getElementById("weeklyThisWeek").textContent = isMonth ? "이번달" : "이번주";
+  document.getElementById("weeklyPrev").setAttribute("aria-label", isMonth ? "이전 달" : "이전 주");
+  document.getElementById("weeklyNext").setAttribute("aria-label", isMonth ? "다음 달" : "다음 주");
+  document.getElementById("weeklyAdminCalendar").hidden = isMonth;
+  document.getElementById("monthlyAdminView").hidden = !isMonth;
+
+  if (isMonth) renderMonthlyView();
+  else renderWeekGrid();
+}
+
+function renderWeekGrid() {
   const dates = getWeeklyAdminDates();
   const startStr = toDateString(dates[0]);
   const endStr = toDateString(dates[6]);
@@ -1716,17 +1777,7 @@ function renderWeeklyAdminView() {
   document.getElementById("weeklyAdminRange").textContent =
     `${dates[0].getFullYear()}년 ${dates[0].getMonth() + 1}월 ${dates[0].getDate()}일 ~ ${dates[6].getMonth() + 1}월 ${dates[6].getDate()}일`;
 
-  const center = document.getElementById("weeklyFilterCenter").value;
-  const room = document.getElementById("weeklyFilterRoom").value;
-
-  const weekRows = allReservations.filter(r => {
-    if (r.date < startStr || r.date > endStr) return false;
-    if (center && r.center !== center) return false;
-    if (room && r.room !== room) return false;
-    return true;
-  });
-
-  const dayNames = ["일", "월", "화", "수", "목", "금", "토"];
+  const weekRows = getCalendarRows(startStr, endStr);
   const todayStr = toDateString(new Date());
 
   const calendar = document.getElementById("weeklyAdminCalendar");
@@ -1737,6 +1788,7 @@ function renderWeeklyAdminView() {
 
     const dayColumn = document.createElement("div");
     dayColumn.className = "week-admin-day";
+    if (dateStr === calJumped) dayColumn.classList.add("jumped");
 
     const header = document.createElement("div");
     header.className = "week-admin-day-header";
@@ -1745,34 +1797,18 @@ function renderWeeklyAdminView() {
     if (dateStr === todayStr) header.classList.add("today");
 
     header.innerHTML = `
-      <span class="day-name">${dayNames[index]}</span>
+      <span class="day-name">${DAY_NAMES[index]}</span>
       <span class="day-number">${date.getDate()}</span>
     `;
 
     const body = document.createElement("div");
     body.className = "week-admin-day-body";
 
-    const dayReservations = weekRows
-      .filter(r => r.date === dateStr)
-      .sort((a, b) => (a.start_time || "").localeCompare(b.start_time || ""));
-
+    const dayReservations = rowsOnDate(weekRows, dateStr);
     if (dayReservations.length === 0) {
       body.innerHTML = `<div class="week-admin-empty">예약 없음</div>`;
     }
-
-    dayReservations.forEach(r => {
-      const card = document.createElement("button");
-      card.type = "button";
-      card.className = `week-admin-reservation dept-${deptColorKey(r.department)}`;
-      card.title = "눌러서 상세보기·수정·삭제";
-      card.innerHTML = `
-        <div class="week-admin-reservation-time">${esc(r.start_time)} ~ ${esc(r.end_time)}${r.is_recurring ? ` <span class="week-admin-recurring" title="고정예약">🔁</span>` : ""}</div>
-        <div class="week-admin-reservation-name">${esc(r.center)} · ${esc(r.room)}</div>
-        <div class="week-admin-reservation-meta">${esc(r.user_name)} / ${esc(r.department)}</div>
-      `;
-      card.addEventListener("click", () => renderDetailView(r));
-      body.appendChild(card);
-    });
+    dayReservations.forEach(r => body.appendChild(makeReservationCard(r)));
 
     dayColumn.appendChild(header);
     dayColumn.appendChild(body);
@@ -1780,18 +1816,127 @@ function renderWeeklyAdminView() {
   });
 }
 
-document.getElementById("weeklyPrev").addEventListener("click", () => {
-  weeklyAdminOffset--;
-  renderWeeklyAdminView();
-});
+// ==========================================
+// 월간 보기: 날짜를 누르면 오른쪽에 그날 예약 목록
+// ==========================================
 
-document.getElementById("weeklyNext").addEventListener("click", () => {
-  weeklyAdminOffset++;
+const MONTH_CELL_MAX = 3;
+
+function renderMonthlyView() {
+  const year = calAnchor.getFullYear();
+  const month = calAnchor.getMonth();
+  const first = new Date(year, month, 1);
+  const last = new Date(year, month + 1, 0);
+
+  const gridStart = new Date(first);
+  gridStart.setDate(first.getDate() - first.getDay());
+  const gridEnd = new Date(last);
+  gridEnd.setDate(last.getDate() + (6 - last.getDay()));
+
+  document.getElementById("weeklyAdminRange").textContent = `${year}년 ${month + 1}월`;
+
+  const rows = getCalendarRows(toDateString(gridStart), toDateString(gridEnd));
+  const todayStr = toDateString(new Date());
+
+  // 선택한 날이 이 달이 아니면: 오늘(이 달일 때) 또는 1일
+  const monthPrefix = `${year}-${String(month + 1).padStart(2, "0")}`;
+  if (!calSelected.startsWith(monthPrefix)) {
+    calSelected = todayStr.startsWith(monthPrefix) ? todayStr : toDateString(first);
+  }
+
+  const grid = document.getElementById("monthlyAdminGrid");
+  grid.innerHTML = DAY_NAMES
+    .map((n, i) => `<div class="month-head${i === 0 ? " sun" : i === 6 ? " sat" : ""}">${n}</div>`)
+    .join("");
+
+  for (let d = new Date(gridStart); d <= gridEnd; d.setDate(d.getDate() + 1)) {
+    const dateStr = toDateString(d);
+    const dayRows = rowsOnDate(rows, dateStr);
+
+    const cell = document.createElement("button");
+    cell.type = "button";
+    cell.className = "month-cell";
+    cell.dataset.date = dateStr;
+    if (d.getMonth() !== month) cell.classList.add("other-month");
+    if (d.getDay() === 0) cell.classList.add("sun");
+    if (d.getDay() === 6) cell.classList.add("sat");
+    if (dateStr === todayStr) cell.classList.add("today");
+    if (dateStr === calSelected) cell.classList.add("selected");
+    cell.setAttribute("aria-label", `${formatDateDots(dateStr)} 예약 ${dayRows.length}건`);
+
+    const items = dayRows.slice(0, MONTH_CELL_MAX).map(r =>
+      `<span class="month-item dept-${deptColorKey(r.department)}">${esc(r.start_time)} ${esc(r.user_name)}${r.is_recurring ? " 🔁" : ""}</span>`
+    ).join("");
+    const more = dayRows.length > MONTH_CELL_MAX ? `<span class="month-more">+${dayRows.length - MONTH_CELL_MAX}건</span>` : "";
+
+    cell.innerHTML = `<span class="month-day">${d.getDate()}</span>${items}${more}`;
+    cell.addEventListener("click", () => {
+      calSelected = dateStr;
+      grid.querySelectorAll(".month-cell.selected").forEach(c => c.classList.remove("selected"));
+      cell.classList.add("selected");
+      renderMonthDayPanel(rows);
+    });
+    grid.appendChild(cell);
+  }
+
+  renderMonthDayPanel(rows);
+}
+
+function renderMonthDayPanel(rows) {
+  const dayRows = rowsOnDate(rows, calSelected);
+  document.getElementById("monthDayTitle").textContent = `${formatDateDots(calSelected)} 예약 ${dayRows.length}건`;
+
+  const list = document.getElementById("monthDayList");
+  list.innerHTML = "";
+  if (dayRows.length === 0) {
+    list.innerHTML = `<div class="week-admin-empty">예약 없음</div>`;
+    return;
+  }
+  dayRows.forEach(r => list.appendChild(makeReservationCard(r)));
+}
+
+// ==========================================
+// 주간/월간 전환 · 이동
+// ==========================================
+
+function moveCalendar(step) {
+  const next = new Date(calAnchor);
+  if (calMode === "month") {
+    next.setDate(1);
+    next.setMonth(next.getMonth() + step);
+  } else {
+    next.setDate(next.getDate() + step * 7);
+  }
+  calAnchor = next;
+  calJumped = "";
   renderWeeklyAdminView();
-});
+}
+
+document.getElementById("weeklyPrev").addEventListener("click", () => moveCalendar(-1));
+document.getElementById("weeklyNext").addEventListener("click", () => moveCalendar(1));
 
 document.getElementById("weeklyThisWeek").addEventListener("click", () => {
-  weeklyAdminOffset = 0;
+  calAnchor = startOfDay(new Date());
+  calSelected = toDateString(calAnchor);
+  calJumped = "";
+  document.getElementById("calJumpDate").value = "";
+  renderWeeklyAdminView();
+});
+
+document.querySelectorAll("#calModeToggle button").forEach(b => {
+  b.addEventListener("click", () => {
+    if (calMode === b.dataset.mode) return;
+    calMode = b.dataset.mode;
+    renderWeeklyAdminView();
+  });
+});
+
+document.getElementById("calJumpDate").addEventListener("change", (e) => {
+  const value = e.target.value;
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(value)) return;
+  calAnchor = parseDateStr(value);
+  calSelected = value;
+  calJumped = value;
   renderWeeklyAdminView();
 });
 

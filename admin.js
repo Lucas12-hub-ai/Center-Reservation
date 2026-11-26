@@ -205,7 +205,8 @@ const allRooms = [...new Set(Object.values(roomsByCenter).flat())];
 // ==========================================
 
 let allReservations = [];   // Supabase에서 불러온 전체 예약
-let filteredReservations = []; // 필터 적용된 결과
+let filteredReservations = []; // 필터 적용된 결과 (날짜별 개별 행, 엑셀 다운로드용)
+let listItems = [];            // 목록에 보이는 줄 (고정예약은 묶음 1줄)
 let currentPage = 1;
 let pageSize = 10;
 let selectedCenterCard = ""; // 센터별 현황 화면에서 선택된 센터
@@ -309,6 +310,48 @@ function formatDateLabel(dateString) {
   return `${dateString} (${days[d.getDay()]})`;
 }
 
+const DAY_NAMES = ["일", "월", "화", "수", "목", "금", "토"];
+
+// "2026-11-26" → "2026.11.26 (목)"
+function formatDateDots(dateString) {
+  if (!dateString) return "-";
+  const [y, m, d] = String(dateString).split("-").map(Number);
+  const day = DAY_NAMES[new Date(y, m - 1, d).getDay()];
+  return `${String(dateString).replace(/-/g, ".")} (${day})`;
+}
+
+// [2, 4] → "화·목" (월요일부터, 일요일은 맨 뒤)
+function weekdaysLabel(weekdays) {
+  if (!Array.isArray(weekdays)) return "";
+  return [...new Set(weekdays.map(Number).filter(n => Number.isInteger(n) && n >= 0 && n <= 6))]
+    .sort((a, b) => ((a + 6) % 7) - ((b + 6) % 7))
+    .map(n => DAY_NAMES[n])
+    .join("·");
+}
+
+// ==========================================
+// 부서별 색 (부서는 직접 입력이라 글자 포함 여부로 판단)
+// 새 부서 색이 필요하면 여기에 한 줄 추가
+// ==========================================
+
+const DEPT_COLORS = [
+  { key: "theology", label: "신학부", words: ["신학", "산학"] },
+  { key: "youth",    label: "청년회", words: ["청년"] },
+];
+const DEPT_OTHER = { key: "other", label: "기타" };
+
+function deptColorKey(department) {
+  const text = String(department || "");
+  const found = DEPT_COLORS.find(c => c.words.some(w => text.includes(w)));
+  return (found || DEPT_OTHER).key;
+}
+
+function renderDeptLegend(container) {
+  container.innerHTML = [...DEPT_COLORS, DEPT_OTHER]
+    .map(c => `<span class="dept-legend-item"><i class="dept-dot dept-${c.key}"></i>${esc(c.label)}</span>`)
+    .join("") + `<span class="dept-legend-item">🔁 고정예약</span>`;
+}
+
 // ==========================================
 // 요약 카드
 // ==========================================
@@ -410,6 +453,49 @@ function applyFilters() {
   renderTable();
 }
 
+// 목록에 보여줄 줄: 일반 예약은 1건 = 1줄, 고정예약은 같은 묶음(recurring_group_id)을 1줄로
+// 묶음 안 날짜 중 하나라도 필터에 맞으면 그 묶음을 보여준다
+function buildListItems(rows, dateFilter) {
+  const items = [];
+  const seriesIndex = new Map();
+
+  rows.forEach(r => {
+    if (!(r.is_recurring && r.recurring_group_id)) {
+      items.push({ type: "single", r, sortDate: r.date || "", sortTime: r.start_time || "" });
+      return;
+    }
+    if (seriesIndex.has(r.recurring_group_id)) return;
+
+    const all = allReservations
+      .filter(item => item.recurring_group_id === r.recurring_group_id)
+      .sort((a, b) => (a.date || "").localeCompare(b.date || "") || (a.start_time || "").localeCompare(b.start_time || ""));
+
+    const upcoming = all.filter(isUpcomingReservation);
+    const pick =
+      (dateFilter && all.find(item => item.date === dateFilter)) ||
+      upcoming[0] ||
+      all[all.length - 1] ||
+      r;
+
+    const item = {
+      type: "series",
+      r: pick,
+      all,
+      first: all[0] || r,
+      last: all[all.length - 1] || r,
+      upcomingCount: upcoming.length,
+      sortDate: pick.date || "",
+      sortTime: pick.start_time || ""
+    };
+    seriesIndex.set(r.recurring_group_id, item);
+    items.push(item);
+  });
+
+  // 최근(미래) 날짜가 위로
+  items.sort((a, b) => b.sortDate.localeCompare(a.sortDate) || b.sortTime.localeCompare(a.sortTime));
+  return items;
+}
+
 function resetFilters() {
   document.getElementById("filterDate").value = "";
   document.getElementById("filterCenter").value = "";
@@ -431,28 +517,44 @@ function renderTable() {
   const tbody = document.getElementById("tableBody");
   tbody.innerHTML = "";
 
-  document.getElementById("listTitle").textContent = `예약 목록 (총 ${filteredReservations.length}건)`;
+  listItems = buildListItems(filteredReservations, document.getElementById("filterDate").value);
 
-  if (filteredReservations.length === 0) {
-    tbody.innerHTML = `<tr class="empty-row"><td colspan="13">조건에 맞는 예약이 없습니다.</td></tr>`;
+  const seriesCount = listItems.filter(item => item.type === "series").length;
+  document.getElementById("listTitle").textContent =
+    `예약 목록 (총 ${listItems.length}건${seriesCount ? ` · 고정예약 ${seriesCount}건은 묶어서 표시` : ""})`;
+
+  if (listItems.length === 0) {
+    tbody.innerHTML = `<tr class="empty-row"><td colspan="14">조건에 맞는 예약이 없습니다.</td></tr>`;
     renderPagination();
     return;
   }
 
-  const totalPages = Math.max(1, Math.ceil(filteredReservations.length / pageSize));
+  const totalPages = Math.max(1, Math.ceil(listItems.length / pageSize));
   if (currentPage > totalPages) currentPage = totalPages;
 
   const start = (currentPage - 1) * pageSize;
-  const pageItems = filteredReservations.slice(start, start + pageSize);
+  const pageItems = listItems.slice(start, start + pageSize);
 
-  pageItems.forEach((r, index) => {
+  pageItems.forEach((item, index) => {
+    const r = item.r;
+    const isSeries = item.type === "series";
     const tr = document.createElement("tr");
-    const typeLabel = r.is_recurring
-      ? `<span class="type-badge recurring">고정 ${esc(r.recurring_months)}개월</span>`
-      : `<span class="type-badge single">일회성</span>`;
+    if (isSeries) tr.classList.add("series-row");
+
+    const days = weekdaysLabel(r.recurring_weekdays);
+    const typeLabel = isSeries
+      ? `<span class="type-badge recurring">🔁 고정${days ? ` · 매주 ${days}` : ""} · 총 ${item.all.length}회</span>`
+      : r.is_recurring
+        ? `<span class="type-badge recurring">고정 ${esc(r.recurring_months)}개월</span>`
+        : `<span class="type-badge single">일회성</span>`;
+
+    const dateCell = isSeries
+      ? `${formatDateDots(item.first.date)} ~<br>${formatDateDots(item.last.date)}`
+      : formatDateLabel(r.date);
+
     tr.innerHTML = `
-      <td>${filteredReservations.length - (start + index)}</td>
-      <td>${formatDateLabel(r.date)}</td>
+      <td>${listItems.length - (start + index)}</td>
+      <td>${dateCell}</td>
       <td>${esc(r.start_time)} ~ ${esc(r.end_time)}</td>
       <td>${esc(r.center)}</td>
       <td>${esc(r.room)}</td>
@@ -465,30 +567,19 @@ function renderTable() {
       <td>${esc(r.purpose)}</td>
       <td>${formatDateTime(r.created_at)}</td>
       <td>
-        <button class="action-btn detail" data-id="${esc(r.id)}">상세</button>
-        <button class="action-btn delete" data-id="${esc(r.id)}">삭제</button>
+        <button class="action-btn detail">상세</button>
+        <button class="action-btn delete">${isSeries ? "남은 일정 삭제" : "삭제"}</button>
       </td>
     `;
+
+    tr.querySelector(".action-btn.detail").addEventListener("click", () => renderDetailView(r));
+    tr.querySelector(".action-btn.delete").addEventListener("click", () => {
+      if (isSeries) deleteRecurringSeries(r.recurring_group_id, item.upcomingCount);
+      else deleteReservation(r.id);
+    });
+
     tbody.appendChild(tr);
   });
-
-  tbody.querySelectorAll(".action-btn.detail").forEach(btn => {
-  btn.addEventListener("click", () => {
-    const reservation = allReservations.find(
-      item => String(item.id) === String(btn.dataset.id)
-    );
-
-    if (reservation) {
-      renderDetailView(reservation);
-    }
-  });
-});
-
-tbody.querySelectorAll(".action-btn.delete").forEach(btn => {
-  btn.addEventListener("click", () => {
-    deleteReservation(btn.dataset.id);
-  });
-});
 
   renderPagination();
 }
@@ -497,7 +588,7 @@ function renderPagination() {
   const pagination = document.getElementById("pagination");
   pagination.innerHTML = "";
 
-  const totalPages = Math.max(1, Math.ceil(filteredReservations.length / pageSize));
+  const totalPages = Math.max(1, Math.ceil(listItems.length / pageSize));
 
   const makeBtn = (label, page, disabled, active) => {
     const btn = document.createElement("button");
@@ -533,7 +624,7 @@ function renderDetailView(r) {
     <div class="modal-row"><span>공간</span><strong>${esc(r.room)}</strong></div>
     <div class="modal-row"><span>날짜</span><strong>${formatDateLabel(r.date)}</strong></div>
     <div class="modal-row"><span>시간</span><strong>${esc(r.start_time)} ~ ${esc(r.end_time)}</strong></div>
-    <div class="modal-row"><span>예약유형</span><strong>${r.is_recurring ? `고정 사용 · ${esc(r.recurring_months)}개월` : "일회성 사용"}</strong></div>
+    <div class="modal-row"><span>예약유형</span><strong>${r.is_recurring ? `고정 사용 · ${esc(r.recurring_months)}개월${weekdaysLabel(r.recurring_weekdays) ? ` · 매주 ${weekdaysLabel(r.recurring_weekdays)}` : ""}` : "일회성 사용"}</strong></div>
     <div class="modal-row"><span>인원</span><strong>${esc(r.people)}명</strong></div>
     <div class="modal-row"><span>예약자</span><strong>${esc(r.user_name)}</strong></div>
     <div class="modal-row"><span>부서</span><strong>${esc(r.department)}</strong></div>
@@ -548,6 +639,14 @@ function renderDetailView(r) {
   editBtn.onclick = () => renderDetailEditForm(r);
 
   const recurringActions = document.getElementById("modalRecurringActions");
+  const deleteBtn = document.getElementById("modalDeleteBtn");
+
+  // 고정예약은 아래 '이 날짜만 삭제 / 남은 일정 삭제'를 쓰고, 일반 예약은 여기서 바로 삭제
+  deleteBtn.style.display = (r.is_recurring && r.recurring_group_id) ? "none" : "";
+  deleteBtn.onclick = () => {
+    document.getElementById("detailModal").classList.remove("show");
+    deleteReservation(r.id);
+  };
 
   if (r.is_recurring && r.recurring_group_id) {
     const series = allReservations.filter(item => item.recurring_group_id === r.recurring_group_id);
@@ -700,8 +799,9 @@ function renderDetailEditForm(r) {
     ` : ""}
   `;
 
-  // 수정 모드에서는 수정버튼/시리즈삭제 버튼 숨김
+  // 수정 모드에서는 수정버튼/삭제버튼/시리즈삭제 버튼 숨김
   document.getElementById("modalEditBtn").style.display = "none";
+  document.getElementById("modalDeleteBtn").style.display = "none";
   document.getElementById("modalRecurringActions").style.display = "none";
 
   // 센터를 바꾸면 그 센터의 공간 목록으로 갱신
@@ -1661,13 +1761,16 @@ function renderWeeklyAdminView() {
     }
 
     dayReservations.forEach(r => {
-      const card = document.createElement("div");
-      card.className = "week-admin-reservation";
+      const card = document.createElement("button");
+      card.type = "button";
+      card.className = `week-admin-reservation dept-${deptColorKey(r.department)}`;
+      card.title = "눌러서 상세보기·수정·삭제";
       card.innerHTML = `
-        <div class="week-admin-reservation-time">${esc(r.start_time)} ~ ${esc(r.end_time)}</div>
+        <div class="week-admin-reservation-time">${esc(r.start_time)} ~ ${esc(r.end_time)}${r.is_recurring ? ` <span class="week-admin-recurring" title="고정예약">🔁</span>` : ""}</div>
         <div class="week-admin-reservation-name">${esc(r.center)} · ${esc(r.room)}</div>
         <div class="week-admin-reservation-meta">${esc(r.user_name)} / ${esc(r.department)}</div>
       `;
+      card.addEventListener("click", () => renderDetailView(r));
       body.appendChild(card);
     });
 
@@ -1830,6 +1933,8 @@ async function init() {
 
   renderSummary();
   renderTable();
+  renderDeptLegend(document.getElementById("weeklyLegend"));
+  renderWeeklyAdminView();
 }
 
 init();
